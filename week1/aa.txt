@@ -1,4 +1,0 @@
-hello
-python
-我是谁？
-我在哪？
