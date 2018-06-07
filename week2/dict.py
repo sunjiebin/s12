@@ -24,3 +24,5 @@ for v in aa.values():
 for k,v in aa.items():
     print(k)
     print(v)
+
+    dict
