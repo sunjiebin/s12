@@ -47,5 +47,18 @@ s3.discard('mi')
 s3.add('bin')
 print(s3)
 s3.remove('sun')
-print('s3 remove后的值为',s3)
+print('s3 remove后的值为%s' %s3)
 #s3.remove('sun')
+s3=set(['sun','jie','bin'])
+print(s3)
+s4={'mi','sun','luo'}
+s5={'luo','mi'}
+print('判断s3是否与s4没有交集',s3.isdisjoint(s4))
+print('判断s3是否与s5没有交集',s3.isdisjoint(s5))
+#&交集 |合集 -补集
+print('s3与s4交集',s3&s4)
+print('s3与s4并集',s3|s4)
+print('s3与s4补集,相当于减法',s3-s4)
+#对称差分：找出两个结合中，只属于集合a或者集合b的元素
+print('s3与s4对称拆分%s'%(s3^s4))
+
