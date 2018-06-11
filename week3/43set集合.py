@@ -29,3 +29,23 @@ print(s2)
 #正确的写法如下
 s2.difference_update(['sun'])
 print(s2)
+#intersection取交集
+s3={'sun','jie','mi'}
+print(s2.intersection(s3))
+print(s3.intersection(['jie','mi']))
+print(s2)
+print(s2.intersection(['jie']))
+print(s3)
+s3.intersection_update(['sun','mi'])
+print('s3取交集后更新值为 %s'%(s3))
+#discard删除元素，如果元素不存在不会报错
+#注意这样写(['mi'])是错误的
+s3.discard('mi')
+print('s3 discard删除之后的值为',s3)
+s3.discard('mi')
+#remove删除元素
+s3.add('bin')
+print(s3)
+s3.remove('sun')
+print('s3 remove后的值为',s3)
+#s3.remove('sun')
