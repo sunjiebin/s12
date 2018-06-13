@@ -49,6 +49,7 @@ print(s3)
 s3.remove('sun')
 print('s3 remove后的值为%s' %s3)
 #s3.remove('sun')
+#isdisjoint判断是否没有交集
 s3=set(['sun','jie','bin'])
 print(s3)
 s4={'mi','sun','luo'}
@@ -59,6 +60,24 @@ print('判断s3是否与s5没有交集',s3.isdisjoint(s5))
 print('s3与s4交集',s3&s4)
 print('s3与s4并集',s3|s4)
 print('s3与s4补集,相当于减法',s3-s4)
-#对称差分：找出两个结合中，只属于集合a或者集合b的元素
+#对称差分：找出两个集合中不相交的部分
 print('s3与s4对称拆分%s'%(s3^s4))
-
+#issubset判断是否是子集
+print(s5.issubset(s4))
+#issuperset判断是否是父集
+print(s4.issuperset(s5))
+#pop从集合里面拿出一个值并赋值给新的变量,原来的集合元素会减少。pop的取值是随机的
+s6=s4.pop()
+print('s6的值为',s6)
+print('s4的值为',s4)
+print('s5的值为%s' %(s5))
+#symmetric_differenc求差集，即两个集合不相交的部分,与^是一样的
+print(s4.symmetric_difference(s5))
+print(s4^s5)
+#symmetric_difference_update求差集并改变原有的变量
+print('s4求差集前的值为',s4)
+print(s4.symmetric_difference_update(s5))
+print('s4求差集后的值为%s'%(s4))
+#update更新元素到集合
+s4.update(['jie','bin'])
+print(s4)
