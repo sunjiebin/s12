@@ -81,3 +81,10 @@ print('s4求差集后的值为%s'%(s4))
 #update更新元素到集合
 s4.update(['jie','bin'])
 print(s4)
+#比较difference和symmetric_difference的区别
+s4=set(['sun','bin','jie'])
+s5={'sun','mi','luo'}
+print('s4的值为%s'%s4)
+print('s5的值为',s5)
+print('s4differences5',s4.difference(s5))
+print('s4 symmetric_difference s5',s4.symmetric_difference(s5))
