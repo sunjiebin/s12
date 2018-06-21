@@ -18,6 +18,7 @@ print(type(aa),aa)
 for bb,ee in aa:
     print('key is',bb,'value is',ee)
 
+obj=collections.Counter('adsfdlkjdfalkjdflkj')
 cc=obj.elements()
 print(cc)
 print(type(cc))
