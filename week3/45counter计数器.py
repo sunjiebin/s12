@@ -24,3 +24,5 @@ print(cc)
 print(type(cc))
 for d in cc:
     print(d)
+
+    dict
