@@ -16,7 +16,7 @@ mail()
 f=mail
 f()
 
-#return可以指定函数的返回值
+#return可以指定函数的返回值,返回值可以接收各种类型，当返回多个值的时候，会将返回的值装到一个元组里面
 #try的功能是如果try里面的代码有执行失败的，就会进入到except里面执行
 #即try里面的代码要是有错误，则执行ret=False
 def test():
@@ -29,6 +29,11 @@ def test():
     except Exception:
         ret=False
     return ret
+def test2():
+    print('测试返回多个return值')
+    return 1,'2',['a','b'],{'a':1,'b':2}
+x=test2()
+print(x)
 #执行函数，并将返回值赋值给result
 #如果函数里面没有定义return，那么返回值将是None
 result=test()
@@ -80,11 +85,11 @@ dd(a2='aa',a1=33,a3='bb')
 def ea(arg):
     print(arg,type(arg))
 ea([1,2,3,])
-#用*可以将输入的参数自动转换为元组
+#用*可以将输入的参数自动转换为元组，它接收的是位置参数
 def ee(*arg):
     print(arg,type(arg))
 ee(1,'a',22)
-#用**可以将输入的参数转换为字典
+#用**可以将输入的参数转换为字典,它接收的是关键字参数，如a='b'这种
 def ff(**arg):
     print(arg,type(arg))
 #注意写法为a=b，不是a:b
@@ -110,6 +115,32 @@ d={'a1':1,'a2':2}
 gg(l,d)
 #正确的做法是如下
 gg(*l,**d)
+
+#也可以这样组合，将单个参数与多个组合
+def aa(x,*bb):
+    print(x)
+    print(bb)
+#执行时会将1赋值给x，将后面的参数赋值给bb，并以元组的方式返回
+aa(1,2,3,'a',5)
+#注意下面的调用是错误的，因为有关键字，不会被接受
+#aa(1,a='b',b='c')
+
+def bb(x,**kwargs):
+    print(x)
+    print(kwargs)
+bb('sun',name='sun',name2='jie')
+#错误写法
+#bb('sun','jie')
+
+def cc(x,age=18,*args):
+    print(x,age,args)
+cc('name',1,'sun',2)
+
+def dd(x,age=18,*args,**kwargs):
+    print(x,age,args,kwargs)
+dd(1,2,3,4,a='b',c='d')
+#注意下面的参数传入，*args的位置出现的是c='d'，这个是关键字参数，是不被*arge识别的，所以args会为空
+dd('a','b',c='d',d='e')
 
 #0061 lambda写法
 #简单函数的简化写法
