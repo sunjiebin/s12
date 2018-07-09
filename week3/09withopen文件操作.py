@@ -6,7 +6,7 @@ with open('aa.txt','r') as f:
     for i in f:
         print(i)
 
-#下面的代码在读取aa2.txt时会报编码错误
+# #下面的代码在读取aa2.txt时会报编码错误
 # with open('aa.txt','r') as f, \
 #      open('aa2.txt','r') as j:
 #     print(f.readlines())    #用readlines读出来的是列表形式
@@ -16,10 +16,10 @@ with open('aa.txt','r') as f:
 就会报错，解决办法就是在读的时候也加上对应的utf-8编码，再读就不会报错了'''
 
 #下面在读取时加上了encoding，就不会报错了
-    with open('aa2.txt','r',encoding='utf-8') as a, open('aa3.txt','w') as b:
+with open('aa2.txt','r',encoding='utf-8') as a, open('aa3.txt','w') as b:
         for line in a:
             if 'sun' in line:
                 line=line.replace('sun','luo')
             b.write(line)
-    with open('aa3.txt','r') as c:
+with open('aa3.txt','r') as c:
         print('aa3.txt的内容为：',c.read())
