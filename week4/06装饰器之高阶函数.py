@@ -2,6 +2,7 @@
 # Python version: python3
 # Auther: sunjb
 
+
 def bar():
     print('in the bar!')
 #定义一个高阶函数test
@@ -42,16 +43,21 @@ def grandpa():
 grandpa()
 
 print('执行下一个函数'.center(50,'+'))
-
-
 def test3(func):
     print('this is test3')
     return func
 
-
 test3(bar)()
 
+print('一个真正的装饰器'.center(50,'+'))
+def test5(func):
+    def test4():
+        print('this is test4')
+        func()
+    return test4
 
+bar=test5(bar)
+bar()
 
 
 
