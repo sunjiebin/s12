@@ -49,6 +49,7 @@ def test3(func):
 
 test3(bar)()
 
+#08-08章节
 print('一个真正的装饰器'.center(50,'+'))
 def test5(func):
     def test4():
@@ -56,11 +57,25 @@ def test5(func):
         func()
     return test4
 
-bar=test5(bar)
+
+'''
+在test6函数上面加上@test5，代表test5是一个装饰器，
+相当于执行了test6=test5(test6)这个操作
+'''
+@test5
+def test6():
+    print('this is test6')
+
+'''下面的语句执行后，相当于上面的@test5，但要注意
+@test5是写在test6函数上面的，而下面的test6=test5(test6)
+要写在test6函数下面，否则会报错'''
+#test6=test5(test6)
+test6()
+
+def test8(func):
+    def test7():
+        print('test7')
+        func()
+    return test7
+bar=test8(bar)
 bar()
-
-
-
-
-
-
