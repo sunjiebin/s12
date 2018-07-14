@@ -2,6 +2,11 @@
 # Python version: python3
 # Auther: sunjb
 
+'''在执行with时，实际上是打开了一个文件句柄给f，
+for通过f打开文件读取，在for读取文件时，实际上是
+用的佚代器的方法去读的，循环一次读一行，而不是一
+次性将所有文件内容加载到内存再去读。
+'''
 with open('aa.txt','r') as f:
     for i in f:
         print(i)

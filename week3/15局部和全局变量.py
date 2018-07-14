@@ -24,3 +24,13 @@ def global_name():
 global_name()
 #在函数中运行后，发现函数外的变量也被改变
 print(school)
+
+'''注意全局变量与局部变量只针对字符串和数字生效
+对于列表等是不生效的'''
+alist=[1,2,'a']
+def test():
+    alist.append(5)
+    alist[1]='aa'
+
+test()
+print(alist)

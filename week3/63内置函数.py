@@ -14,6 +14,15 @@ print(all(((1,'a',2))))
 #注意空列表返回true
 print(all([]))
 
+fill('all的实际执行函数')
+def abc(a):
+    for i in a:
+        if not i:
+            return False
+        return True
+print(abc('1,2,3'))
+print(abc(['a',0,1,2]))
+
 #any
 #只要有一个元素为真，则返回真
 fill('any')
@@ -85,6 +94,22 @@ print(type(aa))
 print(type(eval(aa)))
 print(type(eval(bb)))
 
+#repr
+#将表达式转换为字符串
+#测试的时候注意不要直接打印值，因为这样看不出变量的类型
+#''会被省略掉，看起来什么都没变，实际已经变成了字符串
+fill('repr')
+aa2=[1,2,3]
+bb2={'aa':'b','a':3}
+print(type(repr(aa2)))
+print(type(repr(bb2)))
+print(type(repr(eval(aa))))
+aa3=repr(aa2)
+bb3=repr(bb2)
+print(aa3)
+print(aa2[0])
+print(aa3[0])
+
 #split
 #分割字符
 fill('split')
@@ -112,6 +137,15 @@ c=list(map(func,a))
 print(b)
 print(c)
 
+ret=map(lambda n:n*2,range(10))
+print(list(ret))
+#下面方法和上面方法等价
+ret2=(x*2 for x in range(10))
+print(list(ret2))
+#也可以这样
+ret3=[x*2 for x in range(10)]
+print(ret3)
+
 #filter 过滤
 '''
 用于对列表、元组等进行批量的过滤,
@@ -133,6 +167,9 @@ b=set(filter(func,a))
 c=tuple(filter(func,a))
 print(b,c)
 
+#筛选大于5的值
+print(list(filter(lambda n:n>5,range(10))))
+
 #format
 '''占位符'''
 fill('format')
@@ -141,10 +178,11 @@ aa='{1} name is {0}'
 print(aa.format('sun','my'))
 
 fill('二八十进制转换')
-#oct 八进制
+#oct 八进制，逢8进1
 print(oct(10))
-#hex 十六进制
+#hex 十六进制，逢16进1
 print(hex(10))
+print(hex(18))
 #bin 二进制
 print(bin(10))
 
@@ -166,11 +204,20 @@ print(round(-102.2))
 
 #sort 只对列表排序,只能对数字,会改变原列表
 #sorted 也是排序，但不仅仅只对列表，不改变原列表
+fill('sorted')
 aa=[522,3,-222,2.8]
 print(sorted(aa))
 print(aa)
 print(aa.sort(reverse=True))
 print(aa)
+#对字典排序
+a={8: 10, 1: 8, 2: 1, 3: 2}
+#对字典默认是拿出了key排序
+print(sorted(a))
+#拿出key和value，但以key排序
+print(sorted(a.items()))
+#拿出key和value，但以value排序
+print(sorted(a.items(),key=lambda x:x[1]))
 
 #zip 对多个列表/字典/元组等根据顺序依次合并成一个个元组
 #当每个变量里面的元素量不一样时，会取最少的那一个来输出
@@ -181,3 +228,66 @@ cc={2,3,88}
 dd=(('a',11,33,44))
 print(list(zip(aa,bb,cc,dd)))
 print(set(zip(aa,bb)))
+
+fill('reduce')
+#reduce在pyhton3里面要从functools里面导入才能用
+#它的功能就是累加累乘等
+from functools import reduce
+#实现1+2+3...+10
+res=reduce(lambda x,y:x+y,range(1,10))
+print(res)
+#实现累乘
+res=reduce(lambda x,y:x*y,range(1,10))
+print(res)
+
+#blobals这里不是指全局变量，而是指返回当前文件里面所有的变量值
+#globals会以字典的形式返回所有变量
+fill('globals')
+print(globals())
+#返回程序里面变量aa的值
+print(globals()['aa'])
+#返回程序里面res的值
+print(globals()['res'])
+
+#hash
+fill('hash')
+#hash用于对输入的字符进行hash
+print(hash(100))
+print(hash('helo'))
+print(hash('你好'))
+
+#locals 打印局部变量
+#在函数体内用locals会打印函数体里面所有变量，但不会显示全局变量
+#globals是始终只会打印全局变量，即使在函数里面定义了变量，也不会被打印
+fill('locals')
+def aa():
+    local_fun='abc'
+    print(locals())
+    print(globals().get('local_fun'))
+
+aa()
+
+#next 佚代器里面的next,只能用于佚代器
+a=(x for x in range(10))
+print(next(a))
+print(next(a))
+
+#pow 次方计算
+fill('pow')
+print(pow(2,3))
+print(pow(2,8))
+
+#slice 切片
+fill('slice')
+d=range(10)
+c=d[slice(2,5)]
+print(c)
+#和下面的方法是一样的
+print(d[2:5])
+
+#__import__() 导入一个字符串名的模块
+#如我们导入模块 import sys
+#__import__('ab')
+__import__('sys','os')
+
+

@@ -72,7 +72,7 @@ print(a.__next__())
 """
 
 #用下面的方法捕获异常
-
+print('循环并捕获异常'.center(50,'#'))
 #当一个函数有yield的存在时，它就变成了一个生成器了，而不是一个单纯的函数
 #return的返回则用来判断执行异常
 def fib2(num):
@@ -82,8 +82,21 @@ def fib2(num):
         a,b=b,a+b #等同于t=(b,a+b) a=t[0],b=t[1]
         n=n+1
         print('进入第%s次'%n)
-        return 'done'
+    return 'dong'
+'''一定要注意return的缩进，如果位于while循环体之内写
+    return，那么会导致while循环一次就退出了，因为循环
+    时遇到了return，则函数体就退出了，所以循环也就中止
+    了'''
+        #return 'dong'  #写这里是错误的，会让循环失效
+
 g=fib2(5)
+# g.__next__()
+# g.__next__()
+# g.__next__()
+# g.__next__()
+# g.__next__()
+# g.__next__()
+
 while True:
     try:
         x=next(g)
@@ -92,5 +105,44 @@ while True:
         print('当前返回值为',e)
         break
 
+print('生产者和消费者'.center(50,'#'))
+#send和next都可以调用生成器，但是send还可以给yield赋值
+import time
+def consumer(name):
+    print('%s来吃包子啦'%name)
+    while True:
+        baozi=yield
+        print('包子%s来了，被%s吃了！'%(baozi,name))
+    return 'done'
 
+'''这里要注意的是dd=consumer('sun)只是让dd变成一个生成器，
+此时并不会执行consumer('sun')，因为它已经不是函数了，而只
+有在执行next(dd)的时候，生成器才会开始执行'''
+dd=consumer('sun')
+next(dd)
+#注意send不能在第一次调用生成器时就执行，否则会报错。
+#第一次必需用next才行。
+dd.send('梅菜扣肉包')
+dd.send('肉包')
 
+def aa():
+    print('与生成器不同，函数在被变量引用时会被执行')
+'''注意函数和生成器的不同，在定义a=aa()时，实际上已经执行了
+aa()函数，而生成器则不会被执行'''
+a=aa()
+
+#循环并行示例
+def producer(name):
+    c=consumer('A')
+    c2=consumer('B')
+    c.__next__()
+    c2.__next__()
+    print('老子准备做包子啦')
+    for i in range(1,4):
+        time.sleep(1)
+        print('每秒做两个，一人一个')
+        c.send(i)
+        c2.send(i+1)
+producer('aa')
+'''通过上面的结果看上去就像是两个任务在并行一样，
+实际上是单线程'''
