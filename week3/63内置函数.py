@@ -285,6 +285,7 @@ print(c)
 #和下面的方法是一样的
 print(d[2:5])
 
+
 #__import__() 导入一个字符串名的模块
 #如我们导入模块 import sys
 #__import__('ab')
