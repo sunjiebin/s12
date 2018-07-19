@@ -24,10 +24,13 @@ def test2(func):
 print('执行test2并打印返回值'.center(50,'+'))
 print(test2(bar))
 print('重新定义bar'.center(50,'+'))
+'''实际上是获取了test2(bar)的返回值，即func的返内存地址,
+而func=bar，所以实际上是bar的内存地址。所以，下面的函数
+实际上是bar=bar，相当于什么都没有做'''
 bar=test2(bar)
 print('执行新定义的bar'.center(50,'+'))
 bar()
-
+print('结束'.center(50,'+'))
 '''函数的嵌套，注意每级嵌套函数都要有调用
 如果去掉dad()的调用，则函数实际不会执行任何操作
 '''
@@ -46,7 +49,10 @@ print('执行下一个函数'.center(50,'+'))
 def test3(func):
     print('this is test3')
     return func
-
+'''下面的执行方法相当于先执行了test3(bar),将
+test3函数体执行了一遍，然后又返回了func即bar函数
+的内存地址，然后再执行了bar()函数，所以实际上就是
+执行了test3和bar两个函数体'''
 test3(bar)()
 
 #08-08章节
