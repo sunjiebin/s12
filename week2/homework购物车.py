@@ -62,8 +62,13 @@ while True:
            else:
                print('你购买的商品为\n%s'%yourlist)
                print('你的钱还剩余:\033[31;1m%s\033[0m'%(salary))
-               print('你的钱不够啦，请结账')
-               exit()
+               charger=input('你的钱不够啦，请输入充值金额，否则退出')
+               if charger.isdigit():
+                   salary=salary+int(charger)
+                   print('充值成功，您的余额为\033[31;1m%s\033[0m'%salary)
+               else:
+                   print('欢迎下次光临')
+                   exit()
        else:
            print('你输入的商品不存在，请重新输入')
    elif choice is 'q':
@@ -79,6 +84,7 @@ while True:
            exit(0)
        else:
            print('本次购买不会生效')
+           exit()
    else:
        print('你输入的不正确，请重新输入')
 
