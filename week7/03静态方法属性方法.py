@@ -39,9 +39,9 @@ class Pig(object):
         print('%s is %s %s'%(self.name,action,self.food))
     def eat2(self,action):     #同样的函数，没有类方法，则构造函数里面的属性生效，优先级高于类里面的属性定义
         print('%s is %s %s'%(self.name,action,self.food))
-#e=Pig('sun','apple')
-#e.eat('eating')
-#e.eat2('eating')
+e=Pig('sun','apple')
+e.eat('eating')
+e.eat2('eating')
 
 #静态属性
 '''
@@ -56,7 +56,7 @@ class cat(object):
         self.name=name
         self.food=food
         self.action='playing'
-    @property   #静态属性方法
+    @property   #属性方法
     def eat(self):
         print('%s is %s %s'%(self.name,self.action,self.food))
     def play(self):
