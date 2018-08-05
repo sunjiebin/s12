@@ -87,3 +87,12 @@ except SunError as e:
     print('自定义异常出现',e)
 except MiError as e:
     print('MiError',e)
+
+'''assert断言用于判断字符类型是否为指定的类型，如果是的则通过继续
+执行下面的语句，如果不是的，则报错，下面的语句中断执行
+这个功能和if判断类似，只是写法更简洁点'''
+num=15
+assert type(num) is int
+print(num/2)
+assert type(num) is str
+print('num is str?')

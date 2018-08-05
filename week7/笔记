@@ -1,0 +1,32 @@
+
+family address
+    AF.INET  ipv4
+    AF.INET6 ipv6
+    AF.UNIX  local
+socket protocol type
+    socket SOCK_STREAM tcp/ip
+    socket SOCK_DGRAM  udp
+服务端：
+
+server=socket.socket(AF.INET,sock.SOCK_STREAM
+server.bind(localhost,8080)
+server.listen()
+    while True:
+    每进来一个连接，就会生成一个实例化的conn，所以每次连接要通过conn来连接
+    当客户端断开后，我们需要服务端继续服务的话，就要accept新的连接，所以这
+    时候应该跳到accept这里，让服务端接收新进来的连接
+    conn,addr=server.accept()  #阻塞  recv默认是阻塞的
+    while True:
+        print('new conn')
+        data=conn.recv(1024)
+        如果客户端断开，那么收到的就是空数字，会无限死循环，所以为了防止死循环，加下面的判断
+        if not data:
+            break
+        print(data)
+        conn.send(data.upper())
+
+客户端
+client=socket.socket
+client.connect(serverip,port)
+client.send(data)
+client recv(data)
