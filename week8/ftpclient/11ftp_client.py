@@ -8,12 +8,14 @@ class FtpClient(object):
         self.client=socket.socket()
     def help(self):
         msg='''
+        useage:
         ls
         pwd
         cd 
         get filename
         put filename
         '''
+        print(msg)
     def connect(self,ip,port):
         self.client.connect((ip,port))
     def interactive(self):
@@ -29,6 +31,7 @@ class FtpClient(object):
                 self.help()
     def put(self,*args):
         cmd_split=args[0].split()
+        print(cmd_split,args)
         if len(cmd_split)>1:
             filename=cmd_split[1]
             if os.path.isfile(filename):
