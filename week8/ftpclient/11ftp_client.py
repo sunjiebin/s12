@@ -56,8 +56,16 @@ class FtpClient(object):
             else:
                 print('%s is not exist'%filename)
 
-    def get(self):
-        pass
+    def get(self,*args):
+        cmd_split = args[0].split()
+        if len(cmd_split)>1:
+            filename=cmd_split[1]
+            msg_dic={
+                "action":"get",
+                "filename":filename,
+                "Overridden":True
+            }
+            self.client.send(json.dumps(msg_dic).encode())
 
 ftp=FtpClient()
 ftp.connect('localhost',6900)
