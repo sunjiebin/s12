@@ -11,7 +11,7 @@ sel=selectors.DefaultSelector()
 
 def accept(server, mask):
     conn,addr=server.accept()
-    print(conn,addr,mask)
+    print('accept',conn,addr,mask)
     conn.setblocking(False)
     sel.register(conn,selectors.EVENT_READ,read)
 
@@ -35,7 +35,8 @@ sel.register(server, selectors.EVENT_READ, accept)
 
 while True:
     events=sel.select()
-    print(events)
+    print('events',events)
     for key,mask in events:
         callback=key.data
+        print('callback',callback)
         callback(key.fileobj,mask)
