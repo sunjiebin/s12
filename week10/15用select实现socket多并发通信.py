@@ -30,7 +30,7 @@ inputs是你要监听的列表。
 '''当select监测到有数据到来时，会返回三个数据
 readable是活动的数据列表，一开始新来的连接就会返回在这里。
 writeable 是监测outputs的输入，当outputs里面输入数据时，select会立刻监测到，并输出到这个变量
-exceptional 这个代表有异常的就会出现在这里，比如100个连接有2个异常了，就会输出到这个变量里面
+exceptional 这个代表有异常的就会出现在这里，比如100个连接有2个异常了，就会输出到这个变量里面（未验证）
 '''
 while True:     #我们需要让select循环监听，如果不用while循环，那么程序触发一次就结束了，不会持续监听
     readable,writeable,exceptional=select.select(inputs,outputs,inputs)
@@ -41,7 +41,7 @@ while True:     #我们需要让select循环监听，如果不用while循环，�
         if r is server: #代表来了一个新连接，注意这里是is,不是=，因为server是一个实例。
             conn,addr=server.accept()
             print('来了个新连接',addr)
-            print(conn,addr)
+            # print(conn,addr)
             '''由于我们前面使用了非阻塞模式，所以不会等待客户端传数据过来，这时候我们如果用conn.recv收数据，
             则会报错，因为此时客户端并没有传数据过来'''
             #print('recieve data:',conn.recv(1024))
@@ -53,21 +53,45 @@ while True:     #我们需要让select循环监听，如果不用while循环，�
             '''将建立好的连接放入一个字典的key里面，value为一个队列'''
             msg_dic[conn]=queue.Queue()
         else:
-            data=r.recv(1024)
-            print('收到数据',data)
-            msg_dic[r].put(data)
-            #r.send(data)
-            #print('发送成功',data)
-            outputs.append(r)
+            '''try语句是为了解决windows下，当客户端断开连接时，程序会直接抛出异常，利用try捕获异常，并清除客户端连接'''
+            try:
+                data=r.recv(1024)
+                print(data)
+                '''if语句是为了解决在linux下，当客户端断开连接时，data会为空，而不会抛异常，此时server则需要清除客户端连接数据'''
+                if data:
+                    print('收到数据',data)
+                    msg_dic[r].put(data)
+                    #r.send(data)
+                    #print('发送成功',data)
+                    outputs.append(r)
+                else:
+                    print('客户端断开连接',r)
+                    if r in outputs:
+                        outputs.remove(r)
+                    inputs.remove(r)
+                    r.close()
+                    del msg_dic[r]
+            except Exception as e:  #处理windows下客户端断开后的异常
+                print(e)
+                print('客户端断开连接',r)
+                if r in outputs:
+                    outputs.remove(e)
+                r.close()
+                inputs.remove(r)
+                del msg_dic[r]
+
     for w in writeable: #要返回给客户端的连接列表
         print('测试')
         send_data=msg_dic[w].get()
         w.send(send_data)
         outputs.remove(w)   #确保下次循环时不再返回已经返回过的数据
         print('发送成功',send_data)
+    '''注意下面这段exceptional代码实际上一直不会被执行，不管在哪个环境下，
+    客户端断开连接都不会触发exceptional，所以这个有什么用至今未知'''
     for e in exceptional:
         print(e)
         if e in outputs:
             outputs.remove(e)
+        e.close()
         inputs.remove(e)
         del msg_dic[e]

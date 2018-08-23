@@ -2,10 +2,6 @@
 # Python version: python3
 # Auther: sunjb
 
-#!/usr/bin/env python
-# Python version: python3
-# Auther: sunjb
-
 import os,socket
 client=socket.socket()
 client.connect(('localhost',6900))
