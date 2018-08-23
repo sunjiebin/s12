@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Python version: python3
 # Auther: sunjb
 
@@ -16,8 +16,14 @@ while True:
 
     while True:
         data=conn.recv(1024)
-        if not data:break
+        '''注意if not data这个仅在linux下生效，在windows下，当客户端断开连接时，
+        conn.recv直接就会报错了，所以根本不会走到if语句这里，如果要让代码兼容windows,
+        建议用try,except的方式来捕获并处理异常,但linux下try方法又不适用
+        所以，在windows下用try，在linux下用if not data'''
+        if not data:
+            print('客户端断开连接')
+            break
         #print('recv:',data)
         print('recv:',data.decode())
         conn.send(data.upper())
-server.close()
+    conn.close()
