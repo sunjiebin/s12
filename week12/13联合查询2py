@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+# Python version: python3
+# Auther: sunjb
+
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column,Index,Integer,UniqueConstraint,String,DATE,Enum,ForeignKey
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker,relationship
+
+engine=create_engine("mysql+pymysql://root:sunjiebin@localhost:3306/sun",encoding='utf-8',max_overflow=5)
+Base=declarative_base()
+
+class Student(Base):
+    __tablename__ = 'student'     #表名
+    '''注意：下面建表语句中的Interger,String,DATA等列的类型都要在上面import导入，否则会报错
+    '''
+    id = Column(Integer, primary_key=True,autoincrement=True)  #Column,Interger都是通过上面import导入的
+    name = Column(String(32),nullable=False)
+    regester_date = Column(DATE,nullable=False)
+    gender=Column(Enum("M","F"),nullable=False)
+
+    __table_args__ = (
+        Index('ix_id_name', 'name'),
+    )
+
+    def __repr__(self):
+        return "<%s name: %s>" %(self.id,self.name)
+
+class StudentRecord(Base):
+    __tablename__='student_record'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    day=Column(Integer,nullable=False)
+    status=Column(String(32),nullable=False)
+    stu_id=Column(Integer,ForeignKey('student.id'))
+    '''定义了relationship后，就可以实现两个表之间的联合查询了，
+    StudentRecord可以通过student来调用Student里面的表的查询，
+    Student能够通过backref里面定义的字段my_student_record来反向
+    查询student_record表里面的数据。这样就实现了两个表之间互相查询
+    注意导入的方法是从sqlalchemy.orm导入
+    '''
+    student=relationship('Student',backref='my_student_record')
+    def __repr__(self):
+        '''当定义了上面的relationship之后，就可以直接调用定义的student，
+       self.student.name将返回student表的name，注意self.student里面的student是指我们
+       定义的关键字student，而不是student表名。'''
+        return "<name:%s day:%s status:%s>" %(self.student.name,self.day,self.status)
+
+Base.metadata.create_all(engine)
+Session_class=sessionmaker(bind=engine)
+Session=Session_class()
+#查询student表里面的s1,s2
+stu_obj=Session.query(Student).filter(Student.name=='s1').first()
+stu_obj2=Session.query(Student).filter(Student.name=='s2').first()
+'''返回时调用了my_student_record，所以这时候就会关联查询student_record表，
+并返回函数StudentRecord里面定义的return内容。实现关联查询
+'''
+#实现同时返回两个表的数据，如student表的学员名称，student_record的学习记录
+print(stu_obj.my_student_record)
+'''如果不调用backref，则返回Student函数本身要返回的内容'''
+print(stu_obj2)

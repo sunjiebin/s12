@@ -10,8 +10,8 @@ from sqlalchemy import create_engine
 sqlalchemy底层会调用pymysql来完成封装，这里要指定mysql+pymysql代表底层调用pymysql
 echo=True会把所有的执行过程打印出来，如果不加就不会打印执行过程
 '''
-engine = create_engine("mysql+pymysql://root:123456@127.0.0.1:3306/sun", encoding='utf-8',echo=True,max_overflow=5)
-
+engine = create_engine("mysql+pymysql://root:sunjiebin@127.0.0.1:3306/sun", encoding='utf-8',max_overflow=5)
+#engine = create_engine("mysql+pymysql://root:sunjiebin@127.0.0.1:3306/sun", encoding='utf-8',echo=True,max_overflow=5)
 Base = declarative_base()       #生成基类
 
 
@@ -24,7 +24,7 @@ class Users(Base):
 
     __table_args__ = (
         UniqueConstraint('id', 'name', name='uix_id_name'),
-        Index('ix_id_name', 'name', 'extra'),
+        Index('ix_id_name', 'name'),
     )
 
 '''上面的操作只是定义了创建表，并不会执行创建表，下面的语句才是调用engin连上mysql执行创建操作
@@ -39,6 +39,10 @@ Session=Session_class() #对类实例化,相当于pymysql里面的cursor
 user_obj=Users(name='alex',password='alex123')  #生成要创建的数据对象
 user_obj2=Users(name='sun',password='223344')
 print(user_obj.name,user_obj.id)    #此时对象还未创建，所以id还不存在，打印不Null
-Session.add(user_obj,user_obj2)   #把要创建的数据对象添加到session里面，一会统一创建
+#Session.add(user_obj,user_obj2)   #注意这个写法是错误的,会导致只会插入最前面的user_obj,如果要插入多条，就要写多行
+Session.add(user_obj)   #把要创建的数据对象添加到session里面，一会统一创建
+Session.add(user_obj2)
+#插入多条数据
+Session.add_all([Users(name='ALI',password='alex123'),Users(name='wupeiqi',password='alex123')])
 Session.commit()    #提交执行结果，此时数据才被真正的创建
 print(user_obj.name,user_obj.id)

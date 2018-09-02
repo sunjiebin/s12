@@ -4,7 +4,7 @@
 
 import pymysql
 #创建连接
-conn=pymysql.connect(host='localhost',port=3306,user='root',passwd='123456',db='sun')
+conn=pymysql.connect(host='localhost',port=3306,user='root',passwd='sunjiebin',db='sun')
 #创建游标
 cursor=conn.cursor()
 #执行sql,并返回影响行数
@@ -32,7 +32,7 @@ row_1 = cursor.fetchone()
 # 获取前n行数据
 # row_2 = cursor.fetchmany(3)
 # 获取所有数据
-# row_3 = cursor.fetchall()
+#row_3 = cursor.fetchall()
 
 # 关闭游标
 cursor.close()
