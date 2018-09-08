@@ -1,0 +1,11 @@
+alex:
+  password: 123
+#  group:
+#    - web_server
+#    - db_server
+#  bind_hosts:
+#    - h1
+#    - h2
+#    - h3
+jack:
+  password: 123~d#

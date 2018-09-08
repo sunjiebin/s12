@@ -1,0 +1,43 @@
+bind1:
+  hostname: web server
+  remote_users:
+    - user1:
+      username: root
+      auth_type: ssh-key
+    - user2:
+      username: alex
+      auth_type: ssh-password
+      password: alex3714
+  groups:
+    - bj_group
+  user_profiles:
+    - alex
+    - jack
+bind2:
+  hostname: server1
+  remote_users:
+    - user1:
+      username: root
+      auth_type: ssh-password
+      password: abcde
+  groups:
+    - bj_group
+    - sh_group
+
+
+
+#bind1 {
+#	'user_profiles': ['alex', 'jack'],
+#	'groups': ['bj_group'],
+#	'remote_users': [{
+#		'user1': None,
+#		'username': 'root',
+#		'auth_type': 'ssh-key'
+#	}, {
+#		'auth_type': 'ssh-password',
+#		'username': 'alex',
+#		'user2': None,
+#		'password': 'alex3714'
+#	}],
+#	'hostname': 'web server'
+#}
