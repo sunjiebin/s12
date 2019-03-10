@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>表单提交</title>
+</head>
+<body>
+<form enctype="multipart/form-data">
+    <div>
+        <!-- 单选radio,name必须相同,这样才能单选 checked表示默认选中-->
+        <p>请选择性别</p>
+        男:<input type="radio" name="sex" value="1" checked="checked">
+        女:<input type="radio" name="sex" value="2">
+        <!-- input type="submit" value="提交"-->
+    </div>
+    <div>
+        <!-- 多选checkbox name相同,提交的结果会以列表的形式提交-->
+        <p>请选择爱好</p>
+        打球:<input type="checkbox" name="favor" value="1">
+        游泳:<input type="checkbox" name="favor" value="2">
+        跑步:<input type="checkbox" name="favor" value="3" checked>
+        <p>技能</p>
+        编程:<input type="checkbox" name="skill" value="a"/>
+        运维:<input type="checkbox" name="skill" value="b"/>
+        <!-- 上传文件file,注意要在form表单中开启multipart/form-data选项,否则就算选定了文件也无法提交-->
+        <p>上传文件</p>
+        <input type="file" name="fname"/>
+    </div>
+    <input type="submit" value="提交"/>
+    <input type="reset" value="重置"/>
+</form>
+</body>
+</html>

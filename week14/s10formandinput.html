@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" http-equiv="refresh" content="10">
+    <title>body标签讲解</title>
+</head>
+<body>
+   <!-- form表单,可以将输入的东西提交,下面表示将数据提交到指定的url,提交方式get-->
+   <!-- 请求方式为get时,数据会在Url里面发送过去,如果用post,数据放在body里面发送,两者安全性其实没区别-->
+    <form action="http://localhost:8888/index" method="get">
+         <!-- input 行内标签 name这个要写上,提交的数据就是字典.{user:aa,pwd:bb}-->
+        <input type="text" name="user">
+        <input type="password" name="pwd">
+        <!-- button是不能提交表单的,如果要提交数据要用submit-->
+        <input type="button" value="登录"/>
+        <input type="submit" value="登录2"/>
+    </form>
+    <br>
+   <!-- 将表单数据提交到sogou搜索的网站-->
+    <form action="http://www.sogou.com/web" method="get">
+        <input type="text" name="query">
+        <br>
+        <span>这个数据是不会被提交上去的,只有input才会被提交到表单</span>
+        <br>
+        <input type="password" name="pwd">
+        <input type="submit" value="搜狗搜索">
+    </form>
+</body>
+</html>
