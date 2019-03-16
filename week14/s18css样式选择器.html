@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>css样式选择器</title>
+    <!--style代表css样式定义区域,注意在css中,注释使用/*,而不是html的注释方式,如果用注释用错,会导致后面代码出错-->
+    <!--样式的优先级:如果样式属性有重叠出现,那么下面定义的会覆盖代码上面定义的样式,如果标签本身也有样式属性,那么标签内部样式优先-->
+    <style>
+        /*--class选择器--,以点开头的,代表对应的class名词*/
+        .c1 {
+            background: antiquewhite;
+            background-color: grey;
+            height: 48px;
+        }
+
+        /*标签选择器,可以对某一类标签来操作,如div span等标签*/
+        div {
+            background-color: red;
+            height: 30px;
+        }
+
+        /*层级选择器(空格),可以匹配到多级里面对应的标签,只有符合该层级关系的才会被匹配,相当于筛选过滤*/
+        .c1 .c2 div {
+            background: #000000;
+            line-height: 20px;
+            height: 20px;
+            font-style: initial;
+            font-size: small;
+            color: aliceblue;
+        }
+
+        /*组合选择器(逗号),可以同时定义多个标签属性,如c3,c4,span的都用这个样式*/
+        .c3, .c4, span {
+            background-color: aqua;
+            height: 20px;
+        }
+        /*属性选择器,会匹配class为c4,且里面有n=sun属性的标签*/
+        .c4[n="sun"]{background-color: aliceblue;font-size: 30px}
+    </style>
+</head>
+<body>
+<div class="c1">应用样式c1</div>
+<div>应用默认div标签选择器样式</div>
+<br>
+<!--此处应用c1样式-->
+<div class="c1">
+    <!--此处应用默认的div样式-->
+    <div class="c2">
+        <!--此处匹配到层级样式-->
+        <div>此处应用的是层级选择器</div>
+    </div>
+</div>
+<br/>
+<div class="c3">应用了组合选择器</div>
+<br/>
+<div class="c1">
+    应用了c1样式
+    <br/>
+    <span>应用了组合选择器</span>
+</div>
+<div class="c4" n="sun">应用到属性选择器样式</div>
+<br/>
+<div class="c4">应用到组合c4样式</div>
+</body>
+</html>

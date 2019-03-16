@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>表头及合并单元格</title>
+</head>
+<body>
+<table border="1">
+    <!--thead代表表头部分.里面tr/th-->
+    <thead style="border: aqua">
+    <tr>
+        <th>主机名</th>
+        <th>IP</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>salt</td>
+        <td>172.16.0.1</td>
+        <td>详情</td>
+    </tr>
+    <tr>
+        <!--colspan=2代表合并两列,那么第三列就要相应的删除,否则会溢出表格-->
+        <td>ansible</td>
+        <td colspan="2">172.16.0.3</td>
+        <!--<td>详情</td>-->
+    </tr>
+    <tr>
+        <!--rowspan=2代表合并上下两列,那么下一行的对应列就要删除-->
+        <td rowspan="2">jenkins</td>
+        <td>172.16.0.8</td>
+        <td>详情</td>
+    </tr>
+    <tr>
+        <!--对应的第一列要删除-->
+        <!--<td>jenkins2</td>-->
+        <td>172.16.0.8</td>
+        <td>详情</td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

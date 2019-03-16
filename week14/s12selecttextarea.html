@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>select and textare</title>
+</head>
+<body>
+    <form>
+        <div>
+            <!--select选择标签,size表示列表中显示几个,multiple表示可以多选,不加代表单选.加上后,选择时按住ctrl就能多选了-->
+            <select name="select" size="3" multiple="multiple">
+                <!--optgroup代表分组,这个是不能选中的-->
+                <optgroup label="湖南">湖南</optgroup>
+                <option value="1">常德</option>
+                <option value="2" selected="selected">长沙</option>
+                <option value="3">岳阳</option>
+                <optgroup label="广东">广东</optgroup>
+                <option value="1">深圳</option>
+                <option value="2">佛山</option>
+            </select>
+            <!--textare多行文本-->
+            <textarea name="test">这里是默认文字</textarea>
+        </div>
+        <input type="submit" name="query"/>
+    </form>
+</body>
+</html>

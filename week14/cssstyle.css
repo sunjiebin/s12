@@ -1,0 +1,33 @@
+.c1 {
+    background: antiquewhite;
+    background-color: grey;
+    height: 48px;
+}
+
+/*标签选择器,可以对某一类标签来操作,如div span等标签*/
+div {
+    background-color: red;
+    height: 30px;
+}
+
+/*层级选择器(空格),可以匹配到多级里面对应的标签,只有符合该层级关系的才会被匹配,相当于筛选过滤*/
+.c1 .c2 div {
+    background: #000000;
+    line-height: 20px;
+    height: 20px;
+    font-style: initial;
+    font-size: small;
+    color: aliceblue;
+}
+
+/*组合选择器(逗号),可以同时定义多个标签属性,如c3,c4,span的都用这个样式*/
+.c3, .c4, span {
+    background-color: aqua;
+    height: 20px;
+}
+
+/*属性选择器,会匹配class为c4,且里面有n=sun属性的标签*/
+.c4[n="sun"] {
+    background-color: aliceblue;
+    font-size: 30px
+}

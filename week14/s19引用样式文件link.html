@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>引入样式文件</title>
+    <!--可以将文件单独写在css的文件中,然后用link可以引用样式文件,这样就可以实现样式在不同文件中引用了-->
+    <link rel="stylesheet" href="cssstyle.css">
+</head>
+<body>
+<!--样式优先级,标签中自定义的style优先级最高,所以字体会是蓝色-->
+<div class="c1 c2" style="color: blue">测试</div>
+<div class="c4">测试2</div>
+</body>
+</html>

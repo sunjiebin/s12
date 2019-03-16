@@ -1,0 +1,18 @@
+div {
+    /*给标签定义高度和宽度,宽度可以定义80%,但高度定义100%没有意义,因为高度实际上是无限高的,可以通过滚动条一直下拉
+    所以一般是先在大的标签里面定义一个具体的高度,然后在层级标签里面再定义百分比高度*/
+    height: 60px;
+    width: 80%;
+    /*border边框,宽度/样式/颜色 ,还可以定义上下左右边框如border-left*/
+    /*1像素,实线,红色*/
+    border: 1px solid red;
+    font-size: 16px;
+    /*text-align内容的水平位置*/
+    text-align: center;
+    /*line-height:48px代表调整内容垂直方向的位置.这个高度和标签高度一致时,代表垂直居中*/
+    line-height: 60px;
+    /*字体加粗*/
+    font-weight: bolder;
+    /*字体颜色*/
+    color: #000038;
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>购物车头部页面</title>
+    <style>
+        .pg_header {
+            height: 50px;
+            background-color:#dddddd;
+        }
+    </style>
+</head>
+<!--margin:0 auto,表示上下间距为0,auto表示左右自动居中-->
+<body style="margin: 0 auto;">
+    <div class="pg_header" style="line-height: 50px;">
+        <div style="float: left">收藏本站</div>
+        <div style="float: right;width: 50px">登录</div>
+        <div style="float: right;width: 50px">注册</div>
+    </div>
+    <div style="width: 600px;border:1px solid darkblue;">
+        <div style="width: 198px;height:60px;border:1px solid #dddddd;float: left"></div>
+         <div style="width: 198px;height:60px;border:1px solid #dddddd;float: left;"></div>
+         <div style="width: 198px;height:60px;border:1px solid #dddddd;float: left;"></div>
+         <div style="width: 198px;height:60px;border:1px solid #dddddd;float: left;"></div>
+         <div style="width: 198px;height:60px;border:1px solid #dddddd;float: left;"></div>
+        <!--当里面的div浮动后,父标签的边框显示会不全,通过下面的语句让边框浮现-->
+         <div style="clear: both"></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>display的应用</title>
+</head>
+<body>
+<!--display实现块级标签和行内标签的转换,让div可以像span-->
+<!--display:inline让块级标签转行内标签-->
+    <div style="background-color: palegoldenrod;display: inline;">块级标签转行内标签</div>
+<!--让行内标签转块级标签-->
+    <span style="background-color: #dddddd;display: block;height: 80px">行内标签转块级标签</span>
+    <span style="height: 100px;width:100%;background-color: black;color: #dddddd">注意行内标签设置高度宽度是无效的</span>
+<!--disply:inline-block,让标签同时具有两种属性-->
+    <span style="height: 30px;background-color: blue;display: inline-block">利用inline-block实现可以设置高度的span</span>
+    <div style="background-color: transparent;display: inline-block;width: 100px">不占用整行的div</div>
+<!--display:none表示隐藏标签,网站上的点击弹出框就是基于此原理,实际弹出框已经写在代码里面,只是被隐藏显示了
+同理,让网页某个内容闪烁也可以基于此原理-->
+    <div style="display: none">这是一条隐藏的信息</div>
+</body>
+</html>

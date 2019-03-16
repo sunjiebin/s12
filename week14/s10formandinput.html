@@ -7,6 +7,7 @@
 <body>
    <!-- form表单,可以将输入的东西提交,下面表示将数据提交到指定的url,提交方式get-->
    <!-- 请求方式为get时,数据会在Url里面发送过去,如果用post,数据放在body里面发送,两者安全性其实没区别-->
+   <!-- 当我们提交数据时,只会提交input里面的值,span,br,div之类的数据是不会被提交的-->
     <form action="http://localhost:8888/index" method="get">
          <!-- input 行内标签 name这个要写上,提交的数据就是字典.{user:aa,pwd:bb}-->
         <input type="text" name="user">
@@ -18,7 +19,7 @@
     <br>
    <!-- 将表单数据提交到sogou搜索的网站-->
     <form action="http://www.sogou.com/web" method="get">
-        <input type="text" name="query">
+        <input type="text" name="query" value="default">
         <br>
         <span>这个数据是不会被提交上去的,只有input才会被提交到表单</span>
         <br>

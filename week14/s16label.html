@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>label标签</title>
+
+</head>
+<body>
+<form>
+    <!-- lable 标签,for用于点击lable文字时获取光标,就和点击文本框时的效果一样,注意for的值要和input里面的id一致-->
+    <label for="username">用户名:</label>
+    <input id="username" type="text" name="user"/>
+    <input type="submit" name="提交">
+    <!--fieldset 登录框-->
+
+    <fieldset>
+        <!--legend框里面的文字-->
+        <legend>登录</legend>
+        <label for="username2">用户名:</label>
+        <input id="username2" type="text" name="user"/>
+        <br/>
+        <label for="password">密码:</label>
+        <input id="password" type="password" name="pass"/>
+        <input type="submit" name="submit">
+    </fieldset>
+</form>
+</body>
+</html>
