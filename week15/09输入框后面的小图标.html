@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>实现输入框后面的小图标</title>
+</head>
+<body>
+    <div style="height: 30px;width: 200px;position: relative">
+        <!--input里面也可以定义输入的内容间距,padding-right:20px定义了输入的内容距离右边输入框20px的距离,
+        这样输入的内容就不会跑到后面图标下面去了,但是前面的宽度要对应缩短,让两者的总长度等于上面div的长度-->
+        <input type="text" style="width:180px;height: 100%;padding-right: 20px" placeholder="请输入用户名"/>
+        <!--span里面可以用background-image来引用图片,注意url的()里面不能有"",否则会和前面的引号冲突,导致语法错误
+        要定义span的高和宽,首先要inline-block,里面宽高和图片的一样大就刚好显示图片了.-->
+        <span style="position: absolute;display:inline-block;right:0px;top: 5px;background-image: url(usname.png);height: 20px;width: 25px"></span>
+    </div>
+</body>
+</html>

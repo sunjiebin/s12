@@ -1,0 +1,13 @@
+注释
+//
+多行注释
+/* */
+javascript与java并没有关系.
+javascript引用和css类似
+<script></script>
+变量
+    python:
+        name= 'abc'
+    javacript:
+        name = 'abc'  #全局变量,尽量少用,全局变量很少用,且会影响到其他地方变量的引用.
+        var name = 'abc' #局部变量

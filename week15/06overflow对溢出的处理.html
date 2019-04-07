@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>图片大小溢出的处理</title>
+</head>
+<body>
+<!-- 对图片溢出的部分不显示,相当于截图了-->
+    <div style="width: 200px;height: 200px;background: #dddddd;overflow: hidden">
+        <img src="../week14/aa.jpg"/>
+    </div>
+<!--图片大于标签是,生成滚动条 overflow:auto 或者overflow:scroll是一样的-->
+    <div style="width: 200px;height:200px;overflow: auto">
+        <img src="../week14/aa.jpg"/>
+    </div>
+</body>
+</html>

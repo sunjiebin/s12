@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>模拟弹框的实现</title>
+</head>
+<body>
+<!--我们访问某些网站时,有时候会遇到弹出框让我们输入信息,此时只有弹出框是可以用的,网页内容是灰色的不可选的,这其实就是用了三层的div样式
+底层是我们浏览的网页,灰色层是第二层,用于覆盖底层的信息,让底层变得不可选,最上层就是我们的弹出框.输入完后,可以用display:none让其不再显示,
+同样的可以让灰色层也不显示,这样就实现了弹出框的效果-->
+<!--z-index用于定义层级的顺序,值越高这越靠前.opacity设置标签的透明度,1为不透明,0为完全透明 -->
+    <div style="position: fixed;z-index:10;width: 50%;height: 50%;background-color: #dddddd;margin-top: 50px;margin-left: 25%;">顶层弹出框</div>
+    <div style="position: fixed;z-index:9;top: 0;left: 0;right:0;bottom:0;background-color:#dddddd;opacity: 0.5">覆盖底层的灰色背景</div>
+    <div style="background-color: rosybrown;width: 100%;height: 5000px;">最底层的文字</div>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>模拟鼠标悬停样式改变</title>
+    <style>
+        .pg_header {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 100%;
+            height: 50px;
+            background-color: #000038;
+            line-height: 50px;  /* line-height让内容充满行,如果设置和行一样高,那么字体就能居中显示,否则默认字体置顶显示*/
+        }
+        .w {
+            width: 980px;
+            margin: 0 auto;
+        }
+        .pg_header .w .menu {
+            background-color: #dddddd;
+            display: inline-block;
+            color: rgb(124, 57, 57);
+            padding: 0 10px;    /*padding 0 20px表示距离上下为0,距离左右为10像素,顺序为上右下左.如padding 0 10px 10px 0*/
+        }
+        /*hover表示设置鼠标悬停的样式,只要鼠标悬停在那,就应用该样式*/
+        .w .menu:hover{
+            background-color: greenyellow;
+            color: white;
+        }
+        .pg_body {
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="pg_header">
+        <div class="w">
+            <!--默认a标签是没有高度宽度的,这里在menu样式中定义了inline-block,是的a标签有了块级属性,可以定义高和宽-->
+            <a class="menu">新闻</a>
+            <a class="menu">社区</a>
+            <a class="menu">段子</a>
+            <a class="menu">知识库</a>
+        </div>
+    </div>
+    <div class="pg_body">test</div>
+</body>
+</html>

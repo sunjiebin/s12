@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>图片显示定位</title>
+</head>
+<body>
+<div style="height: 30px;width: 100px;border:black 1px solid;">
+    <div style="background-image: url(usname.png);background-repeat: no-repeat;height: 20px;width: 25px"></div>
+</div>
+<!--background-image用于在标签中设置图片背景,注意()里面不要再用"",否则和style的""冲突,导致语句不生效-->
+<div style="background-image: url(usname.png);height: 50px;width: 250px;border:red 1px solid;">呵呵</div>
+<!--默认情况下当标签大于图片时,图片会复制填充显示,可以用background-repeat:no-repeat让图片只显示一次-->
+<div style="background-image: url(usname.png);height: 50px;width: 250px;border:red 1px solid;background-repeat: no-repeat"></div>
+<!--repeat-y图片垂直方向复制-->
+<div style="background-image: url(usname.png);height: 50px;width: 250px;border:red 1px solid;background-repeat: repeat-y"></div>
+<!--可以接url地址-->
+<div style="background-image: url(https://style.my089.com/pc/resources/New_img/rightNav.png?t=20171130);height: 46px;width: 46px;border:red 1px solid;background-position: 0px -49px"></div>
+<!--当图片大于标签大小时,background-position用于定位图片显示位置,默认显示图片左上角.-->
+<!--这个功能很常用,就比如我们网站的在线客服/签到完成/计算器等图标,其实都是在一张图片里面,而div设置了大小刚好只显示一个图标,
+再用定位显示来显示图片的不同位置,就得到了不同的图标.
+还有类似与点赞前后不同的手势图标,其实也是一张图片里面多个不同的图标,只是Position显示的定位点不同导致看起来有变化-->
+<div style="background-image: url(rightNav.png);height: 46px;width: 94px;border:red 1px solid;background-position: 0px -49px"></div>
+
+</body>
+</html>

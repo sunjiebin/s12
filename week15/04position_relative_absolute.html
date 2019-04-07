@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>标签的相对位置</title>
+
+</head>
+<body>
+<!--position可以定义标签的相对位置,一般是搭配使用,现在上级标签中定义position:relative,然后在子标签用position:absolution来定义子标签的相对位置-->
+    <div style="position: relative;width: 600px;height: 600px;border: 2px solid rosybrown;background-color: aliceblue;margin: auto">1
+        <div style="position: absolute;left: 0;bottom: 0;background-color: #dddddd;width: 20px;height: 20px;">2</div>
+    </div>
+<!--将相对位置设置为负数可以让子标签溢出父标签-->
+    <div style="position: relative;width: 600px;height: 600px;border: 1px solid black;margin: auto">1
+        <div style="position: absolute;left: -10px;bottom: 0;background-color: #dddddd">2</div>
+    </div>
+    <div style="position: relative;width: 600px;height: 600px;border: 1px solid greenyellow;margin: auto;">1
+        <div style="position: absolute;right: 0;top: 0;background-color: #dddddd">2</div>
+    </div>
+</body>
+</html>

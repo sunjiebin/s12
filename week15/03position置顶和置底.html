@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>标签的置顶,返回顶部</title>
+    <style>
+        /*position用于让标签层叠起来,并且会一直显示在浏览器的指定位置,不随页面而动*/
+        /*设置样式让其一直显示在浏览器的顶部,并且不随滚轮而移动*/
+        .bg-header{
+            height: 60px;
+            background-color: #dddddd;
+            color: #000048;
+            position: fixed;
+            width: 100%;
+            top: 0;
+        }
+        .bg-body {
+            background-color: white;
+            color: #000000;
+            height: 6000px;
+            margin-top: 80px;
+            margin-left: 20px;
+        }
+        /*设置样式,让其一直显示在浏览器的底部*/
+        .bg-bottom {
+            background-color: blue;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+
+        }
+
+    </style>
+</head>
+<!-- 让整个div居中显示 margin:0 auto-->
+<body style="margin: 0 auto">
+    <div class="bg-header">头部</div>
+    <div class="bg-body">身体</div>
+    <div class="bg-bottom">返回顶部</div>
+</body>
