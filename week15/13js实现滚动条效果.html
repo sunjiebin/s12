@@ -5,17 +5,25 @@
     <title>Javascript字幕滚动</title>
 </head>
 <body>
-    <div id="i1">欢迎进入世界</div>
+    <div id="i1">欢迎进入js世界 </div>
     <script>
         function func() {
+            // 在浏览器的console中打印日志,内容是1,这个功能很常用.比如打开百度,在console里面就会发现招聘程序员的信息.
+            console.log(1);
+            // var用来定义局部变量
+            // document.getElementById()就是在整个文档里面找元素的ID为i1的元素
             var tag=document.getElementById('i1');
             // 获取标签内部内容
             var content = tag.innerText;
+            // 获取第0个位置的字符,即取第一个字符
             var f = content.charAt(0);
+            // 获取第二个字符到最后一个字符 content.length代表获取字符串的长度
             var l = content.substring(1,content.length);
+            // 字符拼接
             var new_content=l+f;
             tag.innerText=new_content
         }
+        // 设置定时器,定义500毫秒触发一次
          setInterval('func()',500)
     </script>
 </body>

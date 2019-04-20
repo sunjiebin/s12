@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>全选取消反选框实现</title>
+    <script>
+        // 注意js代码结尾的分号要加上,虽然没有加上我们测试时也能运行,但实际应用中,网页在传输过程中往往会用到压缩功能,
+        // 这时候会将js代码压缩成一行,以缩减文件的大小.一行文件和多行暂用的空间是有很大的区别的.如果不加
+        // 分号,那么压缩时上下两行就合并成了一条指令,从而导致语法出错,照成意想不到的结果
+        function CheckAll() {
+            var tr_list = document.getElementById('t1').lastElementChild.children;
+            for (var i = 0; i < tr_list.length; i++) {
+                var check_box = tr_list[i].firstElementChild.children[0];
+                //设置勾选
+                check_box.checked = true;
+            }
+        }
+        function CancelAll() {
+            var tr_list = document.getElementById('t1').lastElementChild.children;
+            for (var i = 0; i < tr_list.length; i++) {
+                var check_box = tr_list[i].firstElementChild.children[0];
+                //设置不勾选
+                check_box.checked = false;
+            }
+        }
+        function Revert() {
+            var tr_list = document.getElementById('t1').lastElementChild.children;
+            for (var i = 0; i < tr_list.length; i++) {
+                var check_box = tr_list[i].firstElementChild.children[0];
+                //check_box.checked如果为true,则设置为false,即不勾选
+                if(check_box.checked){
+                    check_box.checked=false;
+                //    如果checked结果为false,则设置为true,及选定
+                }else {
+                    check_box.checked=true;
+                }
+            }
+        }
+
+
+    </script>
+</head>
+<body>
+    <table id='t1' border="1" >
+        <thead>
+            <tr>
+                <th>选择</th>
+                <th>主机名</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>ecs1</td>
+                <td>1.1.1.1</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>ecs1</td>
+                <td>1.1.1.1</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox"></td>
+                <td>ecs1</td>
+                <td>1.1.1.1</td>
+            </tr>
+        </tbody>
+    </table>
+    <div>
+        <input type="button" value="全选" onclick="CheckAll()">
+        <input type="button" value="取消" onclick="CancelAll()">
+        <input type="button" value="反选" onclick="Revert()">
+    </div>
+</body>
+</html>
