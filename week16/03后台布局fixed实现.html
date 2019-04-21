@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>后台布局</title>
+    <style>
+        /*这里可以直接写body,代表会自动匹配body标签,
+        margin:0设置后,顶部就不会有空白了.否则顶部标签没法置顶,会有边距的存在*/
+        body{
+            margin: 0;
+        }
+        .pg-header {
+         height: 48px;
+            background: #f5f5f5;
+        margin-top: 0;
+        }
+        .pg-content{
+
+
+            /*bottom: 0;*/
+            /*width: 100%;*/
+            /*margin-bottom: 0;*/
+
+        }
+        /*让匹配的标签向左边浮动*/
+        .left {
+            float: left;
+        }
+        .right {
+            float: right;
+        }
+        .pg-content .menu{
+            width: 20%;
+            /*设置最小像素,当宽度的20%小于200px时,这个样式不会再缩小*/
+            min-width: 200px;
+            background-color: #000048;
+            position:fixed;
+            top:48px;
+            bottom: 0;
+            left: 0;
+            right: 200px;
+
+        }
+        .pg-content .content{
+            width: 80%;
+            background-color: greenyellow;
+            /*如果没有fixed,那么相对与顶部的位置就不会固定,当内容超出页面时,会出现滚轮,将整个标签向上移动,盖住上面的标题样式*/
+            position: fixed;
+            top: 48px;
+            left: 200px;
+            right: 0;
+            bottom: 0;
+            /*当内容不止一个页面时,自动出现滚动条,这个滚动条只针对内容标签,所以左边的列表标签不会跟着移动,这是我们常见的后台布局
+            如果不加overflow,在position:fixed的情况下,那么超出的数据不会有滚动条,那就无法看到超出部分了*/
+            overflow: auto;
+        }
+    </style>
+</head>
+<!--body会应用前面定义的body的样式-->
+<body>
+    <div class="pg-header"></div>
+    <div class="pg-content">
+        <!--默认div是堆叠起来的,所以我们需要将其样式设置为浮动float,让其在一行显示-->
+        <div class="menu left">a</div>
+        <div class="content right">b
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+
+        </div>
+    </div>
+    <div class="pg-footer"></div>
+</body>
+</html>

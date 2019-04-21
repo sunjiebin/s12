@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>后台布局</title>
+    <style>
+        /*这里可以直接写body,代表会自动匹配body标签,
+        margin:0设置后,顶部就不会有空白了.否则顶部标签没法置顶,会有边距的存在*/
+        body{
+            margin: 0;
+        }
+        .pg-header {
+            height: 48px;
+            background: #000038;
+            margin-top: 0;
+            /*注意line-height如果不加,那么字体就会在顶部显示,而不是居中显示,可以通过调整这个高度来调整字体的垂直位置
+            将line-height放在pg-header中,这样整个header里面的元素都会生效,就不用每个子div再设置这个属性了*/
+            line-height: 48px;
+            color: white;
+        }
+        .pg-header .logo{
+            /*也可以只在这里设置line-height,但是这只会对这一个logo的div生效*/
+            /*line-height: 48px;*/
+            /*position: fixed;*/
+            /*left: 30px;*/
+            width: 200px;
+            background-color: darkblue;
+            /*让里面的内容左右居中*/
+            text-align: center;
+            font-size: large;
+        }
+        .pg-header .icon{
+            padding: 0 20px;
+        }
+
+                .pg-header .icon:hover{
+            background-color: #9dff2a;
+        }
+        .pg-header .icon .sp{
+            display: inline-block;
+            padding: 10px 7px;
+            line-height: 1px;
+            background: red;
+            border-radius: 50%;
+        }
+        .pg-header .user{
+            /*text-align: center;*/
+            position: relative;
+            /*right: 50px;*/
+            margin-right: 60px;
+            padding: 0 10px;
+            /*注意这里的颜色的写法,有些写法chrome显示不出来,f12发现提示无效的值,以下是错误写法*/
+            /*background-color: rebeccapurple;*/
+            /*下面是正确写法*/
+
+            background-color:#000058;
+        }
+        /*定义鼠标悬停时样式的变化*/
+        .pg-header .user:hover{
+            background-color:  #663399;
+        }
+        /*默认下拉列表是隐藏的*/
+        .pg-header .user .b{
+            position: absolute;top: 48px;left: -20px;z-index: 20;background-color: #000000;width: 100px;display: none;
+        }
+        .pg-header .user:hover{
+            background-color: #9dff2a;
+        }
+        /*当鼠标选悬停在user时,将b显示出来*/
+        .pg-header .user:hover .b{
+            display: block;
+
+        }
+        .pg-header .user .b a{
+            display: block;
+            /*height: 20px;*/
+        }
+        .pg-header .user img{
+            width: 30px;
+            height: 30px;
+            margin-top: 10px;
+            /*让图片显示圆形,50%为圆形*/
+            border-radius: 50%;
+        }
+        .pg-content{
+
+        }
+        /*让匹配的标签向左边浮动*/
+        .left {
+            float: left;
+        }
+        .right {
+            float: right;
+        }
+        .pg-content .menu{
+            position: absolute;
+            top: 48px;
+            left: 0;
+            bottom: 0;
+            width: 200px;
+            background-color: greenyellow;
+        }
+        .pg-content .content{
+            position: absolute;
+            top:48px;
+            right: 0;
+            bottom: 0;
+            left: 200px;
+            background-color: green;
+            color: white;
+            /*position: absolute;配合overflow:auto可以让标签内部出现滚轮,而其他的部分不受影响*/
+            overflow: auto;
+            /*定义左右宽度,当浏览器页面缩小到500px以下时,就出现左右的滚动条,页面不再缩小,这样确保样式不会乱*/
+            min-width: 500px;
+        }
+    </style>
+    <link href="fontawesome-free-5.8.1-web/css/all.css" rel="stylesheet">
+</head>
+<!--body会应用前面定义的body的样式-->
+<body>
+    <div class="pg-header">
+        <!--注意默认标签是占用一整行的,所以要用left样式,让float:left,使得logo漂浮于左方,这样下面的user标签才能够在同一行显示出来
+        否则后面的标签就被挤到下一行了,就显示不出来了.-->
+        <div class="logo left">
+            <!--当pg-header的line-height有定义时,字体会垂直居中显示-->
+            oldboyedu
+        </div>
+
+
+        <div class="user right">
+
+            <a href="#">
+                <!--img会自动匹配到上面的.pg-header .user img的样式-->
+            <img src="../week15/rightNav.png"/>
+            </a>
+            <div class="b">
+                <a>我的账户</a>
+                <a>退出</a>
+
+            </div>
+
+        </div>
+        <div class="right icon">
+            <i class="fas fa-cat" style="font-size: 48px;"></i>
+            <span class="sp">5</span>
+            <i class="far fa-crow" style="font-size: 48px;"></i>
+        </div>
+
+    </div>
+    <div class="pg-content">
+        <!--默认div是堆叠起来的,所以我们需要将其样式设置为浮动float,让其在一行显示-->
+        <div class="menu left">a</div>
+        <div class="content right">b
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+            <p>dfsf</p><a>dfsf</a><a>dfsf</a>
+        </div>
+    </div>
+    <div class="pg-footer"></div>
+</body>
+</html>

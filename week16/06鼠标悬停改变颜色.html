@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        /*给c1下面的所有子标签设置样式,可以继承*/
+        .c1:hover{
+            color: hsla(60, 100%, 77%, 0.53);
+            background-color: #663399;
+        }
+        /*可以设置当鼠标悬停c1时,对下面的子标签再单独设置样式*/
+        .c1:hover .c2{
+            color: #9dff2a;
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="c1">
+        <p>123</p>
+        <p class="c2">456</p>
+    </div>
+</body>
+</html>
