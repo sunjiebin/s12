@@ -20,6 +20,9 @@ except KeyError as e:
     print('没有这个key',e)
 except IndexError as e:
     print('列表错误',e)
+    #如果要对返回的错误进行二次处理，要对变量str(e)格式化一下变成字符串，因为返回的不是字符串，直接处理会报错
+    if 'out of range' in str(e):
+        print('超出索引')
 
 '''将错误类型写到一个except里面'''
 try:
