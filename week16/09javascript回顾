@@ -1,0 +1,125 @@
+
+注意在javascripts中的for循环和python不同，item返回的是索引位置，而不是变量里面的值。
+如果要获取值，就的a[item]
+a=[11,22,33]
+for (var item in a){
+    console.log(item)
+    console.log(a[item])
+}
+
+b=5
+for (var i=0;i<b;i++){
+    console.log(i)
+}
+
+c=['a','b','c']
+for (var i=0;i<c.length;i++){
+console.log(i)
+console.log(c[i])
+}
+
+while循环，和python一样
+
+条件语句
+if (){
+
+}else if(){
+
+}else{
+
+}
+
+== 值相等
+=== 值和类型都要相等
+
+还支持switch写法，和if类似。
+name='1'
+switch(name){
+    case '1':
+        console.log(123);
+        break;
+    case '2':
+        console.log(456);
+        break;
+    default:
+        console.log('aaa');
+}
+
+第10节
+函数
+普通函数
+function func(){
+
+}
+匿名函数
+setInterval(function(){
+    console.log('aaa');
+},5000)
+
+自执行函数(创建函数并执行)
+实际应用中我们会引用第三方的插件，这时候就会不可避免的有的函数名称重复，但实现的功能又不同，如果都按名称来的话，
+那肯定会有问题。所以引入自执行函数，就是加载的时候自动就已经执行了。不存在名称冲突的问题。
+function func(){
+
+}
+func()
+
+传递参数1，打印1
+(function(arg){
+    console.log(arg)
+})(1)
+
+序列号
+    json.stringify(a)  对象转换为字符串
+    json.parse(a)  将字符串a转换为对象
+
+转义
+我们经常会发现中文的url有时候会被变成一串16进制的字符，这个就是被转义了。
+    客户端（cookie） --》服务端
+    将数据经过转义后，保存在cookie，而不是直接存储中文和特殊字符
+
+    url="https://www.baidu.com/s?&wd=你好"
+    转义中文
+    encodeURI(url)
+    "https://www.baidu.com/s?&wd=%E4%BD%A0%E5%A5%BD"
+    转义中文和特殊字符
+    encodeURIComponent(url)
+    "https%3A%2F%2Fwww.baidu.com%2Fs%3F%26wd%3D%E4%BD%A0%E5%A5%BD"
+    newurl=encodeURIComponent(url)
+    "https%3A%2F%2Fwww.baidu.com%2Fs%3F%26wd%3D%E4%BD%A0%E5%A5%BD"
+    解码
+    decodeURI(newurl)
+    "https%3A%2F%2Fwww.baidu.com%2Fs%3F%26wd%3D你好"
+    decodeURIComponent(newurl)
+    "https://www.baidu.com/s?&wd=你好"
+
+13节
+python:
+python里面对字符串形式的表达式，可以用eval和exec
+    eval(表达式)      可以执行如’1+1’这样的字符串表达式，返回2
+    exec(执行代码)    可以执行for循环之类的代码，这个eval不行的，这个没有返回值，而是直接执行
+javascript:
+    eval就是Python里面的eval/exec的结合体
+
+时间
+创建对象d，获取当前时间
+var d = new Date()
+Thu May 02 2019 17:55:49 GMT+0800 (中国标准时间)
+获取时间里面的值
+d.getDay()
+4
+d.getDate()
+2
+d.getHours()
+17
+修改时间
+n=d.getDate()+4
+6
+d.setDate(n)
+1557136764733
+d
+Mon May 06 2019 17:59:24 GMT+0800 (中国标准时间)
+d.setHours(18)
+1557140364733
+d
+Mon May 06 2019 18:59:24 GMT+0800 (中国标准时间)
