@@ -34,12 +34,17 @@
         <!--定义函数remove_hidden-->
         function remove_hidden() {
             //首先根据ID获取到对应的操作标签,然后以列表的形式显示class,在对列表进行remove,移除里面的hidden样式.
-            //注意,如果用getElementsByClassName()根据class来匹配的话,后面没法用classList,也就无法remove.原因待查
+            //注意,如果用getElementsByClassName()根据class来匹配的话,得到的是一个列表,所以需要先用[0]来取里面的元素
             document.getElementById('i1').classList.remove('hidden');
-            document.getElementById('i2').classList.remove('hidden');
+            // document.getElementById('i2').classList.remove('hidden');
+            // 注意取class和直接取id的区别,一个返回的是元素,一个返回的是一个列表
+            document.getElementsByClassName('c2')[0].classList.remove('hidden');
         }
         function add_hidden() {
-            document.getElementById('i1').classList.add('hidden');
+            //可以用className的方式直接给class赋值
+            document.getElementById('i1').className='c1 hidden';
+            //可以用classList的方式对列表追加赋值
+            // document.getElementById('i1').classList.add('hidden');
             document.getElementById('i2').classList.add('hidden');
         }
     </script>

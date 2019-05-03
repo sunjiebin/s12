@@ -11,3 +11,49 @@ javascript引用和css类似
     javacript:
         name = 'abc'  #全局变量,尽量少用,全局变量很少用,且会影响到其他地方变量的引用.
         var name = 'abc' #局部变量
+
+        基本数据类型
+            数字
+            字符串
+            数组(在python中叫列表)
+            字典
+         for循环
+            两种类型的循环
+            第一种
+            for (var item in [11,22,33]){
+            console.log(item);
+            }
+            第二种
+            var arr=[11,22,33];
+            for (var i=0;i<arr.length;i++){
+                console.log(i);
+            }
+            continue 退出本次循环,即不再执行下面的代码
+            break 退出所有循环,即不再执行本循环
+            while 循环,和python一样
+        条件语句
+        == 代表只需要值相等就行,不比较类型是否一样
+        === 必须值和数据类型都一样
+        !=
+        !==
+        || 条件或
+        && 条件与
+        示例:
+            a='yes'
+            b='no'
+            if(1=='1'){a}else{b}    返回yes
+            if(1==='1'){a}else{b}   返回no
+            if(1!='1'){a}else{b}    返回no
+            if(1!=='1'){a}else{b}   返回yes
+
+        name=1
+        switch(name){
+            case '1':
+                console.log(123);
+                break;
+            case '2':
+                console.log(234);
+                break;
+            default:
+                console.log(999);
+        }

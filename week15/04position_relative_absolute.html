@@ -17,5 +17,10 @@
     <div style="position: relative;width: 600px;height: 600px;border: 1px solid greenyellow;margin: auto;">1
         <div style="position: absolute;right: 0;top: 0;background-color: #dddddd">2</div>
     </div>
+<!--position:fixed 和 obsolute都是绝对定位,但是两者不同在于,fixed是相对于浏览器窗口的绝对定位,就是不管页面怎么滑动,标签距离浏览器的
+位置始终是固定的.而obsolution是相对于页面里面的元素来定位的,所以当页面出现滚轮滑动时,它的位置也会跟踪变.-->
+<!--两者在鼠标滚轮没有滑动是看起来是一样的位置,当滚动条滚动是,fixed依然在浏览器底部,而absolute则会跟随移动-->
+    <div style="position: fixed;right: 0;bottom: 0">fixed的效果</div>
+    <div style="position: absolute;left 0;bottom: 0;">absolute的效果</div>
 </body>
 </html>
