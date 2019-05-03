@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>通过js调用html</title>
+</head>
+<body>
+    <table boder="2" width="300px">
+        <tr><td>1</td><td>2</td><td>3</td></tr>
+        <tr><td>1</td><td>2</td><td>3</td></tr>
+        <tr><td>1</td><td>2</td><td>3</td></tr>
+    </table>
+    <!--test我将onclick写在了div里面,没有实现事件的分离-->
+    <div id="test" onclick="ss()">test</div>
+    <!--下面的test2里面我没有写任何onclick时间,只有静态文件,在js里面实现了对test2的点击事件-->
+    <div id="test2">test2</div>
+    <script>
+        var mytrs=document.getElementsByTagName('tr');
+        console.log(mytrs);
+        var len=mytrs.length;
+        for (i=0;i<len;i++){
+            mytrs[i].onmouseover = function () {
+                //注意用mytrs[i]是不行的 这里就涉及到作用域了. 22节有讲
+                // mytrs[i].style.backgroundColor='red';
+                this.style.backgroundColor="red";
+            }
+            mytrs[i].onmouseout = function () { this.style.backgroundColor=""; }
+        }
+        function ss() {
+            var mysty=document.getElementById('test');
+            console.log(mysty);
+            mysty.innerText='dsf';
+        }
+        //通过js自动匹配对应的test2,实现对div的点击操作
+        var mydiv=document.getElementById('test2');
+        mydiv.onclick=function () {
+            console.log('haha');
+            mydiv.innerText='haha';
+        }
+
+    </script>
+</body>
+</html>

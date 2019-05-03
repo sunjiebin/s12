@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>冒泡和捕捉</title>
+    <style>
+        #main {
+            width: 200px;
+            height: 200px;
+            background-color: #ffd232;
+        }
+        #content {
+            width: 100px;
+            height: 100px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="main">
+        <div id="content"></div>
+    </div>
+    <script>
+        var mymain=document.getElementById('main');
+        var mycontent=document.getElementById('content');
+        //注意下面的false  false是默认值,表示冒泡,即由里层向外层执行,所以当我们点击content时,
+        // 会先出发里面的div的content,再出发外面的main
+        //  mymain.addEventListener('click',function () {console.log("mymain")},false);
+        // mycontent.addEventListener('click',function(){console.log("mycontent")},false);
+        //当改为true时,出发就会相反,先触发main,再content
+        // addEventListener()这个和onclick一样,只是点击事件另一种写法
+        mymain.addEventListener('click',function () {console.log("mymain")},true);
+        mycontent.addEventListener('click',function(){console.log("mycontent")},true);
+
+    </script>
+</body>
+</html>

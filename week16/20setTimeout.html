@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>提示几秒自动删除</title>
+</head>
+<body>
+    <div id="status"></div>
+    <input type="button" value="删除" onclick="del()"/>
+    <script>
+        function del(){
+            document.getElementById('status').innerText='已删除';
+            setTimeout(function () {
+                document.getElementById('status').innerText='';
+            },3000)
+        }
+
+    </script>
+</body>
+</html>
+

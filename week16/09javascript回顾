@@ -123,3 +123,177 @@ d.setHours(18)
 1557140364733
 d
 Mon May 06 2019 18:59:24 GMT+0800 (中国标准时间)
+
+14节
+作用域
+其他语言:以代码块作为作用域
+python: 以函数作为作用域,所以不同函数里面的变量不共用.这个和其他语言是有区别的
+javascript:
+1.以函数作为作用域
+function fun(){
+    if (1==1){
+        var name='alex';
+    }
+    console.log(name)
+}
+fun()
+2.函数的作用域在函数未被调用之前就已经创建
+3.函数的作用域存在作用域链,并且在调用前就已经创建.
+下面的函数会先获取alex,当alex不存在时,再获取eric,当eric不存在再获取sun
+xo='sun';
+function fun(){
+    var xo='eric';
+    function inner(){
+    var xo='alex';
+    console.log(xo);
+    }
+    inner();
+}
+fun()
+
+示例:
+xo='sun'
+function fun(){
+    var xo='eric';
+    function inner(){
+    //var xo='alex';
+    console.log(xo);
+    }
+    return inner;
+}
+这时候,ret得到的是inner的返回值,
+var ret=fun()
+再执行ret()时,由于函数作用域链在一开始就已经建立好了.所以会根据链路先找到eric的值
+所以在执行ret()会返回eric
+ret()
+
+下面函数会返回tony,因为函数会先加载fun(),这时候下面的会把上面的值覆盖.再执行inner时,取到的是tony
+xo='sun'
+function fun(){
+    var xo='eric';
+    function inner(){
+    //var xo='alex';
+    console.log(xo);
+    }
+    var xo='tony'
+    return inner;
+}
+var ret=fun()
+ret()
+
+这个返回的也是tony
+function fun(){
+    var xo='eric';
+    function inner(){
+    //var xo='alex';
+    console.log(xo);
+    }
+    var xo='tony'
+    inner();
+}
+fun()
+
+这个会返回eric
+function fun(){
+    var xo='eric';
+    function inner(){
+    //var xo='alex';
+    console.log(xo);
+    }
+    inner();
+    var xo='tony';
+}
+fun()
+
+函数内部的局部变量会提前声明,即如果函数里面有定义变量,那么首先会声明变量,但是不会给变量赋值.
+只有当执行到变量处时,才会给变量赋值.
+下面的函数第一个console.log会返回undifined,第二个会返回xxoo
+第一次答应name时,相当于 var name; 就是有这个变量,但是没有值
+第二次打印name时,var name='xxoo',所以会打印变量的值.
+function fun(){
+    console.log(1,name);
+    var name='xxoo';
+    console.log(2,name);
+}
+fun()
+
+当函数里面没有bb变量声明时,执行会直接报错说bb未定义
+function fun(){
+    console.log(bb);
+}
+fun()
+ReferenceError: bb is not defined
+当函数里面有bb时,即使在log的下面,也不会报错.只会打印undefined,说明bb变量已经有了,只是没有定义值
+function fun(){
+    console.log(bb);
+    var bb='haha';
+}
+fun()
+undefined
+
+面向对象
+这里的this和python里面的self类似
+function foo(n){
+    this.name=n;
+}
+用new来创建一个对象
+var obj=new foo('ales')
+obj.name
+
+17节
+dom
+查找
+    var obj=document.getElementById('i1')
+间接查找
+    文件内容操作
+    innerText  仅文本
+    innerhtml  全部内容
+    value
+        input 获取里面的内容 修改内容
+        获取  obj.value
+        修改  obj.value='11'
+        select 获取选中的value值
+        obj.selectIndex
+        textarea 获取选中的value值
+        obj.value
+
+
+20节
+    弹出确认框,当确定是返回true,取消返回false
+    var v=confirm('信息')
+    location.href 获取当前url
+    location href = "http://www.baidu.com"   重定向
+    location.reload() 刷新
+    清除定时器clearInterval
+    var obj=setInterval(function () {
+        console.log(1);
+        clearInterval(obj);
+    },1000);
+3秒后执行一次,比如网页里面有些操作提示几秒后自动消失了就是用的这个功能
+setTimeout(function () {
+    console.log('timeout')
+},3000);
+    setTimeout/clearTimeout 执行一次定时器,清楚要执行的定时器
+    var o1=setTimeout(function () {alert('warning')
+        },5000);
+    clearTimeout(o1);
+
+21节
+    事件:
+    onclick,onblur,onfocus
+    标签绑定的两种方法
+    1. 直接绑定 onclick='func()'
+    <input type='button' onclick='clickon(this)'>
+    function clickon(self){
+    // self代表当前点击的标签
+    }
+    2. 先获取dom对象,在进行绑定
+    document.getElementById('xx').onclick = function(){
+        //这里的this就是指当前点击的标签
+    }
+    document.getElementById('xx').onfocus
+    3. 用addEventListener
+     var mymain=document.getElementById('main');
+     //true为捕捉,false为冒泡
+     mymain.addEventListener('click',function () {console.log("mymain")},true);
+
