@@ -1,0 +1,113 @@
+jquery
+    python的模块在jquery中就是类库
+    集合了dom/bom/javascript的类库
+    主要分为
+    一  查找元素
+        jquery:
+            选择器
+            1. id
+            $('#id')
+            2. class
+            $('.classname')
+            3. 标签
+            $('标签名')
+            4. 组合
+             同时找到所有的a标签,class名为c2的,id为i10的标签
+            $('a,.c2,#i10')
+            5. 层级关系
+            找到i10下的子子孙孙的a标签,即i10下所有的a标签.
+            $('#i10 a')
+            找i10下的子标签,不包括孙子
+            $('#i10>a')
+            找i10下的子标签a,只要第一个a标签
+            $("#i10>a:first")
+            索引  找到i10下所有a标签的第二个标签 eq等于,还可以lt小于 gt大于
+            $("#i10 a:eq[1]")
+            根据属性查找
+            <a alex='123'>f2</a>
+            <a alex='432'>f3</a>
+            $('[alex]')  会把所有的属性为alex的标签都找出来
+            $('[alex="123"]')  会把alex='123'的找出来
+            找到input表单
+            $('input[type="text"]')
+            $(':text')
+         实例:
+            多选,反选,全选
+                 $('#tb :checkbox').prop('checked',false)  设置值
+                  $('#tb :checkbox').prop('checked')  获取值
+            jquery内置循环  $('#tb checked').each(function(k){
+                    k 标签
+                    //this DOM 当前循环元素
+            三元循环
+                    var v=条件?真值:假值
+            筛选
+                $('#i1').next()
+                $('#i1').nextAll()    找下面所有的
+                $('#i1').nextUntil()  找直到指定标签的
+                $('#i1').prev()
+                $('#i1').parent()
+                $('#i1').parents()  找到所有父级标签
+                $('#i1').parentsUntil('.c1')  往上找直到class为c1的父级标签为止
+
+                $('#i1').siblings()
+                $('#i1').find('aa')
+                $('#i1').children()
+                $('#i1').eq(1)
+
+
+
+
+        <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.12.4.min.js"></script>
+        jquery的底层实际还是调用的document,只是封装了.
+        dom和jquery转换
+        jquery --> dom
+        $("#i1")[0]  --> document.getElementById('i1')
+        dom --> jquery
+        d=document.getElementById('i1')
+        $(d)        <--dom转为jquery格式了
+
+        jquery有三个版本 1 2 3
+        1系列兼容性比较好
+
+    二  操作元素
+09节
+    文本操作
+    $().text() 获取文本
+    $().text('aa')  赋值,不解析html语法
+
+    $().html()
+    $().html('<a>1</a>')  赋值html
+
+    $().val() 获取值
+    $().val('222') 设置值
+   dom中
+        tag=document.getElementById('i2')
+        tag.value
+        tag.value='123'
+    jquery  (注意调用的时候要在页面中引用jquery文件,否则会报错TypeError: Object #<HTMLInputElement> has no method 'val')
+        $('#i2').val()
+        $('#i2').val('dflkj')
+
+   样式操作
+        addClass
+        removeClass
+        $('#i2').toggleClass('hide');
+
+    属性操作
+        #专门用于做自定义属性
+        attr获取属性里面的值
+        $('#i1').attr('type')
+        $('#i1').attr('value')
+        修改value的值
+        $('#i1').attr('value','确认')
+        新增值 如果属性不存在则新增
+        $('#i1').attr('name','hha')
+        removeAttr() 删除属性
+
+        prop专门用于checkbox,radio的选中与取消
+        注意这里一定不要用attr来设置checked属性,这个会有bug,导致设置不生效
+        $('#i1').attr('checked','checked')    这个勾选的方法不要用
+        用prop专门来处理这类操作
+        $('input[type="checkbox"]').prop('checked',true)
+
+

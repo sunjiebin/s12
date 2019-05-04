@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>0809</title>
+        <style>
+        .header{
+            background-color: black;
+            color: white;
+        }
+        .content{
+            min-height: 50px;
+        }
+        .hide{
+            display:none;
+        }
+            .mode1{
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                width:500px;
+                height: 400px;
+                margin-left: -250px;
+                margin-top: -250px;
+                background-color: #eeeeee;
+                z-index:11;
+            }
+            .shadow{
+                position: fixed;
+                top:0;
+                right: 0;
+                left: 0;
+                bottom: 0;
+                background-color: #9dff2a;
+                z-index: 10;
+            }
+            .hide{
+                display: none;
+            }
+    </style>
+</head>
+<body>
+   <input type="button" value="全选" onclick="CheckAll()"/>
+    <input type="button" value="取消" onclick="CancelAll()"/>
+    <input type="button" value="反选" onclick="Revert()"/>
+    <input type="button" value="添加" onclick="Add()"/>
+
+   <div>
+       <div class="mode1 hide">
+           <input name='hostname' type="text">
+           <input name='ip' type="text">
+           <input name='port' type="text">
+           <input type="button" value="取消" onclick="Cancel()"/>
+       </div>
+
+   </div>
+   <div class="shadow hide">这造成</div>
+    <table border="1" id="tb">
+        <thead>
+        <th>选项</th>
+        <th>IP</th>
+        <th>port</th>
+        </thead>
+        <tr>
+            <td><input type="checkbox"> </td>
+            <td>1.2.2.1</td>
+            <td>80</td>
+            <td>
+                <a class="edit">编辑</a>|<a>删除</a>
+            </td>
+        </tr>
+                <tr>
+            <td><input type="checkbox"> </td>
+            <td>1.22.2.1</td>
+            <td>80</td>
+            <td>
+                <a class="edit">编辑</a>|<a>删除</a>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="checkbox"> </td>
+            <td>1.2.2.21</td>
+            <td>80</td>
+            <td>
+                <a class="edit">编辑</a>|<a>删除</a>
+            </td>
+        </tr>
+    </table>
+    <script src="jquery.js"></script>
+    <script>
+        function Add() {
+            $(".mode1,.shadow").removeClass('hide');
+            // $(".shadow").removeClass('hide');
+        }
+        function Cancel() {
+            $('.mode1,.shadow').addClass('hide');
+            $(".mode1 input[name='ip']").val('');
+            $(".mode1 input[name='port']").val('');
+        }
+        $(".edit").click(function () {
+            // Add(); 直接调用add()也行
+            $(".mode1,.shadow").removeClass('hide');
+            var tds=$(this).parent().prevAll();
+            console.log(tds);
+            // var port=tds[0];   这是返回的一个dom对象,要转换为jquery才能被jquer操作
+            var port=$(tds[0]).text();
+            console.log(port);
+            var ip=$(tds[1]).text();
+            $(".mode1 input[name='ip']").val(ip);
+            $(".mode1 input[name='port']").val(port);
+
+        })
+    </script>
+</body>
+</html>

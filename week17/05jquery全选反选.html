@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <input type="button" value="全选" onclick="CheckAll()"/>
+    <input type="button" value="取消" onclick="CancelAll()"/>
+    <input type="button" value="反选" onclick="Revert()"/>
+    <table border="1" id="tb">
+        <thead>
+        <th>选项</th>
+        <th>IP</th>
+        <th>port</th>
+        </thead>
+        <tr>
+            <td><input type="checkbox"> </td>
+            <td>1.2.2.1</td>
+            <td>80</td>
+        </tr>
+                <tr>
+            <td><input type="checkbox"> </td>
+            <td>1.2.2.1</td>
+            <td>80</td>
+        </tr>
+                <tr>
+            <td><input type="checkbox"> </td>
+            <td>1.2.2.1</td>
+            <td>80</td>
+        </tr>
+    </table>
+    <script src="jquery.js"></script>
+    <script>
+        function CheckAll() {
+            //找到id为tb标签下所有的checkbox
+            $('#tb :checkbox').prop('checked',true)
+        }
+        function CancelAll() {
+            $('#tb :checkbox').prop('checked',false)
+        }
+        function Revert(){
+        $('#tb :checkbox').each(function (k) {
+            //this代指当前循环的每一个元素,k下标,这个this是一个dom对象.
+            console.log(k,this);
+
+            //对dom对象执行反选操作
+            // if(this.checked){this.checked=false;}else{this.checked=true}
+
+            //通过jquery操作,$(this)将dom对象转换为jquery对象.如果选中,则checked返回true
+            // if($(this).prop('checked')){
+            //     $(this).prop('checked',false)
+            // }else{
+            //     $(this).prop('checked',true)
+            // }
+
+            //通过三元运算的方式来操作 var v=条件?条件为真时的值:条件为假时的值
+            var v=$(this).prop('checked')?false:true;
+            $(this).prop('checked',v)
+        })
+        }
+    </script>
+</body>
+</html>

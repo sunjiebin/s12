@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .hide{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <input id="i1" type="button" value="开关"/>
+    <div id="i2" class="hide">nihao</div>
+    <input type="checkbox"/>
+
+    <script src="jquery.js"></script>
+    <script>
+        $('#i1').click(function () {
+            // if($('#i2').hasClass('hide')){
+            //     $('#i2').removeClass('hide')
+            // }else{
+            //     $('#i2').addClass('hide')
+            // }
+            //上面的if else来实现开关的方式也可以用下面的方法来实现 toggleClass就是添加删除循环出现
+            $('#i2').toggleClass('hide');
+        })
+    </script>
+</body>
+</html>
