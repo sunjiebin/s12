@@ -22,6 +22,6 @@ foo.prototype={
     }
 };
 // 通过上面的定义,在创建对象时,就只加载了this.name.
-obj1=new foo('we');
-obj2=new foo('魏');
+var obj1=new foo('we');
+var obj2=new foo('魏');
 obj1.sayname();

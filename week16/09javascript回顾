@@ -273,7 +273,8 @@ dom
 setTimeout(function () {
     console.log('timeout')
 },3000);
-    setTimeout/clearTimeout 执行一次定时器,清楚要执行的定时器
+    setTimeout/clearTimeout 执行一次定时器,清除要执行的定时器
+    下面代码不会执行,因为还没有执行就已经被下面的代码清除掉了
     var o1=setTimeout(function () {alert('warning')
         },5000);
     clearTimeout(o1);
@@ -296,4 +297,23 @@ setTimeout(function () {
      var mymain=document.getElementById('main');
      //true为捕捉,false为冒泡
      mymain.addEventListener('click',function () {console.log("mymain")},true);
+
+24节 函数解析顺序 词法分析  没明白
+            function fun(age){
+                console.log(age);
+                var age=17;
+                console.log(age);
+                function age(){
+                    console.log(age);
+                }
+            }
+            fun(3)
+
+            上面的函数active object 简称AO,在函数里面的顺序为
+            1. 形式参数  2. 局部变量 3.函数声明表达式
+
+            解析顺序为
+            1  AO.age=undefined  --> 发现有参数在,AO.age=3
+            2  局部变量也是undefined
+            3 函数声明表达式
 
