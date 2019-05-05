@@ -102,7 +102,7 @@ jquery
         removeClass   删除class样式
         $('#i2').toggleClass('hide');   反复添加删除，实现开关的效果，就像视屏网站里面的开灯关灯类似
 
-    属性操作
+   属性操作
         #专门用于做自定义属性
         attr获取属性里面的值
         $('#i1').attr('type')
@@ -119,4 +119,13 @@ jquery
         用prop专门来处理这类操作
         $('input[type="checkbox"]').prop('checked',true)
 
+        index()可以获取索引的位置
 
+   文档处理
+        append
+        prepend
+        after
+        before
+        remove
+        empty
+        clone

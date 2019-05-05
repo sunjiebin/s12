@@ -48,8 +48,9 @@
         $('.menu .menu-item').click(function () {
             console.log(this);
             $(this).addClass('active').siblings().removeClass('active');
-            item=$(this).attr('a');
-            $('.content [b="'+item+'"]').removeClass('hide').siblings().addClass('hide');
+            //$(this).index() 可以获取标签的索引位置
+            // children().eq(0) 可以通过索引位置来定位到指定的标签
+            $('.content').children().eq($(this).index()).removeClass('hide').siblings().addClass('hide');
         })
     </script>
 </body>
