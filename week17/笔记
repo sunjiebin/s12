@@ -37,9 +37,12 @@ jquery
                   $('#tb :checkbox').prop('checked')  获取值
             jquery内置循环  $('#tb checked').each(function(k){
                     k 标签
-                    //this DOM 当前循环元素
+                    //this DOM 当前循环元素，如果要用jquery处理，那么$(this)
             三元循环
                     var v=条件?真值:假值
+                    如下两行，检测选框是否选定，如果checked返回true，则代表选定，那么就将其设置为false即取消选定，如果不是选定，则设置为选定，实现反选效果。
+                     var v=$(this).prop('checked')?false:true;
+                     $(this).prop('checked',v)
             筛选
                 $('#i1').next()
                 $('#i1').nextAll()    找下面所有的
@@ -67,12 +70,12 @@ jquery
         $(d)        <--dom转为jquery格式了
 
         jquery有三个版本 1 2 3
-        1系列兼容性比较好
+        1系列兼容性比较好,从2开始就已经不兼容678版本的老IE了
 
     二  操作元素
 09节
     文本操作
-    $().text() 获取文本
+    $().text() 获取标签里面的文本
     $().text('aa')  赋值,不解析html语法
 
     $().html()
@@ -80,6 +83,12 @@ jquery
 
     $().val() 获取值
     $().val('222') 设置值
+    注意val()和text()的区别，val是获取标签中value属性的值，一般多用于input标签，而text是获取标签里面的文本值。
+     示例： 下面的input val获取到“这是一个input标签1”
+     <input type="text" id="input1" value="这是一个input标签1">
+     下面val获取不到值，但text可以获取到 “div有文本内容”
+     <div id="div1">div有文本内容</div>
+
    dom中
         tag=document.getElementById('i2')
         tag.value
@@ -89,9 +98,9 @@ jquery
         $('#i2').val('dflkj')
 
    样式操作
-        addClass
-        removeClass
-        $('#i2').toggleClass('hide');
+        addClass   添加class样式
+        removeClass   删除class样式
+        $('#i2').toggleClass('hide');   反复添加删除，实现开关的效果，就像视屏网站里面的开灯关灯类似
 
     属性操作
         #专门用于做自定义属性
@@ -100,7 +109,7 @@ jquery
         $('#i1').attr('value')
         修改value的值
         $('#i1').attr('value','确认')
-        新增值 如果属性不存在则新增
+        新增值 如果属性不存在则新增 name='hha'
         $('#i1').attr('name','hha')
         removeAttr() 删除属性
 

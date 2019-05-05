@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>0809</title>
+    <title>编辑框自动提取表里面的数据</title>
         <style>
         .header{
             background-color: black;
@@ -33,6 +33,7 @@
                 bottom: 0;
                 background-color: #9dff2a;
                 z-index: 10;
+                opacity: 0.5;
             }
             .hide{
                 display: none;
@@ -54,7 +55,7 @@
        </div>
 
    </div>
-   <div class="shadow hide">这造成</div>
+   <div class="shadow hide">遮罩层</div>
     <table border="1" id="tb">
         <thead>
         <th>选项</th>
@@ -62,25 +63,28 @@
         <th>port</th>
         </thead>
         <tr>
-            <td><input type="checkbox"> </td>
-            <td>1.2.2.1</td>
-            <td>80</td>
+            <td target="check"><input type="checkbox"> </td>
+            <td target="hostname">python</td>
+            <td target="ip">1.2.2.1</td>
+            <td target="port">80</td>
             <td>
                 <a class="edit">编辑</a>|<a>删除</a>
             </td>
         </tr>
                 <tr>
-            <td><input type="checkbox"> </td>
-            <td>1.22.2.1</td>
-            <td>80</td>
+            <td target="check"><input type="checkbox"> </td>
+            <td target="hostname">python</td>
+            <td target="ip">1.22.2.1</td>
+            <td target="port">80</td>
             <td>
                 <a class="edit">编辑</a>|<a>删除</a>
             </td>
         </tr>
         <tr>
-            <td><input type="checkbox"> </td>
-            <td>1.2.2.21</td>
-            <td>80</td>
+            <td target="check"><input type="checkbox"> </td>
+            <td target="hostname">python</td>
+            <td target="ip">1.2.2.21</td>
+            <td target="port">80</td>
             <td>
                 <a class="edit">编辑</a>|<a>删除</a>
             </td>
@@ -97,17 +101,32 @@
             $(".mode1 input[name='ip']").val('');
             $(".mode1 input[name='port']").val('');
         }
+        //下面的方法会在点击编辑后，循环查找上面的几个td标签。并通过attr('target')获取td标签的target的值，通过text()获取td标签中的文本内容
+        //在通过target的值和弹出框的input标签中的name属性的值相匹配，匹配到对应的input标签后，将text()获取的值通过val()赋值给input
+        //通过下面的方法，我们如果需要添加新的列也非常容易，只需要将新的td列的target和弹出框input中的name属性的值一样就行了，而不需要改其他代码
+        //实现将table中的数据自动提取到编辑弹出框中的效果
         $(".edit").click(function () {
             // Add(); 直接调用add()也行
             $(".mode1,.shadow").removeClass('hide');
-            var tds=$(this).parent().prevAll();
-            console.log(tds);
-            // var port=tds[0];   这是返回的一个dom对象,要转换为jquery才能被jquer操作
-            var port=$(tds[0]).text();
-            console.log(port);
-            var ip=$(tds[1]).text();
-            $(".mode1 input[name='ip']").val(ip);
-            $(".mode1 input[name='port']").val(port);
+            // var tds=$(this).parent().prevAll();
+            var tds=$(this).parent().prevUntil('[target="check"]');
+            // 对获取的标签进行循环
+            tds.each(function () {
+                //获取td中target的属性值
+                var n=$(this).attr('target');
+                console.log('n is ',n);
+                //获取td里面的文本内容，对应IP、port
+                var text=$(this).text();
+                console.log(text);
+//                var aa=$('.mode1 input[name="port"]').val('lkj');
+//                console.log('aa',aa);
+                var a1='input[name="';
+                var a2='"]';
+                var a=a1+n+a2;
+                console.log(a);
+                //修改input文本框里面的值为text变量值。注意input框里面的name属性的值要和td中target的值一一对应，这样才能将target里面的值匹配到input中
+                $(a).val(text);
+            })
 
         })
     </script>

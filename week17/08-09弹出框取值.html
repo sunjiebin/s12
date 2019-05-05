@@ -62,25 +62,25 @@
         <th>port</th>
         </thead>
         <tr>
-            <td target="check"><input type="checkbox"> </td>
-            <td target="ip">1.2.2.1</td>
-            <td target="port">80</td>
-            <td>
-                <a class="edit">编辑</a>|<a>删除</a>
-            </td>
-        </tr>
-                <tr>
-            <td target="check"><input type="checkbox"> </td>
-            <td target="ip">1.22.2.1</td>
-            <td target="port">80</td>
+            <td><input type="checkbox"> </td>
+            <td>1.2.2.1</td>
+            <td>80</td>
             <td>
                 <a class="edit">编辑</a>|<a>删除</a>
             </td>
         </tr>
         <tr>
-            <td target="check"><input type="checkbox"> </td>
-            <td target="ip">1.2.2.21</td>
-            <td target="port">80</td>
+            <td><input type="checkbox"> </td>
+            <td>1.22.2.1</td>
+            <td>80</td>
+            <td>
+                <a class="edit">编辑</a>|<a>删除</a>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="checkbox"> </td>
+            <td>1.2.2.21</td>
+            <td>80</td>
             <td>
                 <a class="edit">编辑</a>|<a>删除</a>
             </td>
@@ -94,29 +94,21 @@
         }
         function Cancel() {
             $('.mode1,.shadow').addClass('hide');
+            //清空匹配到的input输入框里面的值 val('')代表赋空值
             $(".mode1 input[name='ip']").val('');
-            $(".mode1 input[name='port']").val('td ');
+            $(".mode1 input[name='port']").val('');
         }
         $(".edit").click(function () {
             // Add(); 直接调用add()也行
             $(".mode1,.shadow").removeClass('hide');
-            // var tds=$(this).parent().prevAll();
-            var tds=$(this).parent().prevUntil('[target="check"]');
-            tds.each(function () {
-                //获取td中target的属性值
-                var n=$(this).attr('target');
-                console.log('n is ',n);
-                //获取td里面的文本内容
-                var text=$(this).text();
-                console.log(text);
-                $('input[target="port"]').val();
-                console.log('aa',aa);
-                var a1='input[target="';
-                var a2='"]';
-                var a=a1+n+a2;
-                console.log(a);
-                // $(a).val('sa');
-            })
+            var tds=$(this).parent().prevAll();
+            console.log(tds);
+            // var port=tds[0];   这是返回的一个dom对象,要转换为jquery才能被jquer操作
+            var port=$(tds[0]).text();
+            console.log(port);
+            var ip=$(tds[1]).text();
+            $(".mode1 input[name='ip']").val(ip);
+            $(".mode1 input[name='port']").val(port);
 
         })
     </script>
