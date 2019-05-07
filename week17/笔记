@@ -122,10 +122,10 @@ jquery
         index()可以获取索引的位置
 
    文档处理
-        append
-        prepend
-        after
-        before
-        remove
-        empty
-        clone
+        append   在子标签最下面添加元素
+        prepend  在子标签最上面添加元素
+        after    在同级标签下面添加元素
+        before   在同级标签上面添加元素
+        remove   删除标签
+        empty    情况标签里面的内容
+        clone    克隆整个标签

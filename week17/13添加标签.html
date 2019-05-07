@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>append添加</title>
+</head>
+<body>
+    <input id="t1" type="text"/>
+    <input id="a1" type="button" value="添加"/>
+    <input id="d1" type="button" value="删除"/>
+    <input id="c1" type="button" value="复制"/>
+    <ul id="ul">
+        <li id="i1">1</li>
+        <li>2</li>
+    </ul>
+    <script src="jquery.js"></script>
+    <script>
+        $('#a1').click(function () {
+            v1=$(this).prev().val();
+            v2='<li>'+v1+'</li>';
+            //在ul下级最下面追加数据
+            $('#ul').append(v2);
+            //在ul下级标签的最上面添加数据
+            $('#ul').prepend(v2);
+//            在ul同级标签下面添加数据
+//            $('#ul').after('after',v2);
+//            在url同级标签前面添加数据
+//            $('#ul').before('before')
+        })
+        $('#d1').click(function () {
+            //文本框里面填入索引值
+            index=$('#t1').val();
+            //删除对应的索引值的标签
+//            $('#ul li').eq(index).remove();
+            //清空对应标签里面的值,对应的标签依然在，但是里面的数据被清空
+            $('#ul li').eq(index).empty();
+        })
+        $('#c1').click(function () {
+            index=$('#t1').val();
+            //复制对应索引位置的标签
+            v=$('#ul li').eq(index).clone();
+            //将复制的标签追加进去
+            $('#ul').append(v);
+        })
+    </script>
+</body>
+</html>
