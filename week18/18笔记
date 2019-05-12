@@ -1,0 +1,97 @@
+1. js正则
+    - 登录注册验证
+    test - 判断输入的内容是否符合正则
+
+            rep = /\d+/;   正则两个//,一个开始一个结尾
+            只要有数字,就匹配true
+            rep=/\d+/;
+            rep.test("dfkj");
+        false
+        rep.test("dfkj333333333");
+        true
+            从开头到结尾都是数字
+            rep=/^\d+$/;
+            rep.test("dfkj333333333");
+        false
+            rep.test("3234");
+        true
+
+    exec - 获取匹配的数据
+        rep=/\d+/;
+        str='sun123_jie_22';
+        rep.exec(str)
+        ["123"]
+    \b开头和结尾表示获取单词,既匹配有前后空格的. sun\w+ 表示以sun开始到结尾
+        rep=/\bsun\w+\b/
+        str='sun123 sunjie333 jie1222,slkj3lkj'
+        rep.exec(str)
+        ["sun123"]
+    (\w+)表示对匹配分组,会匹配到sun123,以及sun后面的部分123单独匹配出来
+        rep=/\bsun(\w+)\b/
+        /\bsun(\w+)\b/
+        rep.exec(str)
+        ["sun123", "123"]
+    /g结尾表示全局匹配,会循环获取文本里面匹配到的字符. /结尾的只会匹配到第一个符合的结果
+        rep=/\bsun(\w+)\b/g
+        /\bsun(\w+)\b/g
+        第一次匹配到第一个
+        rep.exec(str)
+        ["sun123", "123"]
+        再执行就匹配到第二个
+        rep.exec(str)
+        ["sunjie333", "jie333"]
+        rep.exec(str)
+        null
+        反复执行就会不停轮转,又从第一个开始
+        rep.exec(str)
+        ["sun123", "123"]
+
+     /..../i不区分大小写
+     /..../n 多行匹配,/g就是多行匹配了,加上/n是为了区分^开头
+     注意多行匹配的区别
+     其实默认/g就是一个多行匹配,如下文本 \n换行了,第二行的内容依然可以匹配到
+         str='sun123 \nsunjie jie,sunsun'
+        "sun123
+        sunjie jie,sunsun"
+        rep=/\bsun\w*\b/g
+        /\bsun\w*\b/g
+        rep.exec(str)
+        ["sun123"]
+        rep.exec(str)
+        ["sunjie"]
+     但是如果我们要匹配以sun开头的文字,那么这个正则就只能匹配到第一行的sun123了.
+     如下正则,^sun表示要以sun开头,结果就只能匹配第一样的sun.这个和shell里面的理解是不一样的.
+     因为在js的正则里面,默认会将真个字符串包括换行符看作一个整体,那么第二行的sun实际就不是开头了
+         rep=/\b^sun\w*\b/g
+        /\b^sun\w*\b/g
+        rep.exec(str)
+        ["sun123"]
+        rep.exec(str)
+        null
+    要实现匹配每行sun开头的,就需要加上/m就行了
+        rep=/\b^sun\w*\b/gm
+        /\b^sun\w*\b/gm
+        rep.exec(str)
+        ["sun123"]
+        匹配到了第二行的sunjie
+        rep.exec(str)
+        ["sunjie"]
+        rep.exec(str)
+        null
+
+2. 组件
+bootstrap
+    - css
+    - js
+    学习bootstrap规则
+jQueryUI
+    - css
+    - js
+    学习jqueryui规则
+EasyUI
+    - css
+    - js
+
+3. WEB框架
+
+4. Django
