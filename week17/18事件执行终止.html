@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<!--默认会先执行alter,再执行跳转-->
+    <a onclick="alert('haha')" href="http://www.baidu.com">走你</a>
+<!--注意用dom的方式绑定如果要返回值,就需要在前面加return,不然是获取不到返回值的,也就起不到控制效果-->
+    <a onclick="return fun()" href="http://www.baidu.com">dom方式要加return</a>
+    <a id="a1" href="http://www.baidu.com">jquery方式</a>
+    <script>
+        function fun() {
+            alert('123');
+            //当return为false时,就不会再执行后面的href跳转了,可用于表单输入验证
+            return false;
+            //当return为true时,就会先alert再跳转
+            // return true;
+        }
+    </script>
+    <script src="jquery.js"></script>
+    <script>
+        $('#a1').click(function () {
+            alert('retrun为false不会执行跳转');
+            return false;
+        })
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form action="05jquery全选反选.html" id="f1" method="get">
+        <div><input name="n1" type="text"/></div>
+        <div><input name="n2" type="password"/></div>
+        <div><input name="n3" type="text"/></div>
+        <div><input name="n4" type="text"/></div>
+        <div><input name="n5" type="text"/></div>
+        <input type="submit" value="提交"/>
+
+    </form>
+    <script src="jquery.js"></script>
+    <script>
+        //:submit表示找到Input类型为submit的
+        // $(':submit').click(function () {
+        //     var v=$(this).prev().val();
+        //     if (v.length>0){
+        //         return true;
+        //     }else{
+        //         alert('请输入内容');
+        //          return false;
+        //     }
+        // })
+
+        $(':submit').click(function () {
+            //利用find同时找到input类型为text和password的标签
+            $('#f1').find('input[type="text"],input[type="password"]').each(function () {
+                var v=$(this).val();
+                console.log(1);
+                if(v.length<=0){
+                    console.log('进入if判断');
+                    //在python中,return后整个函数都会终止,也就不会再循环了,但在这里并不是,
+                    //false只会终止当前的each循环,而click函数实际还是在执行
+                    //此时的click函数并没有被return false,如果整体被return false,那么表单是不会被提交的,也就不会跳转
+                    return false;
+                }
+                //当return false时,这里不会打印出来,证明each在return时就已经终止了
+                console.log('还在循环');
+            });
+            //这里的log依然会被打印,证明each循环终止,但click函数依然在执行
+            console.log('函数没退出');
+            //如果这里写上return false,那么就是在整个click函数返回了false,那么点击提交后,页面是不会跳转的
+            return false;
+        })
+    </script>
+</body>
+</html>
