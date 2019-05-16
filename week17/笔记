@@ -129,3 +129,38 @@ jquery
         remove   删除标签
         empty    情况标签里面的内容
         clone    克隆整个标签
+
+    css处理（15节）
+        $('t1').css(‘样式名称’,'样式值')
+        点赞：
+            $('t1').append()
+            $('t1').remove()
+            setInterval
+            opactiy 1-->0
+            position
+            font-size
+
+        滑动条位置
+            window为浏览器最外层那个滚动条
+            $(window).scrollTop()           获取系统滚动条位置
+            $(window).scrollTop(100)        设置滑动条位置100
+            $('div').scrollTop()            获取div标签的滚动条位置
+            scrollLeft() 左右滚动条
+            offset  指定标签在html中的坐标
+
+            $('[value="找找看"]').offset() 获取标签离顶部和左边的距离，返回的是字典
+            $('[value="找找看"]').offset().top 获取标签离顶部的距离，返回的是数字
+            $('[value="找找看"]').offset().left 获取标签离左边的距离，返回的是数字
+
+            position()  指定标签相对于父标签(relative)的坐标
+            <div style='position:relative'>
+                <div>
+                    <div id='i1' style='position:absolute'><div>
+                </div>
+            </div>
+            $('#i1').position()   获取i1相对于外面relative的相对坐标
+            $('#i1').height() 获取标签高度
+            $('#i1').innerHeight() 获取标签高度
+            $('#i1').outerHeight() 获取标签高度
+            $('#i1').outerHeight(true) 获取标签高度
+
