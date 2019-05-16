@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>表单验证2</title>
+</head>
+<body>
+    <form action="05jquery全选反选.html" id="f1" method="get">
+        <div><input name="n1" type="text"/></div>
+        <div><input name="n2" type="password"/></div>
+        <div><input name="n3" type="text"/></div>
+        <div><input name="n4" type="text"/></div>
+        <div><input name="n5" type="text"/></div>
+        <input type="submit" value="提交"/>
+
+    </form>
+    <script src="jquery.js"></script>
+    <script>
+        //:submit表示找到Input类型为submit的
+        // $(':submit').click(function () {
+        //     var v=$(this).prev().val();
+        //     if (v.length>0){
+        //         return true;
+        //     }else{
+        //         alert('请输入内容');
+        //          return false;
+        //     }
+        // })
+
+        //加上$(function(){})函数表示,当页面框架加载完毕后自动执行函数,而不用等里面的元素加载完毕
+        //如果去掉$(function(){}),那么默认是等页面所有元素加载完毕后才会执行函数,
+        //当我们引用别的网站的图片时,有时候加载会比较慢,如果不加这个函数,那么函数就会一直等待图片加载完后才会执行
+        $(function () {
+            $(':submit').click(function () {
+                $('.error').remove();
+                var flag = true;
+                //利用find同时找到input类型为text和password的标签
+                $('#f1').find('input[type="text"],input[type="password"]').each(function () {
+                    var v = $(this).val();
+                    console.log(1);
+                    if (v.length <= 0) {
+                        console.log('进入if判断');
+                        //这里只设置flag值为false,不return,这样each就能继续执行验证后面的表单是否为空
+                        //只要有一个表单为空,那么flag就是false,这表单不会提交
+                        flag = false;
+                        // return false;
+                        var tag = document.createElement("span");
+                        tag.className = 'error';
+                        //注意,如果这里有语法错误,会导致函数不生效,结果flag设置了false也没用
+                        tag.innerText = '必填项';
+
+                        $(this).after(tag);
+
+                    }
+                });
+                //只要进入上面的if,那么这里就会是return false,表单就不会执行提交
+                return flag;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jquery的扩展</title>
+</head>
+<body>
+    <div id="1">aa</div>
+    <script src="jquery.js"></script>
+    <script>
+        //jquery扩展
+        $.extend({
+            'sun':function () {
+                return 'jiayou';
+            }
+        });
+        //直接$.函数名()
+        var v=$.sun();
+        alert(v);
+        //另一种定义的方式,这种调用的方式不一样,必须用$('#1)的方式,现匹配标签再执行函数
+        $.fn.extend({
+            'jie':function () {
+                return 'gogo';
+            }
+        });
+        var  v2=$('#1').jie();
+        alert(v2);
+    </script>
+</body>
+</html>

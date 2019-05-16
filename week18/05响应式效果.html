@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>响应式效果</title>
+    <style>
+        .c1 {
+            background-color: #0a6aa1;
+            height: 50px;
+        }
+        /*当屏幕宽度大于700像素时下面的样式c2生效,当我们对浏览器缩小到宽度小于700时，c2样式就会失效*/
+        /*这个功能在我们对有些网站缩放时，当网站变窄，上面的导航条就被隐藏了，就是用的这个@media，自动变换样式，比如bootstrap站点就是
+        比如淘宝主页，当你的页面宽度变换时，中间的内容栏的宽度就会跟着变换适当的大小*/
+        @media (min-width:700px) {
+                    .c2{
+            background-color: #f0af00;
+            height: 50px;
+        }
+        }
+
+    </style>
+    
+</head>
+<body>
+<!--宽度大于700时，应用c2样式，c1样式由于先加载所以被覆盖，此时显示黄色；当小于700时，c2失效，应用c1，此时显示蓝色-->
+    <div class="c1 c2 c3">
+        haha
+    </div>
+</body>
+</html>

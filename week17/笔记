@@ -164,3 +164,33 @@ jquery
             $('#i1').outerHeight() 获取标签高度
             $('#i1').outerHeight(true) 获取标签高度
 
+
+事件
+        DOM:三种绑定方式
+        jquery:
+            $('c1').click()
+            $('c1').bind('click',function{})
+            $('c1').unbind('click',function{})
+            delegate可以对页面新增的元素自动生成绑定事件,其他几种只会对一开始加载的元素生效,
+            后面通过浏览器新增的元素绑定事件是不能生效的.
+            c1父级标签,a子级标签,click点击事件
+            $('c1').delegate('a','click',function{})
+            $('c1').undelegate('a','click',function{})
+             $('ul').delegate('li','click',function () {})
+
+            上面几种方式其实都是调用的下面的on方法
+            $('c1').on('click',function(){})
+            $('c1').off('click',function(){})
+        阻止事件的发生
+            return false
+        当页面框架加载完成后就执行
+            $(function(){
+                $(xx)
+            })
+        jquery扩展
+            $.extend(){}        执行方式  $.方法
+            $.fn.extend(){}     执行方式  $('#aa').方法
+         自己定义方法时,先用一个自执行函数,然后在里面写函数
+            (function(){
+                xxx
+            })(jQuery)
