@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>bxslider轮播图</title>
+
+<!--    // Links to the libraries needed-->
+    <link rel="stylesheet" href="bxslider-4-4.2.12/dist/jquery.bxslider.css">
+    <script src="jquery.js"></script>
+    <script src="bxslider-4-4.2.12/dist/jquery.bxslider.min.js"></script>
+    <style>
+        img{
+            height: 500px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+
+
+<!--    // Slider HTML (change this to your own!)-->
+    <div class="slider">
+<!--静态的轮播图-->
+        <div><img src="img/2-3.jpg"></div>
+        <div><img src="img/1-4.jpg"></div>
+        <div><img src="img/1.jpg"/></div>
+    </div>
+<!--自动播放的轮播图-->
+    <div class="bxslider">
+        <div><img src="img/2-3.jpg"></div>
+        <div><img src="img/1-4.jpg"></div>
+        <div><img src="img/1.jpg"/></div>
+    </div>
+
+
+<!--    // Initialize the slider-->
+    <script>
+        //轮播图
+        // 当页面框架加载完成后自动执行，和$(function(){})一样的效果
+        $(document).ready(function(){
+            $('.slider').bxSlider();
+        });
+
+        // 如下写法也可以
+        // $(function () {
+        //     $('.slider').bxSlider();
+        // });
+
+        //可以自动播放的轮播图
+        $('.bxslider').bxSlider({
+            auto: true,
+            autoControls: true,
+            stopAutoOnClick: true,
+            pager: true,
+            slideWidth: 1200
+        });
+    </script>
+
+</body>
+</html>
