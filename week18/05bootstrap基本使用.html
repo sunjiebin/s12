@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>bootstrap基本使用</title>
+    <style>
+        .no-radius{
+            /*利用!important可以将该样式优先级设置为最高，这样当我们引用别人的样式的时候，就可以强制覆盖他的样式了，而不用管样式文件的顺序问题了*/
+            border-radius: 0 !important;
+        }
+    </style>
+    <!--引用bootstrap的样式文件-->
+    <link rel="stylesheet" href="bootstrap-3.3.7-dist/css/bootstrap.css"/>
+    <link rel="stylesheet" href="bootstrap-3.3.7-dist/css/bootstrap-theme.css"/>
+</head>
+<body>
+    <!--要获取对应的图标，去官网上组件--字体图标，然后f12找到想要的图标对应的span标签，将标签源码复制过来就行了-->
+    <span class="glyphicon glyphicon-headphones" aria-hidden="true"></span>
+
+    <!--要获取其他的组件效果，在官网上找到对应的组件复制对应的代码就行了-->
+    <!--导航条效果-->
+    <!--默认边框是圆角，我们想变成直角，用no-radius样式强制覆盖原有的样式-->
+    <nav class="navbar navbar-inverse no-radius">
+            <div style="color: #ffffff;font-size: 20px;line-height: 50px;padding: 0 10px;float: left">xiaomi</div>
+            <div style="color: #ffffff;font-size: 20px;line-height: 50px;padding: 0 10px;float: left">huawei</div>
+    </nav>
+    <!--巨幕效果-->
+    <div class="jumbotron">
+        <h1>Hello, world!</h1>
+        <p>...</p>
+        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a></p>
+    </div>
+    <!--输入框效果-->
+    <div class="input-group">
+        <span class="input-group-addon" id="basic-addon1">@</span>
+        <input type="text" class="form-control" placeholder="Username" aria-describedby="basic-addon1">
+    </div>
+
+    <div class="input-group">
+        <input type="text" class="form-control" placeholder="Recipient's username" aria-describedby="basic-addon2">
+        <span class="input-group-addon" id="basic-addon2">@example.com</span>
+    </div>
+
+    <div class="input-group">
+        <span class="input-group-addon">$</span>
+        <input type="text" class="form-control" aria-label="Amount (to the nearest dollar)">
+        <span class="input-group-addon">.00</span>
+    </div>
+
+    <label for="basic-url">Your vanity URL</label>
+    <div class="input-group">
+        <span class="input-group-addon" id="basic-addon3">https://example.com/users/</span>
+        <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+    </div>
+    <!-- bootstrap依赖于jquery，所以需要先导入jquery-->
+    <script src="jquery.js"></script>
+    <!-- jquery写在前面，bootstrap的引用写在后面,顺序不要反了-->
+    <script src="bootstrap-3.3.7-dist/js/bootstrap.js"></script>
+</body>
+</html>

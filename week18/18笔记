@@ -78,19 +78,39 @@
         ["sunjie"]
         rep.exec(str)
         null
+    03 表单验证
+    <form>
+        <input type='password'/>
+        <input type='submit'/>
+    </form>
+    $(':submit').click(function(){
+        $(':text,:password').each(function(){
+            xxx;
+            return false;
+        })
+        return false;
+    })
+
 
 2. 组件
-bootstrap
+bootstrap   最全的web框架，可用于前端页面，也可以用于后台管理
     - css
     - js
     学习bootstrap规则
-jQueryUI
+    一、响应式
+        @media
+    二、图标、字体
+        @font-face  用于查找自定义的字体，bootstrap中用于自定义的图标的定位
+    三、基本使用
+
+jQueryUI    用于后台管理
     - css
     - js
     学习jqueryui规则
-EasyUI
+EasyUI   主要用于后台管理页面的布局
     - css
     - js
+
 
 3. WEB框架
 
