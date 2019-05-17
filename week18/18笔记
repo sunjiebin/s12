@@ -113,5 +113,30 @@ EasyUI   主要用于后台管理页面的布局
 
 
 3. WEB框架
+    Model       View    Controller
+    数据库操作   模板文件    业务处理
+    即MVC框架，相当于对文件夹分类
+    Model       Template    View
+    数据库操作   模板文件      业务处理
+    即MTV框架
 
 4. Django
+   安装django    pip3 install Django
+   设置环境变量   python安装路径\Scripts
+   创建django项目 django-admin startproject mysite
+   会创建一个mysite的django项目
+   也可以用pycharm来创建django项目。file-->new project-->django
+   mysite
+    - mysite        对整个程序进行配置
+        - init
+        - settings  配置文件
+        - url       url和函数及类的对应关系
+        - wsgi      遵循WSGI规范，以后线上一般用uwsgi+nginx
+    - manage.py     管理Django程序
+        - python manage.py
+        - python manage.py startapp xx
+        - python manage.py makemigration
+        - python manage.py migrate
+   运行django： python manage.py runserver 127.0.0.1:8000
+   注意运行时的python命令要和django的python版本要一致，python3的django要用python3来运行。否则可能会有问题。
+
