@@ -140,3 +140,118 @@ EasyUI   主要用于后台管理页面的布局
    运行django： python manage.py runserver 127.0.0.1:8000
    注意运行时的python命令要和django的python版本要一致，python3的django要用python3来运行。否则可能会有问题。
 
+    创建app
+    python manage.py satrtapp cmdb   创建一个名为cmdb的app,会在对应的django项目下面生成一个目录
+
+    app目录:
+        我们用python的orm时,无法对已有的表进行加列修改列的操作.但django可以.
+        migrations 记录数据库修改表结构的记录.
+        每个目录下都有一个__init__.py,这个文件在python3里面其实不需要也行,但是在python2里面就必须要加上,否则在我们用
+        from migrations import xxx 时,Python2就会无法识别xxx而报错,python3里面不会.  加上__init__.py后,相当于这是一个
+        python package,也就是一个python包,而不是一个普通的文件夹了.我们用pycharm时,就有新建文件夹和新建package,两者就
+        是有没有这个__init__.py的区别.
+        admin  django的后台管理
+        apps   配置当前的app
+        models  相当于ORM,写指定的类,通过命令可以创建数据库结构
+        tests   单元测试
+        views   业务代码,业务逻辑都写在这里,比如cmdb系统里面的主机管理,发布管理
+
+    1. 配置模版路径
+        在settings里面配置
+
+        TEMPLATES = [
+            {
+                'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                # DIRS里面就是配置模版路径,默认是templates
+                'DIRS': [os.path.join(BASE_DIR, 'templates')]
+                ,
+                'APP_DIRS': True,
+                'OPTIONS': {
+                    'context_processors': [
+                        'django.template.context_processors.debug',
+                        'django.template.context_processors.request',
+                        'django.contrib.auth.context_processors.auth',
+                        'django.contrib.messages.context_processors.messages',
+                    ],
+                },
+            },
+        ]
+    2. 配置静态目录
+        需要在settings文件底部加上,注意逗号一定要有,否则启动直接报错
+        STATICFILES_DIRS = (
+    os.path.join(BASE_DIR,'static'),
+)
+在temlates文件夹中的html文件通过Link引用样式即可.
+    <link rel="stylesheet" href="/static/common.css"/>
+
+    django的工作流程(生命周期)
+    浏览器访问-->路由系统(urls.py)-->视图函数(views.py)-->读取数据库,结合网页模版(templates)渲染,渲染完毕后-->返回字符串给客户端
+
+内容整理
+        1. 创建django工程
+            django-admin startproject xxx
+        2. 创建app
+            cd 工程名
+            python manage.py startapp xxx
+        3. 静态文件
+            在settings.py中设置
+            STATICFILES_DIRS=(os.path.join(BASE_DIR,'static'),)
+        4. 模版路径
+            在settings.py中设置
+            DIRS --> [os.path.join(BASE_DIR,'templates'),]
+        5. settings中
+            注释csrf
+        6. 定义路由规则
+            urls.py
+                不带括号的函数名
+                path('login',views.login),
+        7. 定义视图函数
+            app下的views.py
+                注意request参数不能少
+                获取数据
+                def fun(request):
+                    request.method 请求方式GET POST 都是大写
+                    request.POST.get('xxx',None)  取用户post传来的值
+                    request.GET.get('xxx',None)   取get传来的值  URL + ?uid=123&user=aaa
+                 返回数据
+                 return HttpResponse('字符串')
+                 return render(request,"html模版路径")
+                 return redirect('/只能填URL')   注意这里如果是跳转到本地,前面必须加/. 并且这里只能填url,不能填模版文件的路径.
+        8. 模版渲染
+                特殊的模版语言
+                -- {{ 变量名 }}
+                def fun(request):
+                    return render(request,'index.html',{'current_user','ales'})
+                    <div>{{ current_user }}</div>
+        for循环
+                def func(request):
+                    return render(request,'login.html',
+                    {
+                    'current_user':'alex',
+                    'user_list':['alex','eric','sun'],
+                    'user_dict':{'k1':'v1','k2':'v2',}
+                    })
+                for循环直接取值
+                <ul>
+                    {% for row in user_list %}
+                        <li>{{ row }}</li>
+                    {% endfor %}
+                </ul>
+                索引取值
+                {{ row.0 }}     取列表里面的第一个值
+                {{ row.1 }}     取列表里面的第二个值
+                {{ row.k1 }}    取字典里面的k1的值
+        if条件判断
+                age = 18
+                如果age为0,则if返回false
+                {% if age %}
+                    <a>年龄大于0</a>
+                    注意age > 16 这个>前后都要有空格
+                    {% if age > 16 %}
+                        <a>青少年</a>
+                    {% else %}
+                        <a>成年人</a>
+                    {% endif %}
+                {%  else %}
+                    <a>年龄为0</a>
+                {%  endif %}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户后台</title>
+</head>
+<body>
+    <div style="height: 50px;background-color: greenyellow; border-radius: 90%"></div>
+    <div>
+        <form action="/home/" method="post">
+            <input type="text" name="username" placeholder="用户名"/>
+            <input type="text" name="email" placeholder="邮箱"/>
+            <input type="text" name="gender" placeholder="性别"/>
+            <input type="submit" value="提交"/>
+        </form>
+    </div>
+    <div>
+        <table>
+        {#django里面自带了for循环,可以将传入的值循环,这里的userlist来自views.py,通过for循环,实现循环添加表单行#}
+            {% for row in userlist %}
+                <tr>
+        {#{{ row.username }}代表是模版,row.username获取字典里面username的值,这里和python的写法不同,不能用row['username']或get方法#}
+                    <td>{{ row.username }}</td>
+                    <td>{{ row.email }}</td>
+                    <td>{{ row.gender }}</td>
+                </tr>
+            {% endfor %}
+
+        </table>
+    </div>
+
+</body>
+</html>

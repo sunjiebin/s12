@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" href="/static/common.css"/>
+</head>
+<body>
+{#action=/login/表示将提交的请求指向/login,即返回给他自己#}
+{#注意:如果urls.py里面写的是login/,这里就要以login/结尾,如果那里写的login后面没有/,那么这里也就不要写上/,两者要统一#}
+    <form action="/login" method="post">
+
+        <p>
+            <label for="user">用户名</label>
+            <input id="user" name='username' type="text"/>
+
+        </p>
+        <p>
+            <label for="pass">密码</label>
+            {#注意,form表单提交的是一个字典形式的数据,在input框中,我们应该定义好name属性,这样才有了key#}
+            <input id='pass' name='password' type="password" />
+            <input type="submit" value="提交" />
+            <span style="color: red">{{ error_msg }}</span>
+        </p>
+    </form>
+</body>
+</html>
