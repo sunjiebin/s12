@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>dict字典值的获取</title>
+</head>
+<body>
+<p> <a>key,value循环</a>
+{#注意在模版中,去键值对是dic.items,和python中不一样,python是dic.items() 多了()#}
+    {% for key,value in dic.items %}
+        <li>{{ key }}+{{ value }}</li>
+    {% endfor %}
+</p>
+<p>
+    key循环
+    {% for foo in dic.keys %}
+        <li>{{ foo }}</li>
+    {% endfor %}
+
+</p>
+<p>
+    取其中的某个key的值
+    <li>{{ dic.k2 }}</li>
+    <li>{{ dic.k1 }}</li>
+</p>
+</body>
+</html>

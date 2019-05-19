@@ -1,0 +1,37 @@
+
+
+一. 路由系统
+    静态路由
+       调用函数 path('dict/',views.dict),
+       调用类   path('home/',views.Home.as_view()),
+    动态路由
+       老版本
+       path(r'^detail-(\d+).html',views.detail),
+       新版本2.2.1
+       from django.urls import re_path,path
+       re_path('detail-(\d+).html',views.detail),
+
+二. 视图
+    request.GET
+    request.POST
+        request.POST.getlist获取多选的内容,比如checkbox类型
+    request.FILES
+
+    上传文件
+    一定要注意,上次文件form标签里面要写上enctype="multipart/form-data"特殊设置 ,否则form不会提交真正的文件内容,而只会提交文件名..
+    obj = request.POST.FILES.get('filename')
+    obj.name
+    f = open(obj.name,'wb')
+    for item in obj.chunks():
+        f.write(item)
+    f.close()
+
+    4. FBV & CBV
+        django对请求处理方式有两种FBV和CBV
+        function base view  对应的是函数
+        class base view     对应的是类
+        urls.py 对应关系可以是 url--> 函数 , 也可以 url-->类
+
+三. 模版
+
+四. orm操作

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册</title>
+</head>
+<body>
+    <form action="/register" method="post" enctype="multipart/form-data">
+        <p>
+            <input type="text" name="user" placeholder="用户名"/>
+            <input type="password" name="pwd" placeholder="密码"/>
+        </p>
+        <p>
+            <input type="radio" name="gender" value="1"/>男
+            <input type="radio" name="gender" value="2"/>女
+        </p>
+        <p>
+            爱好
+            <input type="checkbox" name="favor" value="swiming"/>游泳
+            <input type="checkbox" name="favor" value="hikking"/>爬山
+            <input type="checkbox" name="favor" value="footerball"/>足球
+        </p>
+        <input type="submit" value="提交"/>
+    </form>
+</body>
+</html>
