@@ -215,13 +215,13 @@ EasyUI   主要用于后台管理页面的布局
                     request.GET.get('xxx',None)   取get传来的值  URL + ?uid=123&user=aaa
                  返回数据
                  return HttpResponse('字符串')
-                 return render(request,"html模版路径")
+                 return render(request,"html模版路径",{'变量名':'变量值')     注意最后面写法是字典{a:b},不是集合{a,b}
                  return redirect('/只能填URL')   注意这里如果是跳转到本地,前面必须加/. 并且这里只能填url,不能填模版文件的路径.
         8. 模版渲染
                 特殊的模版语言
                 -- {{ 变量名 }}
                 def fun(request):
-                    return render(request,'index.html',{'current_user','ales'})
+                    return render(request,'index.html',{'current_user':'ales'})
                     <div>{{ current_user }}</div>
         for循环
                 def func(request):
