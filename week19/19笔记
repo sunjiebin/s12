@@ -6,10 +6,39 @@
        调用类   path('home/',views.Home.as_view()),
     动态路由
        老版本
-       path(r'^detail-(\d+).html',views.detail),
+       url(r'^detail-(\d+).html',views.detail),
        新版本2.2.1
        from django.urls import re_path,path
        re_path('detail-(\d+).html',views.detail),
+       指定传入的形参名称为uid,gid
+       re_path('detail-(?P<uid>\d+)-(?P<gid>\d+).html',views.detail),
+    两种url的实际使用区别
+    a
+        re_path('detail-(\d+)-(\d+).html',views.detail),
+        可匹配以下函数
+        def func(request,nid,uid):
+            nid第一个参数
+            uid第二个参数
+        def func(request,*args):
+            args[0] 第一个参数
+            args[1] 第二个参数
+        def func(request,*args,**kwargs):
+            args可以取到传来的值，kwargs为空
+    b
+        re_path('detail-(?P<uid>\d+)-(?P<gid>\d+).html',views.detail),
+
+        def func(request,gid,uid):
+            gid取到url里面定义的gid的值
+            uid取到uid的值
+            与形参的位置无关
+        def func(request,*args,**kwargs):
+            args为空
+            kwargs会接收到字典｛'uid':8,'gid':2｝
+        def func(request,**kwargs):
+
+    name
+        对URL路由关系进行命名，以后可根据此名称生成自己需要的URL
+
 
 二. 视图
     request.GET
