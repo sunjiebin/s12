@@ -5,9 +5,13 @@
     <title>主机详情</title>
 </head>
 <body>
+    {% if  uid  %}
+        <li>灵活匹配函数，uid为{{ uid }}</li>
+    {% endif %}
     <li>主机名:{{ detail.name }}</li>
     <li>IP:{{ detail.ip }}</li>
     <li>操作系统:{{ detail.os }}</li>
+
 
 </body>
 </html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>html里面匹配URL</title>
+</head>
+<body>
+    <p>当前实际路径为{{ request.path_info }}</p>
+{% if url == 1 %}
+    <a href="{% url 'i1' %}">匹配i1生成{% url 'i1' %}</a>
+{% elif url == 2 %}
+    <a href="{% url 'i2' 8 8 %}">匹配i2生成{% url 'i2' 8 8 %}</a>
+{% elif url == 3 %}
+    <a href="{% url 'i3' num1=8 num2=9 %}">匹配i3生成{% url 'i3' num1=8 num2=9 %}</a>
+{% else %}
+    <span>什么都没有匹配到</span>
+{% endif %}
+
+
+</body>
+</html>

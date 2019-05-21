@@ -16,17 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from app01 import views
-from django.urls import re_path,path
+from django.urls import re_path,path,include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('login',views.login),
-    path('index',views.index),
-    path('register',views.register),
-    path('upload',views.upload),
-    # 这里的Home是我们定义的函数名,as_view()是固定的方法
-    path('home/',views.Home.as_view()),
-    path('dict/',views.dict),
-    # 注意在2.2.1版本的django中,要导入re_path,然后用re_path才能使得正则生效,用path正则是不生效的.这个和老版本的有区别
-    re_path('detail-(\d+).html',views.detail),
+    # 注意要加上/，不然访问app01路径下的url就变成了app01upload，用app01/upload就匹配不到了。实际上就是把两个urls里面的路径拼接起来了
+    # 当一个项目下面多个模块，URL会有很多时，就可以用include来对url分流存放。
+    path('app01/',include('app01.urls')),
 ]
