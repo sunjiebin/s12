@@ -118,7 +118,11 @@
     3. 执行创建命令
         python manage.py makemigrations     #会在migrations文件夹下生成一个临时的py文件，里面就是python建表语句
         python manage.py migrate            #正式创建数据库，默认情况下会用自带的sqllite数据库，文件名db.sqlite3。如果要用mysql，可在settings里面修改
-
+    注意：
+        django默认使用的MySQLdb模块链接mysql，但是MySQLdb并不支持python3，我们要改用pymysql
+        所以用mysql时，需要在项目同名的文件夹下的__init__.py中添加如下代码，让django用pymysql链接数据库
+        import pymysql
+        pymysql.install_as_MySQLdb()
 
         1 根据类自动创建数据库表
             # 在app下
