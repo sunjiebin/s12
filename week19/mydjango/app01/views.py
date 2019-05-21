@@ -82,9 +82,48 @@ def index(request):
 
     return render(request,'index.html',{'dic':HOST_DIC})
 
+
 def detail(request,nid):
     # 注意这里的nid是django自动从你的url里面把正则变量取过来了.也就是urls.py里面定义的(\d+)的值
     # return HttpResponse(nid)
     d=HOST_DIC.get(nid)
     print(d)
     return render(request,'detail.html',{'detail':d})
+
+def detail2(request,*args,**kwargs):
+   # *args将传入的参数打包成元祖，**kwargs接收传入的字典形式参数，这么写就可以兼容各种正则匹配的方式了
+    print(kwargs)
+    nid=kwargs.get('nid',None)
+    uid=kwargs['uid']
+    d=HOST_DIC.get(nid)
+    print(d)
+    return render(request,'detail.html',{'detail':d,'uid':uid})
+
+def url1(request,*args,**kwargs):
+    from django.urls import reverse
+    print(args)
+    if args:
+        print('exist')
+        # 下面的命令相当于将原来的url替换为url2=reverse/2/2
+        url2 = reverse('u2', args=(2, 2,))
+        print(url2)
+        return render(request,'reverse.html',{'url':url2})
+    else:
+        if kwargs:
+            url3=reverse('u3',kwargs={'num1':3,'num2':4,})
+            return render(request,'reverse.html',{'url':url3})
+        else:
+            url1=reverse('u1')
+            return render(request,'reverse.html',{'url':url1})
+
+def url2(request,*args,**kwargs):
+    if args:
+        url=2
+        return render(request,'urlmatch.html',{'url':url})
+    else:
+        if kwargs:
+            url=3
+            return render(request,'urlmatch.html',{'url':url})
+        else:
+            url=1
+            return render(request,'urlmatch.html',{'url':url})
