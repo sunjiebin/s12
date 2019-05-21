@@ -37,7 +37,48 @@
         def func(request,**kwargs):
 
     name
-        对URL路由关系进行命名，以后可根据此名称生成自己需要的URL
+    URL的转换,这个功能用于当你输入 /index/x/x时，不管x怎么变换，都会固定跳转到指定的页面/index/1/1.
+        urls
+            对URL路由关系进行命名，以后可根据此名称生成自己需要的URL
+            re_path('reverse$',views.url1,name='u1'),
+            re_path('reverse/(\d+)/(\d+)',views.url1,name='u2'),
+            re_path('reverse3/(?P<num1>\d+)/(?P<num2>\d+)',views.url1,name='u3'),
+
+        views
+            def url1(request,*args,**kwargs):
+                from django.urls import reverse
+                导入reverse，通过reverse可以动态生产URL部分 reverse('name的值')
+                  这里url1 = reverse
+                    url1=reverse('u1')
+                    return render(request,'reverse.html',{'url':url1})
+                  遇到reverse/(\d+)/(\d+)的URL时，转换生成固定的url2=reverse/2/2
+                    url2 = reverse('u2', args=(2, 2,))
+                    return render(request,'reverse.html',{'url':url2})
+                  遇到reverse3/(?P<num1>\d+)/(?P<num2>\d+)时，转换生成url3=reverse3/3/4
+                    url3=reverse('u3',kwargs={'num1':3,'num2':4,})
+                    return render(request,'reverse.html',{'url':url3})
+        html
+            <a href="{{ url }}">通过reverse生成地址跳转到 {{ url }}</a>
+
+    还可以在html文档里面直接动态获取url的值
+    urls
+        re_path('urlmatch$',views.url2,name='i1'),
+        re_path('urlmatch/(\d+)/(\d+)',views.url2,name='i2'),
+        re_path('urlmatch3/(?P<num1>\d+)/(?P<num2>\d+)', views.url2, name='i3'),
+    views
+        def url2(request,*args,**kwargs):
+                return render(request,'urlmatch.html')
+    html
+        通过{% url 'name名称' %}即可以匹配到urls里面定义的url
+        <a href="{% url 'i1' %}">匹配i1生成{% url 'i1' %}</a>
+        转换生成urlmatch/8/8
+        <a href="{% url 'i2' 8 8 %}">匹配i2生成{% url 'i2' 8 8 %}</a>
+        <a href="{% url 'i3' num1=8 num2=9 %}">匹配i3生成{% url 'i3' num1=8 num2=9 %}</a>
+
+    如果我们只是想获取原来的url的完整路径，而不改变url的值，可以用下面的方法实现
+        request.path_info
+          <p>当前实际路径为{{ request.path_info }}</p>
+
 
 
 二. 视图
@@ -64,3 +105,21 @@
 三. 模版
 
 四. orm操作
+    django是code first，先建立好类，再用类操作数据库
+    1，先写类
+        from django.db import models
+        class UserInfo(models.Model):
+            #自动创建自增的主键id
+            #用户列名，字符串类型，指定长度
+            username = models.CharField(max_length=32)
+            password = models.CharField(max_length=64)
+    2. 注册app
+        在settings.py的INSTALLED_APPS下添加应用'app01'
+    3. 执行创建命令
+        python manage.py makemigrations     #会在migrations文件夹下生成一个临时的py文件，里面就是python建表语句
+        python manage.py migrate            #正式创建数据库，默认情况下会用自带的sqllite数据库，文件名db.sqlite3。如果要用mysql，可在settings里面修改
+
+
+        1 根据类自动创建数据库表
+            # 在app下
+        2 根据类对数据库表中的数据进行操作
