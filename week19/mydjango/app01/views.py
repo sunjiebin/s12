@@ -127,3 +127,30 @@ def url2(request,*args,**kwargs):
         else:
             url=1
             return render(request,'urlmatch.html',{'url':url})
+
+def orm(request):
+    from app01 import models
+    # # 插入数据
+    # # 第一种写法
+    # models.UserInfo.objects.create(username='root',password='123',)
+    # # 第二种写法
+    # dic={'username':'eric','password':'222'}
+    # models.UserInfo.objects.create(**dic)
+    # # 第三种写法
+    # obj=models.UserInfo(username='sun',password='jie')
+    # obj.save()
+
+    # 查找数据
+    # 生成的result是QuerySet类型，可以用result.query来显示其真正执行的数据库查询语句
+    result=models.UserInfo.objects.all()
+    root=models.UserInfo.objects.filter(username='root',password='123')
+    for i in result:
+        print(i.username,i.password)
+    # 删除数据
+    models.UserInfo.objects.filter(username='sun').delete()
+
+    # 更新数据
+    models.UserInfo.objects.all().update(password='hnm')
+
+    return render(request,'orm.html',{'result':result,'single_user':root})
+

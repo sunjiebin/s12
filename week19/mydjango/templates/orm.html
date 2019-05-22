@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>获取数据库数据</title>
+</head>
+<body>
+    <p>查询所有</p>
+    {% for i in result %}
+        <div>user:{{ i.username }} pass:{{ i.password }}</div>
+    {% endfor %}
+    <p>where指定查询结果</p>
+    {% for i in single_user %}
+        <div>{{ i.username }}</div>
+    {% endfor %}
+</body>
+</html>
