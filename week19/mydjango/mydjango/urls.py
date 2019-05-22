@@ -23,5 +23,6 @@ urlpatterns = [
     # 注意要加上/，不然访问app01路径下的url就变成了app01upload，用app01/upload就匹配不到了。实际上就是把两个urls里面的路径拼接起来了
     # 当一个项目下面多个模块，URL会有很多时，就可以用include来对url分流存放。
     path('app/',include('app01.urls')),
+    path('cmdb/',include('cmdb.urls')),
     path('orm/',views.orm),
 ]

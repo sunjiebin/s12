@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>管理后台</title>
+    <style>
+        body{
+            margin: 0;
+        }
+
+        .header{
+            height: 50px;
+            background: antiquewhite;
+            margin: 0;
+        }
+
+        .item{
+            width: 200px;
+            background: bisque;
+            top: 50px;
+            position: absolute;
+            bottom: 0;
+        }
+
+        .item a{
+            display: block;
+            padding: 5px;
+        }
+
+        .container{
+            position: absolute;
+            bottom: 0;
+            top:50px;
+            left: 200px;
+            right: 0;
+            background: cyan;
+        }
+    </style>
+</head>
+<body>
+    <div >
+    <h1 class="header">欢迎登入后台管理系统</h1>
+    </div>
+    <div class="body">
+        <div class="item">
+            {#注意这里要写绝对路径/cmdb/userinfo才对，如果写cmdb/userinfo将会得到相对路径，这是不对的#}
+            <a href="/cmdb/userinfo">用户管理</a>
+            <a href="groupinfo">组管理</a>
+        </div>
+        <div class="container">
+            内容部分
+        </div>
+    </div>
+</body>
+</html>

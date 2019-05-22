@@ -88,7 +88,7 @@
     request.FILES
 
     上传文件
-    一定要注意,上次文件form标签里面要写上enctype="multipart/form-data"特殊设置 ,否则form不会提交真正的文件内容,而只会提交文件名..
+    一定要注意,上传文件form标签里面要写上enctype="multipart/form-data"特殊设置 ,否则form不会提交真正的文件内容,而只会提交文件名..
     obj = request.POST.FILES.get('filename')
     obj.name
     f = open(obj.name,'wb')
