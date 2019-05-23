@@ -9,7 +9,9 @@ from django.urls import re_path,path
 urlpatterns = [
     path('login/', views.login),
     path('userinfo',views.userinfo),
-    re_path('userdetail-(?P<id>\d+).html',views.userdetail,name='detail'),
+    re_path('userdetail-(\d+).html',views.userdetail,name='detail'),
+    re_path('useredit-(?P<nid>\d+).html',views.useredit,name='eidt'),
+    re_path('userdel-(?P<nid>\d+).html',views.userdel,name='del')
     # path('index', views.index),
     # path('register', views.register),
     # path('upload', views.upload),

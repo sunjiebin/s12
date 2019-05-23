@@ -49,20 +49,12 @@
             <a href="groupinfo.html">组管理</a>
         </div>
         <div class="container">
-            <h3>添加用户</h3>
-            <form method="post" action="/cmdb/userinfo">
-                <input type="text" name="user" placeholder="用户名" />
-                <input type="password" name="pass" placeholder="密码"/>
-                <input type="submit" value="添加"/>
+            <h3>修改用户</h3>
+            <form method="post">
+                <input type="text" name="user" value="{{ userdata.username }}" />
+                <input type="password" name="pass" value="{{ userdata.password }}"/>
+                <input type="submit" value="更新"/>
             </form>
-            <h3>用户列表</h3>
-            {% for i in alluser %}
-                <li>
-                <a href="userdetail-{{ i.id }}.html">{{ i.username }}</a> |
-                <a href="useredit-{{ i.id }}.html">修改</a> |
-                <a href="userdel-{{ i.id }}.html">删除</a>
-                </li>
-            {% endfor %}
         </div>
     </div>
 </body>
