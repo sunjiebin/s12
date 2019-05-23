@@ -126,4 +126,33 @@
 
         1 根据类自动创建数据库表
             # 在app下
+			如果表之前有值，新增列要设置默认值，否则执行makemigrations时就会出现下面的提示。
+			email=models.CharField(max_length=64)
+			You are trying to add a non-nullable field 'email' to userinfo without a default; we can't do that (the database needs something to populate existing rows).
+Please select a fix:
+ 1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
+ 2) Quit, and let me add a default in models.py
+			选择1就是让你输入一个默认值，新增的列都将用这个默认值填充。选择2就是重新设置表。
+			可以设置default默认值，也可以设置null=True默认为空。
+			gender=models.CharField(max_length=32,default='F')
+			address=models.CharField(max_length=128,null=True)
+			
+			django里面有很多数据格式，如EmailField,ipField
+			这些格式并不是数据库的格式，在数据库中依然是字符串类型。这些格式只在django的admin管理后台有用，
+			后台会根据这个格式来判断你输入的值是否符合要求，就比如邮件格式就只能输入邮件地址。
+			如果不用django的后台，那么这些没啥用
+			
+			创建app的后台在app下admin.py里面设置
+			from django.contribe import admin
+			from app01 import models
+			admin.site.register(models.UserInfo)
+			要访问还需要在urls.py里面定义
+			path('admin',admin.site.urls)
+			
+			添加自增列,当有自增列时，django就不会再自动添加id自增列了。
+			class UserGroup(models.Model):
+				uid = models.AutoField(primary_key=True)
+		
+			
+
         2 根据类对数据库表中的数据进行操作
