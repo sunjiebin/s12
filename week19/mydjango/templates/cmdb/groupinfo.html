@@ -3,8 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <title>组信息页面</title>
+    <style>
+        body{
+            margin: 0;
+        }
+
+        .header{
+            height: 50px;
+            background: antiquewhite;
+            margin: 0;
+        }
+
+        .item{
+            width: 200px;
+            background: bisque;
+            top: 50px;
+            position: absolute;
+            bottom: 0;
+        }
+
+        .item a{
+            display: block;
+            padding: 5px;
+        }
+
+        .container{
+            position: absolute;
+            bottom: 0;
+            top:50px;
+            left: 200px;
+            right: 0;
+            background: cyan;
+        }
+    </style>
 </head>
 <body>
-
+    <div >
+    <h1 class="header">欢迎登入后台管理系统</h1>
+    </div>
+    <div class="body">
+        <div class="item">
+            {#注意这里要写绝对路径/cmdb/userinfo才对，如果写cmdb/userinfo将会得到相对路径，这是不对的#}
+            <a href="/cmdb/userinfo">用户管理</a>
+            <a href="/cmdb/groupinfo">组管理</a>
+        </div>
+        <div class="container">
+            <h3>添加用户</h3>
+            <form method="post" action="/cmdb/groupinfo">
+                <input type="text" name="caption" placeholder="组名" />
+                <input type="submit" value="添加"/>
+            </form>
+            <h3>组列表</h3>
+            {% for i in allgroup %}
+                <li>
+                <a href="userdetail-{{ i.uid }}.html">{{ i.caption }}</a>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
 </body>
 </html>

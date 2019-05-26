@@ -53,6 +53,11 @@
             <form method="post">
                 <input type="text" name="user" value="{{ userdata.username }}" />
                 <input type="password" name="pass" value="{{ userdata.password }}"/>
+                <select name="group_id">
+                    <option value="1">ceo</option>
+                    <option value="2">dba</option>
+                    <option value="3">sa</option>
+                </select>
                 <input type="submit" value="更新"/>
             </form>
         </div>
