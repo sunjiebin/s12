@@ -46,19 +46,26 @@
     <div class="body">
         <div class="item">
             <a href="/cmdb/userinfo">用户管理</a>
-            <a href="groupinfo.html">组管理</a>
+            <a href="groupinfo">组管理</a>
         </div>
         <div class="container">
             <h3>添加用户</h3>
             <form method="post" action="/cmdb/userinfo">
                 <input type="text" name="user" placeholder="用户名" />
                 <input type="password" name="pass" placeholder="密码"/>
+                <select name="group_id">
+                    {% for i in allgroup %}
+                        <option value={{ i.uid }}>{{ i.caption }}</option>
+                    {% endfor %}
+                </select>
                 <input type="submit" value="添加"/>
             </form>
             <h3>用户列表</h3>
             {% for i in alluser %}
                 <li>
                 <a href="userdetail-{{ i.id }}.html">{{ i.username }}</a> |
+                {#注意,由于userinfo和usergroup进行了关联,所以i.user_group为usergroup表的对象,里面封装了usergroup表的数据.所以i.user_group.caption可以获取到usergroup表的内容#}
+                    <a>{{ i.user_group.caption }}</a> |
                 <a href="useredit-{{ i.id }}.html">修改</a> |
                 <a href="userdel-{{ i.id }}.html">删除</a>
                 </li>

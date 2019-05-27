@@ -152,7 +152,43 @@ Please select a fix:
 			添加自增列,当有自增列时，django就不会再自动添加id自增列了。
 			class UserGroup(models.Model):
 				uid = models.AutoField(primary_key=True)
-		
+
+    字段参数
+        null    db是否可以为空
+        default 默认值
+        primary_key             主键
+        db_colum                列名,如果不指定,就用变量名为列名
+        db_index                索引
+        unique                  唯一索引
+        unique_for_date         只对前面的时间做索引
+        unique_for_month        只对月份做索引
+        unique_for_year         年
+        auto_now_add            创建时自动生成时间
+        auto_now                更新时自动更新时间
+        注意:在django中,auto_now的更新时间有语句限制的
+        UserGroup.objects.filter(id=1).update(caption='ceo')   -->用update方式更新时间不会生效
+        用下面的方式更新才会生效
+        obj=UserGroup.objects.filter(id=1).first()
+        obj.caption='ceo'
+        obj.save()
 			
+        choices                 django admin中显示下拉框,避免连表查询.
+        blank                   django admin中是否为空.
+        verbose_name            django admin中显示中文,而不是显示列名
+        editable                django admin中是否可以编辑,为false表示不可以通过admin后台编辑字段
+        help_text               django admin中用户提示信息
+        validators              django form 自定义错误信息
+
+django.db.utils.OperationalError: no such table: app01_username
+
 
         2 根据类对数据库表中的数据进行操作
+        一对多:
+        1. 外键
+        2. 外键字段id
+        3. models.tb.object.create(name='root',user_group.id=1)
+        4. models.tb.object.all()
+            for row in userlist:
+                row.id
+                row.user_group_id
+                row.user_group.caption

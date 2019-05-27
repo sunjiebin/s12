@@ -29,15 +29,28 @@ def userinfo(request):
     if request.method == 'GET':
         alluser=models.UserInfo.objects.all()
         # 用alluser.query可以查看alluser翻译成的sql语句
+        # alluser是queryset类型的对象.里面封装了userinfo表的所有列,以及user_group对象,这个对象实际上就是app01_usergroup表.
+        # 可以用alluser.user_group.caption关联获取到app01_usergroup表里面的列数据.
         print(alluser.query)
-        return render(request,'cmdb/userinfo.html',{'alluser':alluser})
+        for i in alluser:
+            print(i.username,i.user_group_id,i.user_group.caption)
+        allgroup=models.UserGroup.objects.all()
+        return render(request,'cmdb/userinfo.html',{'alluser':alluser,'allgroup':allgroup})
     else:
         u=request.POST.get('user')
         p=request.POST.get('pass')
         models.UserInfo.objects.create(username=u,password=p,)
         return HttpResponseRedirect('/cmdb/userinfo')
 def groupinfo(request):
-
+    if request.method == 'GET':
+        allgroup=models.UserGroup.objects.all()
+        # 用alluser.query可以查看alluser翻译成的sql语句
+        print(allgroup.query)
+        return render(request,'cmdb/groupinfo.html',{'allgroup':allgroup})
+    else:
+        c=request.POST.get('caption')
+        models.UserGroup.objects.create(caption=c,)
+        return HttpResponseRedirect('/cmdb/groupinfo')
     return render(request,'cmdb/groupinfo.html')
 
 def userdetail(request, nid):
