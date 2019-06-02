@@ -192,3 +192,4 @@ django.db.utils.OperationalError: no such table: app01_username
                 row.id
                 row.user_group_id
                 row.user_group.caption
+
