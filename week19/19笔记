@@ -85,7 +85,8 @@
     request.GET
     request.POST
         request.POST.getlist获取多选的内容,比如checkbox类型
-    request.FILES
+    request.FILES  获取文件对象
+
 
     上传文件
     一定要注意,上传文件form标签里面要写上enctype="multipart/form-data"特殊设置 ,否则form不会提交真正的文件内容,而只会提交文件名..
@@ -96,6 +97,10 @@
         f.write(item)
     f.close()
 
+    obj.name 获取文件名称
+    obj.size 获取文件大小
+    obj.chunks() 获取文件块 在for循环中也可以直接对对象循环，默认会循环文件的chunks().
+
     4. FBV & CBV
         django对请求处理方式有两种FBV和CBV
         function base view  对应的是函数
@@ -103,6 +108,25 @@
         urls.py 对应关系可以是 url--> 函数 , 也可以 url-->类
 
 三. 模版
+    render(request,'index.html',{'obj':1234,'k1':[1,2,3,4],'k2':{'name':'zhangyang','age':18}})
+    获取obj里面的1234
+    <h1>{{ obj }}</h1>
+    获取k1里面的4
+    <h1>{{ k1.3 }}</h1>
+    获取k2里面的name的值zhangyang
+    <h1>{{ k2.name }}</h1>
+    循环k1的值
+    {% for i in k1 %}
+        <p>{{ i }}</p>
+    {% endfor %}
+    循环k2里面的key值
+    {% for k in k2.keys %}
+        <p>{{ k }}</p>
+    {% endfor %}
+    循环K2里面的Key和value
+    {% for k,v in k2.items %}
+        <p>{{ k - v }}</p>
+    {% endfor %}
 
 四. orm操作
     django是code first，先建立好类，再用类操作数据库
@@ -111,6 +135,7 @@
         class UserInfo(models.Model):
             #自动创建自增的主键id
             #用户列名，字符串类型，指定长度
+            userid = models.IntegerField()
             username = models.CharField(max_length=32)
             password = models.CharField(max_length=64)
     2. 注册app
