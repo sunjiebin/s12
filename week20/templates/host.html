@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主机列表</title>
+
+    <style>
+        .shade{
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            background: #000;
+            opacity: 0.5;
+            z-index: 1;
+        }
+        .add_modal{
+            position: fixed;
+            top:100px;
+            height: 300px;
+            right: 50%;
+            width: 400px;
+            margin-right: -200px;
+            background: antiquewhite;
+            z-index: 2;
+        }
+        .hidden{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <input type="button" value="添加" id="add_host">
+    </div>
+    <div class="add_modal hidden">
+        <form action="/host" method="post">
+            <input type="text" placeholder="主机名" name="hostname"/>
+            <input type="text" placeholder="IP" name="ip"/>
+            <select name="caption">
+                {% for i in v1 %}
+                <option value="{{ i.b_id }}">{{ i.b.caption }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit">
+            <input type="button" value="取消" onclick="hide()">
+        </form>
+    </div>
+    <div class="shade hidden">bb</div>
+
+    <hl>主机列表（对象）</hl>
+    <table border="1" >
+        <th>主机名</th>
+        <th>IP</th>
+        <th>端口</th>
+        <th>所属部门</th>
+        <th>编码</th>
+        {% for i in v1 %}
+            {# 将两个表的id列在页面上隐藏，赋值给tr的hid，bid #}
+        <tr hid="{{ i.nid }}" bid="{{ i.b_id }}">
+            <td>{{ i.hostname }}</td>
+            <td>{{ i.ip }}</td>
+            <td>{{ i.port }}</td>
+            <td>{{ i.b.caption }}</td>
+            <td>{{ i.b.code }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <hl>主机列表（字典）</hl>
+    <table border="1" >
+        <th>序号</th>
+        <th>主机名</th>
+        <th>所属部门</th>
+        {% for i in v2 %}
+        <tr hid="{{ i.nid }}" >
+{#        for循环自带forloop，forloop.counter可以自动生成排序序列号，从1开始；counter0从0开始；#}
+            <td>{{ forloop.counter }}</td>
+            <td>{{ i.hostname }}</td>
+{#            注意这里用的b__caption来获取关联表里面的caption列，而不是用b.caption的方式获取了 #}
+            <td>{{ i.b__caption }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <hl>主机列表（元组）</hl>
+    <table border="1" >
+        <th>倒序排列</th>
+        <th>主机名</th>
+        <th>所属部门</th>
+        <th>最后一行</th>
+        {% for i in v3 %}
+        <tr hid="{{ i.0 }}" >
+            <td>{{ forloop.revcounter }}</td>
+            <td>{{ i.1 }}</td>
+            <td>{{ i.2 }}</td>
+{#            forloop..last判断是否为最后一次循环，forloop.first判断是否为第一次循环#}
+            <td>{{ forloop.last }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <script src="/static/jquery-3.4.1.js"></script>
+    <script>
+        $(function() {
+            $('#add_host').click(function () {
+                $('.add_modal,.shade').removeClass('hidden')
+            })
+        })
+        function hide(){
+            $('.add_modal,.shade').addClass('hidden')
+        }
+    </script>
+</body>
+</html>

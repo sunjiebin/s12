@@ -84,7 +84,7 @@
 二. 视图
     request.GET
     request.POST
-        request.POST.getlist获取多选的内容,比如checkbox类型
+        request.POST.getlist获取多选的内容,比如checkbox/select类型
     request.FILES  获取文件对象
 
 
@@ -217,3 +217,45 @@ django.db.utils.OperationalError: no such table: app01_username
                 row.id
                 row.user_group_id
                 row.user_group.caption
+
+    创建类和字段
+        class User(models.Model):
+            age=models.IntergerField()
+            name=models.CharField(max_length=128)
+    增
+        第一种方式
+        models.User.objects.create(name='xiaohu',age=18)
+        第二种方式
+        dic={'name':'xx','age':19}
+        models.User.objects.create(**dic)
+        第三种方式
+        obj=models.User(name='xxx',age=18)
+        obj.save()
+    删
+        models.User.objects.filter(id=1).delete()
+    改
+        models.User.objects.filter(id__gt=1).update(name='alex',age=33)
+        传入字典
+        dic={'name':'alex','age':16}
+        models.User.objects.filter(id__gt=1).update(**dic)
+    查
+        models.User.object.filter(id=1,name='root')
+        models.User.object.filter(id__gt=1)   查找id大于1
+        models.User.object.filter(id__lt=1)   查找id小于1
+        models.User.object.filter(id__gte=1)  查找id大于等于1
+        可以传字典
+        dic={'name':'alex','age__gt':16}
+        models.User.object.filter(**dic)
+
+    外键
+        class UserType(models.Model):
+            caption = models.CharField(max_length=32)
+
+        #1.普通用户 2.vip用户 3.游客
+        class User(models.Model):
+            age = models.IntegerField()
+            name = models.CharField(max_length=10)
+            user_type = models.ForeignKey("UserType",to_field='id')  和UserType表里面的id列外键约束
+            注意，在django中实际生成的的列名将会是user_type_id，而不是user_type。
+           name age user_type_id
+         # 张扬 18        3

@@ -1,0 +1,18 @@
+
+#获取一个对象，如果不存在就报错
+models.Bussiness.objects.get(id=1)
+
+#获取一个QuerySet列表，如果不存在，不会报错，而是返回一个空的QuerySet
+models.Bussiness.object.filter(id=1)
+#获取QuerySet里面的第一个对象，如果不存在对象，则返回None
+models.Bussiness.object.filter(id=1).first()
+# 返回QuerySet类型，里面包含了不同的的对象
+models.Bussiness.objects.all()
+ # 返回QuerySet类型，里面包含的是字典
+models.Bussiness.objects.all().values('id','caption')
+# 返回QuerySet类型，里面包含的是元组
+models.Bussiness.objects.all().values_list('id','caption')
+
+外键：
+     v1 = models.Host.objects.filter(nid__gt=0)
+     v1[0].b.caption   -->[0]获取QuerySet的第一个元素，通过.实现外键的跨表查询
