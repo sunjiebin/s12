@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('bussiness',views.bussiness),
     path('host',views.host),
+    path('ajax',views.ajax_check),
 ]

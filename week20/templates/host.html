@@ -38,12 +38,15 @@
         <form action="/host" method="post">
             <input type="text" placeholder="主机名" name="hostname"/>
             <input type="text" placeholder="IP" name="ip"/>
+            <input type="text" placeholder="端口" name="port"/>
             <select name="caption">
                 {% for i in v1 %}
                 <option value="{{ i.b_id }}">{{ i.b.caption }}</option>
                 {% endfor %}
             </select>
             <input type="submit">
+{#       后面用了ajax，就不要再也 href="/ajax"，否则后面reload就会报错#}
+            <a id='ajax_sub' >ajax验证</a>
             <input type="button" value="取消" onclick="hide()">
         </form>
     </div>
@@ -109,6 +112,26 @@
         function hide(){
             $('.add_modal,.shade').addClass('hidden')
         }
+        $('#ajax_sub').click(function () {
+            $.ajax({
+                {#提交的url地址#}
+                url:"/ajax",
+                {#提交类型#}
+                type:'POST',
+                {#传输的数据#}
+                data:{'hostname':$('[name="hostname"]').val(),'ip':$('[name="ip"]').val(),'port':$('[name="port"]').val(),'caption':$('[name="caption"]').val()},
+                {#接受到返回后执行的操作，这里必须有返回才会执行success，data即为返回的数据值#}
+                success:function (data) {
+                    console.log(data);
+                    if(data == 'OK'){
+                        location.reload();
+                    }else {
+                        alert(data)
+                    }
+                }
+            })
+        })
+
     </script>
 </body>
 </html>

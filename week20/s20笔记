@@ -16,3 +16,18 @@ models.Bussiness.objects.all().values_list('id','caption')
 外键：
      v1 = models.Host.objects.filter(nid__gt=0)
      v1[0].b.caption   -->[0]获取QuerySet的第一个元素，通过.实现外键的跨表查询
+
+第10章
+Ajax
+    $.ajax({
+        url:'host',
+        type:'POST',
+        data:{'k1':123,'k2':'root'},
+        success:function(data){
+            var obj = json.parse(data);
+        }
+    })
+
+建议：永远让服务器返回一个字典。利用json.dump()将字典序列化成字符串。
+注意：不要用render和HttpResponseRedirect来返回。
+return HttpResponse(json.dump(字典))

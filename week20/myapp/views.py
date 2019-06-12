@@ -1,4 +1,4 @@
-from django.shortcuts import render,HttpResponse
+from django.shortcuts import render,HttpResponse,redirect,HttpResponseRedirect
 from myapp import models
 # Create your views here.
 
@@ -31,5 +31,27 @@ def host(request):
         h = request.POST.get('hostname')
         i = request.POST.get('ip')
         bid = request.POST.get('caption')
-        print(h,i,bid)
-        return render(request,'host.html')
+        p = request.POST.get('port')
+        print(h,i,p,bid)
+        models.Host.objects.create(hostname=h,ip=i,port=p,b_id=bid)
+        return HttpResponseRedirect('/host')
+    
+def ajax_check(request):
+    ret = {'status':True,'error':None,'data':None}
+    try:
+        h = request.POST.get('hostname')
+        i = request.POST.get('ip')
+        bid = request.POST.get('caption')
+        p = request.POST.get('port')
+        print('ajax',h, i, p, bid)
+
+        if h and len(h)>5:
+            models.Host.objects.create(hostname=h, ip=i, port=p, b_id=bid)
+            return HttpResponse('OK')
+        else:
+            ret['status']=False
+            ret['error']='to shot'
+            return HttpResponse('NO')
+    except Exception as e:
+        ret['status']=False
+        ret['error']='请求错误'
