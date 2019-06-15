@@ -22,4 +22,11 @@ urlpatterns = [
     path('bussiness',views.bussiness),
     path('host',views.host),
     path('ajax',views.ajax_check),
+    path('edit',views.ajax_edit),
+    path('delete',views.ajax_del),
+    path('app',views.app),
+    path('addapp',views.ajax_addapp),
+    path('alldel',views.ajax_alldelapp),
+    path('appedit',views.ajax_eidtapp),
+    
 ]

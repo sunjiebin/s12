@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主机应用列表</title>
+        <style>
+        .shade{
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            background: #000;
+            opacity: 0.5;
+            z-index: 1;
+        }
+        .add_modal,.edit_modal{
+            position: fixed;
+            top:100px;
+            height: 300px;
+            right: 50%;
+            width: 400px;
+            margin-right: -200px;
+            background: antiquewhite;
+            z-index: 2;
+        }
+        .hidden{
+            display: none;
+        }
+    </style>
+</head>
+{#添加主机模态对话框#}
+<body>
+    <div class="shade hidden"></div>
+    <div>
+        <input type="button" value="添加" id="add_host">
+    </div>
+    <div class="add_modal hidden">
+        <form action="/app" method="post" name="add_form">
+            <input type="text" placeholder="应用名" name="appname"/>
+            <select name="hostname" multiple>
+                {% for i in host_list %}
+                <option value="{{ i.nid }}">{{ i.hostname }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit">
+            <input type="button" value="ajax提交" id="ajax_sub"/>
+            {# 后面用了ajax，就不要再用 href="/ajax"，否则后面reload就会报错#}
+            <input type="button" value="取消" onclick="hide()">
+            <span style="text-align: center;color: red;font-size: 12px;" id="err_info"></span>
+        </form>
+    </div>
+{#   编辑主机对话框#}
+    <div class="edit_modal hidden">
+        <form class="edit_form" action="/host" method="post">
+            <input type="text" name="appname"/>
+            <select name="hostname" multiple>
+                {% for i in host_list %}
+                <option value="{{ i.nid }}">{{ i.hostname }}</option>
+                {% endfor %}
+            </select>
+{#            注意：如果要和ajax绑定，就应该设置成button，而不是submit，如果用submit，那么submit按钮本身会自动提交一次，ajax又会提交一次，就会出现提交两次的情况#}
+{#            如果用在插入数据上，就会发现每次都被插入两条同样的数据，即插入语句被执行了两次#}
+            <input id="edit_ajax" type="button" value="修改">
+{#       后面用了ajax，就不要再用 href="/ajax"，否则后面reload就会报错#}
+            <input type="button" value="取消" onclick="hide()">
+            <span style="text-align: center;color: red;font-size: 12px;" id="err_info2"></span>
+        </form>
+    </div>
+{#主机和应用表格#}
+    <table border="1">
+        <tr>
+            <th>应用名</th>
+            <th>对应主机</th>
+            <th>操作</th>
+        </tr>
+        {% for row in app_list %}
+        <tr>
+            <td name="appname" appid="{{ row.id }}">{{ row.name }}</td>
+            <td>
+                {% for i in row.r.all %}
+                    <span hid="{{ i.nid }}" style="display: inline-block;padding: 3px;border:1px solid red;">{{ i.hostname }}</span>
+{#                    <span name="delete" style="font-size:10px;text-align: center">x</span>#}
+                    {% endfor %}
+            </td>
+            <td><span name="edit">编辑</span>|<span name="delete_all">删除</span></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <script src="/static/jquery-3.4.1.js"></script>
+    <script>
+        {#添加按钮#}
+        $('#add_host').click(function () {
+            $('.add_modal').removeClass('hidden')
+        });
+        {#ajax提交按钮#}
+        $('#ajax_sub').click(function () {
+            $.ajax({
+                url:'/addapp',
+                type:'POST',
+                dataType:'JSON',
+                data:$('[name="add_form"]').serialize(),
+{#注意：用ajax传一个列表过去时，会被jquery给忽略，传过去的就是null，结果取不到值。默认只能传字符串，不能传列表,需要加上traditional:true选项才能传列表#}
+{#                data:{'appname':222,'hostname':[1,2,3]},#}
+{#                traditional:true,#}
+                success:function (data) {
+                    if(data.status){
+                        location.reload()
+                    }else{
+                        alert(data.error)
+                    }
+
+                },
+                error:function () {
+                    console.log('error')
+                }
+            })
+        });
+        //编辑触发函数，自动填充对应行的值到模态对话框中
+        $('[name="edit"]').click(function () {
+            $('.edit_modal,.shade').removeClass('hidden');
+            var app=$(this).parent().prev().prev().text();
+            var hid=$(this).parent().prev().children();
+            var appid=$(this).parent().prev().prev().attr('appid');
+            {#console.log(hid)#}
+            {#定义一个列表#}
+            var hid_list=[];
+            hid.each(function () {
+                var hid=$(this).attr('hid');
+                {#对列表进行追加，相当于python里面的append#}
+                hid_list.push(hid);
+                {#console.log(hid);#}
+            });
+            console.log(hid_list,app,appid);
+            $('.edit_modal [name="hostname"]').val(hid_list);
+            $('.edit_modal [name="appname"]').val(app);
+
+            //编辑框中修改按钮触发函数，，提交数据到后台
+            $('.edit_modal #edit_ajax').click(function () {
+                var appname=$('.edit_modal [name="appname"]').val();
+                var host_list=$('.edit_modal [name="hostname"]').val();
+                console.log(appname,host_list,appid)
+                $.ajax({
+                    url:'appedit',
+                    type:'POST',
+                    dataType:'JSON',
+                    data:{'app':appname,'host':host_list,'appid':appid},
+                    {#注意，由于上面data传的host是一个列表，所以必须要加上下面的traditonal:true，否则传过去的值是空的#}
+                    traditional:true,
+                    success:function (data) {
+                        if(data.status){
+                            location.reload();
+                            {#console.log(data)#}
+                        }else{
+                            alert(data.error)
+                        }
+                    }
+
+                })
+
+        })
+        });
+        //删除触发函数
+        $('[name="delete_all"]').click(function () {
+            var hid=$(this).parent().prev().children();
+            var appid=$(this).parent().prev().prev().attr('appid');
+            {#console.log(hid)#}
+            {#定义一个列表#}
+            var hid_list=[];
+            hid.each(function () {
+                var hid=$(this).attr('hid');
+                {#对列表进行追加，相当于python里面的append#}
+                hid_list.push(hid);
+                {#console.log(hid);#}
+            });
+            console.log(hid_list,appid);
+            $.ajax({
+                url:'alldel',
+                type:'POST',
+                dataType:'JSON',
+                traditional: true,
+                data:{'appid':appid,'hidlist':hid_list},
+                success:function (data) {
+                    if(data.status){
+                        location.reload();
+                        console.log(data)
+                    }else{
+                        alert(data.error)
+                    }
+                }
+
+            })
+        })
+
+    </script>
+</body>
+</html>
