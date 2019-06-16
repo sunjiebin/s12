@@ -239,6 +239,8 @@ django.db.utils.OperationalError: no such table: app01_username
         dic={'name':'alex','age':16}
         models.User.objects.filter(id__gt=1).update(**dic)
     查
+        filter()查询
+        filter返回的是一个包含QuerySet元素的列表，所以返回的值可以多个，如果查询结果为空，则返回空列表，不会报错。如果要取里面的第一个元素，需要obj[0]。
         models.User.object.filter(id=1,name='root')
         models.User.object.filter(id__gt=1)   查找id大于1
         models.User.object.filter(id__lt=1)   查找id小于1
@@ -246,6 +248,10 @@ django.db.utils.OperationalError: no such table: app01_username
         可以传字典
         dic={'name':'alex','age__gt':16}
         models.User.object.filter(**dic)
+
+        get()
+        还可以用get查询，get返回的直接是QuerySet对象,但是get只会返回一个值，如果有查询结果有多条，就会报错。如果查询结果为空，也会报错。
+        models.User.object.get(id=1,name='root')
 
     外键
         class UserType(models.Model):

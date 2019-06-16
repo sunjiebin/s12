@@ -168,6 +168,7 @@ def ajax_eidtapp(request):
              obj.name=appname
              # 注意要save()保存
              obj.save()
+             # 更新关联表
              obj.r.set(host)
              print(obj.name)
 
