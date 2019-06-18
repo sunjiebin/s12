@@ -1,0 +1,39 @@
+{#extends从master.html里面继承，一个html只能extends继承一个模板文件，且extends必须写在文档最前面，即第一行#}
+{% extends 'master.html' %}
+{#加载自定义模块xxoo.py#}
+{% load xxoo %}
+{% block title %}母版继承{% endblock %}
+
+{% block content %}
+    <ul>
+    {% for i in u %}
+    <li>{{ i }}</li>
+    {% endfor %}
+    </ul>
+    {% for i in u %}
+        {#include将tag.html里面的内容引用进来，include可以写任意个,很多复杂的页面就是这样include拼起来的#}
+        {% include 'tag.html' %}
+    {% endfor %}
+    {#调用xxoo.py里面的func函数，输出结果3#}
+    <div>调用自定义函数func,输出结果{% func 1 2 3 %}</div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $('li').click(function () {
+            alert('master.html模板继承OK')
+        })
+        $('[name="tag_sub"]').click(function () {
+            alert('来自tag.html里面的button')
+        })
+    </script>
+{% endblock %}
+
+{% block css %}
+<style>
+    ul{
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
