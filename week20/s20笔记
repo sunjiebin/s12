@@ -94,8 +94,10 @@ return HttpResponse(json.dump(字典))
     只保留1-2 1-3 1-4 只保留set里面的值,其他的删除，如1-2 1-5都会删除
     obj.r.set([2,3,4])
 
-    拿到所有相关host对象的QuerySet
+    拿到所有相关host对象的QuerySet，即找到applications表中id=1的数据在host表中的所有关联。
     obj.r.all()
+    拿到应用表中id=1的应用在host表中属于zabbix主机的对象。id=1的应用可能对应了多个host主机，过滤出属于zabbix的主机。
+    obj.r.filter(hostname='zabbix')
 
     两者的区别在于，自定义的可以自己再添加其他的列，而自动创建的表里面的列名是固定的，没法在里面再添加其它列。自定义的灵活性更好。
     自动创建的无法对关联表通过类的方式直接操作，因为没有相应的类名。

@@ -79,6 +79,12 @@
         request.path_info
           <p>当前实际路径为{{ request.path_info }}</p>
 
+    默认值
+        path('index/',views.index,{'name':'root'}),
+
+        def index(request,name):
+            print(name)
+            return HttpResponse('OK')
 
 
 二. 视图
@@ -265,3 +271,11 @@ django.db.utils.OperationalError: no such table: app01_username
             注意，在django中实际生成的的列名将会是user_type_id，而不是user_type。
            name age user_type_id
          # 张扬 18        3
+
+        user_list = User.objects.all()      获取user表所有数据，返回一个对象列表
+        for obj in user_list:
+            obj.name        -- 获取name列的值
+            obj.user_type_id  -- 获取外键id
+            obj.user_type.id    -- 获取关联表usertype的id，注意这里不能用obj..user_type__caption的写法，因为user_type在这里只是一个对象。
+        user = User.objects.get(id=1)   获取id=1的对象
+        User.objects.all().valuse('name','user_type__caption')  只获取指定列的数据，通过__双下划线关联查询usertype表里面的caption列。
