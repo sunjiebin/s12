@@ -12,7 +12,9 @@ def tp2(request):
     return render(request,'tp2.html',{'name':name,'arg':arg})
 
 List=[]
-for i in range(1,103):
+total_num=503
+page_num=11
+for i in range(1,total_num):
     List.append(i)
 def user_list(request):
     # 获取get过来的数据（?p=2），如果没有，则默认值为1
@@ -21,12 +23,42 @@ def user_list(request):
     end = current_page*10
     data = List[start:end]
     # 分页 计算页码
-    count,y=divmod(len(List),10)
+    total_page,y=divmod(len(List),10)
     if y:
-        count += 1
+        total_page += 1
+
+
+
+    # 标签滚动
+    if total_page<=page_num:
+        start_index=1
+        end_index=total_page+1
+    else:
+        if current_page<=(page_num-1)/2:
+            start_index=1
+            end_index=page_num+1
+        else:
+            if total_page-current_page<(page_num-1)/2:
+                start_index=total_page-page_num+1
+                end_index=total_page+1
+                print(start_index,end_index)
+            else:
+                start_index = int(current_page - (page_num - 1) / 2)
+                end_index = int(current_page + (page_num + 1) / 2)
+
+
 
     page_list=[]
-    for i in range(1,count):
+
+    # 上一页
+    if current_page<=1:
+        link = '<a class="page" href="#">上一页</a>'
+    else:
+        link = '<a class="page" href="/userlist/?p=%s">%s</a>' % (current_page-1, '上一页')
+    page_list.append(link)
+
+    # 循环生成所有页码链接
+    for i in range(start_index,end_index):
         # 如果循环的标签等于当前所在的标签，则添加active样式
         if i == current_page:
             link='<a class="page active" href="/userlist/?p=%s">%s</a>' %(i,i)
@@ -34,6 +66,30 @@ def user_list(request):
         else:
             link='<a class="page " href="/userlist/?p=%s">%s</a>' %(i,i)
             page_list.append(link)
+
+    # 下一页
+    if current_page>=total_page:
+        link = '<a class="page" href="#">%s</a>' % ('下一页')
+    else:
+        link = '<a class="page" href="/userlist/?p=%s">%s</a>' % (current_page+1, '下一页')
+    page_list.append(link)
+
+    # 搜索页码
+    page_serach='''
+        <input id="input_page" type="text" class="input_search" placeholder="页码"/>
+        <input id="search_button" type="button" onclick="search(this)" value="搜索"/>
+        <script>
+        function search(i) {
+            var page=document.getElementById('input_page').value;
+            var url='/userlist/?p='+ page;
+            console.log(url);
+            location.href = url
+        }
+        </script>
+    '''
+    page_list.append(page_serach)
+
+
     # 对page_list列表进行拼接
     page=" ".join(page_list)
     # 默认情况下，django对于传给页面的数据都会处理成字符串，以防止xss攻击，所以如果我们要让传过去的
