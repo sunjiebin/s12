@@ -14,14 +14,19 @@
             background: aliceblue;
             color: red;
         }
+        .input_search{
+            width: 50px;
+        }
     </style>
 </head>
 <body>
+
     <div>
         {% for i in data %}
             <li>{{ i }}</li>
         {% endfor %}
     </div>
     <div>{{ page_str }}</div>
+
 </body>
 </html>
