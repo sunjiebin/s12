@@ -21,4 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('tp1',views.tp1),
     path('tp2',views.tp2),
+    # 注意是userlist/，而不是userlist,否则无法匹配userlist/?p=n这样的url
+    path('userlist/',views.user_list),
 ]

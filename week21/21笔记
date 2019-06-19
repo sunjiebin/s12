@@ -109,5 +109,7 @@
     cookie和session
 
     分页（自定义分页）
-
+        xss:
+            {{ page_str|safe }}
+            mark_safe(page_str)
     From验证
