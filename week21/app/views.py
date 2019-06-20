@@ -11,11 +11,8 @@ def tp2(request):
     arg='this is a test text'
     return render(request,'tp2.html',{'name':name,'arg':arg})
 
-
-
-total_num=503
-
 def user_list(request):
+    total_num = 503
     # 获取get过来的数据（?p=2），如果没有，则默认值为1
     current_page=int(request.GET.get('p',1))
     obj=Page(current_page,total_num)
