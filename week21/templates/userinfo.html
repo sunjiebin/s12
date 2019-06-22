@@ -26,7 +26,45 @@
             <li>{{ i }}</li>
         {% endfor %}
     </div>
+    <select id="sel" onchange="choice(this)">
+        <option value="10" >10</option>
+        <option value="20" selected="selected">20</option>
+        <option value="50">50</option>
+    </select>
     <div>{{ page_str }}</div>
+    <script src="/static/jquery.js"></script>
+    {#如果要让jquery操作cookie，需要下载一个jquery.cookie的插件，并且引用该文件才可以#}
+    <script src="/static/jquery.cookie.js"></script>
+    <script>
+{#在加载整个页面时，先执行下面的函数，先从cookie里面拿到select的值，然后再给它赋值，这样当页面刷新时，select选框里面的值就是上次设置的值，而不是默认的10#}
+        $(function () {
+            var v = $.cookie('page_num');
+            {# 不要用下面的方法来获取cookie，因为当cookie不存在时，他获取的是:page_num=%5Bobject%20Object%5D，而不是:undefined #}
+            {#var v = $.cookie('page_num',{'path':'/userlist/'});#}
+            console.log('默认加载', v);
 
+            {#第一次访问时，cookie是没有的，所以这时候v是没有值的，console.log(v)会打印"undefined"。如果把undefined传进去，select框就是空的#}
+            {#这时候点击select下拉框，页面直接就报错了，invalid literal for int() with base 10: '%5Bobject%20Object%5D'#}
+            {#所以，我们需要先判断cookie的值是否存在，不存在就先给v赋值10，解决第一次访问页面时总是报错的问题#}
+            if (v) {
+                $('#sel').val(v);
+            } else {
+                var v = 10;
+                $('#sel').val(v);
+            };
+        });
+
+        function choice(ths) {
+            var v=$(ths).val();
+            {# 注意：由于下面用了reload刷新页面，所以下面的console.log会一闪而过，导致控制台看不到打印的日志，因为页面被刷新了，想要有日志，注释location.reload()才行 #}
+            console.log('点击触发',v);
+            {#设置cookie，并且只对/userlist这一个url生效。#}
+            $.cookie('page_num',v);
+            {# 下行写法好像有问题先不要用 #}
+            {#$.cookie('page_num',v,{path:'/userlist/'});#}
+            {#自动刷新一下，这样当我们选择后，就会立马刷新页面，从而显示我们选中的个数#}
+            location.reload();
+        };
+    </script>
 </body>
 </html>

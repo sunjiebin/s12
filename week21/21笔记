@@ -50,6 +50,34 @@
         获取请求头里面客户端类型的字典。
         request.environ['HTTP_USER_AGENT']
         - 装饰器
+            FBV
+            def auth(func):
+                def inner(request,*args,**kwargs):
+                    v=request.COOKIES.get('username')
+                    if not v:
+                        return redirect('/login/')
+                    return func(request,*args,**kwargs)
+                return inner
+            CBV
+            from django.utils.decorators import method_decorator
+            from django import views
+
+            #也可以直接在类前面写上装饰器，name='dispatch'代表对类里面的dispatch方法生效。
+            @method_decorator(auth,name='dispatch')
+            class Order(views.View):
+
+                #dispatch方法将会在类里面所有其他方法执行前执行，所有，在dispatch方法前面加上装饰器，意味着在所有方法前加上了装饰器。
+                # @method_decorator(auth)代表执行装饰器，将定义的auth装饰器执行。@method_decorator是django定义的一个执行装饰器的方法。
+                @method_decorator(auth)
+                def dispatch(self, request, *args, **kwargs):
+                    return super(Order, self).dispatch(request,*args,**kwargs)
+
+                def get(self,request):
+                    v=request.COOKIES.get('username')
+                    return render(request,'index.html',{'current_user':v})
+
+                def post(self,request):
+                    pass
 
     Models
 
@@ -106,10 +134,82 @@
             {{ name|lower }}
             获取变量的前30个字符
             {{ name|truncatewords:"30" }}
-    cookie和session
+    cookie
+        客户端浏览器上的一个文件
+        {’k':'asdf'}
+        浏览器f12-->networks-->需要cookies的页面-->Cookies 里面可以查看到该页面的cookies
+
+         设置cookie，在函数中
+         max_age=10设置10s后cookie过期
+         res.set_cookie('username',u,max_age=10)
+         在jquery中设置
+         设置cookie，{'page_num':'v1'},并且只对路径/userlist/生效
+         $.cookie('page_num','v1',{path:'/userlist/'});
+
+         expires= 设置超时实间，这个后面接的是具体的过期时间，而不是多少秒之后
+                import datetime
+                #获取当前时间的时间戳
+                current_date=datetime.datetime.utcnow()
+                print(current_date)
+                #timedelta在当前时间上加上5s
+                expire_date=current_date+datetime.timedelta(seconds=5)
+                res.set_cookie('username',u,expires=expire_date)
+          path='/index'  cookie生效路径，只对指定的url生效，其他的url不生效。默认是path='/'，表示该cookie对本链接的所有url生效
+                         这个应用场景可用于，比如你后台有很多页面，这个主机列表页你基于cookie让每页显示50条数据，
+                         而另一个用户列表页你不希望也被影响，就可以设置指定url
+          domain='www.my089.com' 生效的域名
+          secure=False  是否加密传输（https)，默认Fasle
+          httponly=False 只能http协议传输，无法被javascript获取。默认可以被javascript获取。在console控制台，可以用document..cookie来获取，设置True就不能了
+
+         获取cookie
+         在django的views函数中
+         request.COOKIES.get('username')
+         在jquery中
+         $.cookie()     获取所有cookie
+         $.cookie('k1') 获取key为k1的cookie
+         删除cookie
+         设置超时时间为当前时间就可以立即清除cookie了
+         也可以设置为null
+         $.cookie(‘the_cookie’, null);
+    session
+
 
     分页（自定义分页）
         xss:
             {{ page_str|safe }}
             mark_safe(page_str)
     From验证
+
+零散知识：
+    onchanges代表选择点击事件，当选择里面选项时，就会触发onchanges事件，执行serach()函数，并将当前选择的标签传进去。
+    <select onchanges="search()">
+        <option value="10">10</option>
+        <option value="20">20</option>
+    </select>
+
+    在浏览器里面设置cookie可以通过jquery的cookie插件完成。
+    cookie默认明文存放，可以对cookie进行加密，salt='jiayan'就是对cooike进行加盐，jiayan相当于密码。所以设置和获取的salt值要一样。
+    设置：
+    obj=HttpResponse('s')
+    obj.set_signed_cookie('username','kakaka',salt='jiayan')
+    获取：
+    request.get_signed_cookie('username',salt='jiayan')
+
+注意：
+    在js绑定事件的时候，绑定事件的函数需要将this传进去，否则下面Js调用时取不到传来的this值。
+    比如下面是错误写法，下面的$(this)是取不到值的，jquery会直接报错。
+    错误写法1  search()里面不接参数
+    <select onchanges='search()'>
+    function search(){
+        var v = $(this).val()
+    }
+    错误写法2 定义function时，search()里面不能用this
+    <select onchanges='search(this)'>
+    function search(this){          <--不能写this
+        var v = $(this).val()       <--不能写this
+        }
+    正确写法
+    <select onchanges='search(this)'>   <--这里必须写this
+    function search(ths){               <--这里不能写this，可以写其他的字符
+        var v = $(ths).val()            <--这里的ths要与上面定义的serach(ths)一致
+        }

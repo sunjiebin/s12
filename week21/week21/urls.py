@@ -23,4 +23,6 @@ urlpatterns = [
     path('tp2',views.tp2),
     # 注意是userlist/，而不是userlist,否则无法匹配userlist/?p=n这样的url
     path('userlist/',views.user_list),
+    path('login/',views.user_login),
+    path('index/',views.index),
 ]
