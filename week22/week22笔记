@@ -1,0 +1,152 @@
+上节回顾
+1.基本生命周期
+2.url
+    /index/ index
+    /list/(\d+) index()
+    /list/(\d+) include index()
+3.views
+    request.POST/GET等其实都是调用了request.body，将body里面的数据提取出来转换为字典返回。
+    当我们用put等方法提交数据时，django没有对应的处理方法，这时候就需要我们利用request.body来自己取值了。
+  request.body      <--请求的内容部分都在body里面，下面的方法都是从body里面来的
+    request.POST
+    request.GET
+    request.GET.getlist
+    request.FILES
+  request.Meta      <--请求头部分，下面的几种是从请求头里面来的
+    request.path_info
+    request.COOKIES
+    request.method
+
+    response还可以接字节
+    a='中国'
+    return HttpResponse(a)
+    还可以设置自定义响应头里面的值
+    response=HttpResponse(a)
+    在响应头里面添加 name='alex'的信息
+    response['name']='alex'
+    设置cookie
+    response.set_cookie()
+    return response
+
+4. Model操作
+    models.tb.object.create()
+    models.tb.object.all()
+    models.tb.object.update()
+    models.tb.object.filter()
+    models.tb.object.delete()
+    models.tb.object.values
+    models.tb.object.values_list
+    models.tb.object.get
+    models.tb.objects.filter().update()
+    models.tb.objects.filter().first()
+    models.tb.objects.filter(**dic)
+    models.tb.objects.filter().count()
+    models.tb.objects.filter(id__gt=1)
+    models.tb.objects.all().order_by()
+    models.tb.objects.filter(id__range=[1,2])
+    models.tb.objects.filter(id__in=[1,3])
+    多对多
+    obj.set
+    obj.add(1,2,3)
+    obj.add([1,2,3])
+    obj.remove([1,2,3])
+    obj.clear()
+    obj.all()
+
+    class A:
+        ...
+        b_set 可以通过a反向跨表查询
+     class B:
+        id
+        fk = ForignKey(A)
+
+本届内容
+1.session
+    基于cookie做用户验证时：敏感信息不适合放在cookie中
+
+    a.session原理
+        cookie是保存在浏览器端的键值对
+        session是保存在服务器端的键值对
+
+    在使用session前，要先python manage.py makemigrations  python manage.py migrate生成数据库，因为
+    session默认是保存在数据库里面的。
+
+session和cookie的区别
+    cookie是保存在浏览器里面的
+    session是保存在服务器端的，可以保存在数据库，缓存，文件里面都可以。数据在服务器端，利用随机的Key和浏览器cookie里面的比对来交互。
+    session是依赖于cookie的。如果浏览器里面的cookie清空了，那么那个随机字符串也就没有了，所以登录也就失效了。
+
+    session操作
+        session里面的操作其实就是对字典进行操作，所以很多都是跟字典一样的方法
+        获取
+        request.session['k1']
+        request.session.get('k1',None)
+        设置
+        request.session['k1']=123
+        request.session.setdefault('k1',123) 如果存在k1则不操作，不存在就创建
+        删除
+        del request.session['k1'] 删除k1,只是删除了session里面的某个键值对
+        request.session.delete('session_key')  删除整个session key.
+        request.session.clear()     清空当前用户的session，不用自己输入key.
+        相当于request.session.delete(request.session.session_key)
+
+        request.session.keys()
+        request.session.items()
+
+        获取当前用户的session的随机字符串
+        request.session.session_key
+
+        将所有session失效日期早于当前日期的数据删除
+        如果写入的是数据库，那么这些session数据是不会自动删除的，那么有些已经失效的session就需要手动删除。如果写入的是缓存，则不用管，缓存会自动根据失效时间来
+        删除session
+        request.session.clear_expired()
+
+        #检查session中的随机字符串是否存在，这个功能很少用，因为request.session['k1']实际默认就包含了这个功能
+        request.session.exist()
+
+        配置文件中设置默认操作(通用配置)
+		SESSION_COOKIE_NAME ＝ "sessionid"                       # Session的cookie保存在浏览器上时的key，即：sessionid＝随机字符串（默认）
+		SESSION_COOKIE_PATH ＝ "/"                               # Session的cookie保存的路径（默认）
+		SESSION_COOKIE_DOMAIN = None                             # Session的cookie保存的域名（默认）
+		SESSION_COOKIE_SECURE = False                            # 是否Https传输cookie（默认）
+		SESSION_COOKIE_HTTPONLY = True                           # 是否Session的cookie只支持http传输（默认）
+		SESSION_COOKIE_AGE = 1209600                             # Session的cookie失效日期（2周）（默认）
+		SESSION_EXPIRE_AT_BROWSER_CLOSE = False                  # 是否关闭浏览器使得Session过期（默认）
+		# set_cookie('k',123)
+		SESSION_SAVE_EVERY_REQUEST = False                       # 是否每次请求都保存Session，默认修改之后才保存（默认）
+		SESSION_COOKIE_HTTPONLY=True时，只支持http传输，使用js命令则无法获取到该session.
+		SESSION_COOKIE_AGE = 1209600 这个是django的默认值，所以对于django后台等操作很多默认是两周过期。
+		SESSION_SAVE_EVERY_REQUEST = False 默认是false，即session超时时间是根据session生成时间来算的，而不是最后一次操作时间来算的。现实中的场景应该是True,
+		                                   即计算超时时间以最后一次操作时间为准。就比如我们设置登录信息半小时过期，一般是指最后一次操作后半小时过期，而不是
+		                                   以设置时的时间的半小时。
+
+        SESSION_ENGIN = 'django.contrib.sessions.backends.db'     #设置session存放的引擎，默认是db放在数据库里面。默认支持缓存、文件、加密cookie、数据库、缓存+数据库等
+        SESSION_ENGIN = 'django.contrib.sessions.backends.cache'  #表示放在缓存里面，只需要代码更改就行了，其它的代码都不用改。
+        SESSION_CACHE_ALIAS= 'default'                            #链接的名字，后面配置缓存的一些连接时会有一个别名，这个名字和那个名字对应，就代表用该缓存的配置。
+        SESSION_SAVE_EVERY_REQUEST = True
+
+        SESSION_ENGIN = 'django.contrib.sessions.backends.file'   #使用文件来保存session
+        SESSION_FILE_PATH = os.path.join(BASE_DIR,'cache')        #保存文件的session存放位置
+
+        SESSION_ENGIN = 'django.contrib.sessions.backends.cached_db'    #缓存+数据库类型，即默认先去缓存拿，缓存要没有就去数据库拿。
+        SESSION_ENGIN = 'django.contrib.sessions.backends.signed_cookies'   #加密的cookie，将session加密后放在cookie里面。
+
+2. CSRF
+    a. CSRF原理
+        我们开启该功能后，在POST访问django时，django会先发送一串随机字符串过来，在浏览器的cookie里面会有一个csrftoken的key，当我们用POST去提交数据时，需要把这个key值传递过去，
+        django首先会在request请求头里面找该键值对，如果客户端发来的请求有该字符串且和服务端的是一致的，则接收post请求，如果没有，则返回403的错误。
+        该功能可以防止跨站请求伪造，比如我登录一个其它的网站，然后这个网站发送一个POST请求到我的站点，如果没有开启该功能，如果提交格式是正确的，那么其它站点则有可能
+        会成功提交到我的站点。
+
+        在ajax提交时，只需要加上下面的就好，注意X-CSRFtoken这个名称不要写错，名字不能随便写
+        headers:{'X-CSRFtoken':$.cookie('csrftoken')},
+        如果用form表单来提交,加上下面一行即可
+        {% csrftoken %}
+
+        在settings里面的全局开关
+            'django.middleware.csrf.CsrfViewMiddleware',
+        如果我们想对个别的函数进行单独设置，比如有的函数不需要csrf验证，可以通过下面的装饰器来实现
+        先导入模块
+        from django.views.decorators.csrf import csrf_exempt,csrf_protect
+        @csrf_exempt        这个装饰器用于忽略csrf检测，这样就算全局打开了检测，实际在该函数中也不必对csrf配置
+        @csrf_protect       开启检测，如果全局关了，加上这个将强制检测。

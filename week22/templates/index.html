@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>index</title>
+</head>
+<body>
+    <div>session直接在request请求里面就有了，所以在html里面也可以直接从request里面取出来</div>
+    <div>登录成功，用户名：{{ request.session.user }}</div>
+</body>
+</html>

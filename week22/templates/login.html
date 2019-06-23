@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+</head>
+<body>
+<form rel="/login" method="post">
+{#    在提交的post数据里面传递csrf_token给服务端，这样就能够通过csrf的验证了。#}
+{#    {% csrf_token %}实际上就是在cookie里面拿到csrftoken的值，然后生成一个hidden属性的input框，value为传递过来的csrf的随机字符串，并一起随着POST提交过去。f12查看#}
+{#    页面代码，会发现里面多了一个<input type="hidden" name="csrfmiddlewaretoken" value="lhlzpTHf8sWMO0UrSGKDphLE3d2Fi4vxC1nemIKMERtAacYlNhn9nNYjnnnDd7fl">#}
+    {% csrf_token %}
+    <input type="text" name="username"/>
+    <input type="password" name="pwd"/>
+    <input type="checkbox" name='exp' value="1"/>10s超时
+    <input type="submit" value="提交">
+    <input type="button" id='aj' value="ajax提交"/>
+</form>
+{#    注意下script的顺序，jquery.js要放在最上面先加载，再加载cookie，不然会提示jquery没有定义，因为jquery.cookie.js是依赖于jquery的#}
+    <script src="/static/jquery.js"></script>
+    <script src="/static/jquery.cookie.js"></script>
+    <script>
+        $.ajaxSetup({
+        {# beforSend定义在发送ajax前执行的操作 #}
+        {# xhr指xmlhttprequest，封装了所有的http请求信息；settings封装了ajax里面发送的所有信息，所以可以通过settings.type获取ajax里面的type字段 #}
+            beforeSend:function (xhr,settings) {
+                {# setting.type获取ajax里面传来的type的值 #}
+                if(settings.type == 'POST') {
+                    console.log('setrequestheader',settings.type,settings.url);
+                    {# 设置请求头的信息，在这里可以设置csrf的请求参数，这样后面的所有ajax里面就不用再设置headers了 #}
+                    xhr.setRequestHeader('X-CSRFtoken', $.cookie('csrftoken'));
+                }
+            }
+        });
+        $('#aj').click(function () {
+            var username=$('[name="username"]').val();
+            var pwd=$('[name="pwd"]').val();
+            var csrf=$.cookie('csrftoken');
+            console.log(csrf);
+            $.ajax({
+                url: '/login/',
+                type: 'POST',
+                datatype:'JSON',
+                data: {'username': username, 'pwd': pwd},
+            {# hearders用于传递请求头信息，注意请求头里面的参数不能有下划线，如X_CSRFTOKEN是取不到的。 #}
+            {# 我们可以用$.ajaxSetup()来定义全局的ajax参数，这样在就不用在每个ajax里面重复配置了 #}
+            {#    headers:{'X-CSRFtoken':csrf},#}
+                success: function (data) {
+                    console.log('csrf success');
+                    {#location.href='/index';#}
+
+                }
+            })
+        })
+
+    </script>
+</body>
+</html>
