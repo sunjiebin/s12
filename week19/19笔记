@@ -79,13 +79,20 @@
         request.path_info
           <p>当前实际路径为{{ request.path_info }}</p>
 
+    默认值
+        path('index/',views.index,{'name':'root'}),
+
+        def index(request,name):
+            print(name)
+            return HttpResponse('OK')
 
 
 二. 视图
     request.GET
     request.POST
-        request.POST.getlist获取多选的内容,比如checkbox类型
-    request.FILES
+        request.POST.getlist获取多选的内容,比如checkbox/select类型
+    request.FILES  获取文件对象
+
 
     上传文件
     一定要注意,上传文件form标签里面要写上enctype="multipart/form-data"特殊设置 ,否则form不会提交真正的文件内容,而只会提交文件名..
@@ -96,6 +103,10 @@
         f.write(item)
     f.close()
 
+    obj.name 获取文件名称
+    obj.size 获取文件大小
+    obj.chunks() 获取文件块 在for循环中也可以直接对对象循环，默认会循环文件的chunks().
+
     4. FBV & CBV
         django对请求处理方式有两种FBV和CBV
         function base view  对应的是函数
@@ -103,6 +114,25 @@
         urls.py 对应关系可以是 url--> 函数 , 也可以 url-->类
 
 三. 模版
+    render(request,'index.html',{'obj':1234,'k1':[1,2,3,4],'k2':{'name':'zhangyang','age':18}})
+    获取obj里面的1234
+    <h1>{{ obj }}</h1>
+    获取k1里面的4
+    <h1>{{ k1.3 }}</h1>
+    获取k2里面的name的值zhangyang
+    <h1>{{ k2.name }}</h1>
+    循环k1的值
+    {% for i in k1 %}
+        <p>{{ i }}</p>
+    {% endfor %}
+    循环k2里面的key值
+    {% for k in k2.keys %}
+        <p>{{ k }}</p>
+    {% endfor %}
+    循环K2里面的Key和value
+    {% for k,v in k2.items %}
+        <p>{{ k - v }}</p>
+    {% endfor %}
 
 四. orm操作
     django是code first，先建立好类，再用类操作数据库
@@ -111,6 +141,7 @@
         class UserInfo(models.Model):
             #自动创建自增的主键id
             #用户列名，字符串类型，指定长度
+            userid = models.IntegerField()
             username = models.CharField(max_length=32)
             password = models.CharField(max_length=64)
     2. 注册app
@@ -192,3 +223,59 @@ django.db.utils.OperationalError: no such table: app01_username
                 row.id
                 row.user_group_id
                 row.user_group.caption
+
+    创建类和字段
+        class User(models.Model):
+            age=models.IntergerField()
+            name=models.CharField(max_length=128)
+    增
+        第一种方式
+        models.User.objects.create(name='xiaohu',age=18)
+        第二种方式
+        dic={'name':'xx','age':19}
+        models.User.objects.create(**dic)
+        第三种方式
+        obj=models.User(name='xxx',age=18)
+        obj.save()
+    删
+        models.User.objects.filter(id=1).delete()
+    改
+        models.User.objects.filter(id__gt=1).update(name='alex',age=33)
+        传入字典
+        dic={'name':'alex','age':16}
+        models.User.objects.filter(id__gt=1).update(**dic)
+    查
+        filter()查询
+        filter返回的是一个包含QuerySet元素的列表，所以返回的值可以多个，如果查询结果为空，则返回空列表，不会报错。如果要取里面的第一个元素，需要obj[0]。
+        models.User.object.filter(id=1,name='root')
+        models.User.object.filter(id__gt=1)   查找id大于1
+        models.User.object.filter(id__lt=1)   查找id小于1
+        models.User.object.filter(id__gte=1)  查找id大于等于1
+        可以传字典
+        dic={'name':'alex','age__gt':16}
+        models.User.object.filter(**dic)
+
+        get()
+        还可以用get查询，get返回的直接是QuerySet对象,但是get只会返回一个值，如果有查询结果有多条，就会报错。如果查询结果为空，也会报错。
+        models.User.object.get(id=1,name='root')
+
+    外键
+        class UserType(models.Model):
+            caption = models.CharField(max_length=32)
+
+        #1.普通用户 2.vip用户 3.游客
+        class User(models.Model):
+            age = models.IntegerField()
+            name = models.CharField(max_length=10)
+            user_type = models.ForeignKey("UserType",to_field='id')  和UserType表里面的id列外键约束
+            注意，在django中实际生成的的列名将会是user_type_id，而不是user_type。
+           name age user_type_id
+         # 张扬 18        3
+
+        user_list = User.objects.all()      获取user表所有数据，返回一个对象列表
+        for obj in user_list:
+            obj.name        -- 获取name列的值
+            obj.user_type_id  -- 获取外键id
+            obj.user_type.id    -- 获取关联表usertype的id，注意这里不能用obj..user_type__caption的写法，因为user_type在这里只是一个对象。
+        user = User.objects.get(id=1)   获取id=1的对象
+        User.objects.all().valuse('name','user_type__caption')  只获取指定列的数据，通过__双下划线关联查询usertype表里面的caption列。

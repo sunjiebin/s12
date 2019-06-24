@@ -1,0 +1,103 @@
+
+#获取一个对象，如果不存在就报错
+models.Bussiness.objects.get(id=1)
+
+#获取一个QuerySet列表，如果不存在，不会报错，而是返回一个空的QuerySet
+models.Bussiness.object.filter(id=1)
+#获取QuerySet里面的第一个对象，如果不存在对象，则返回None
+models.Bussiness.object.filter(id=1).first()
+# 返回QuerySet类型，里面包含了不同的的对象
+models.Bussiness.objects.all()
+ # 返回QuerySet类型，里面包含的是字典
+models.Bussiness.objects.all().values('id','caption')
+# 返回QuerySet类型，里面包含的是元组
+models.Bussiness.objects.all().values_list('id','caption')
+
+外键：
+     v1 = models.Host.objects.filter(nid__gt=0)
+     v1[0].b.caption   -->[0]获取QuerySet的第一个元素，通过.实现外键的跨表查询
+
+第10章
+Ajax
+    $.ajax({
+        url:'host',
+        type:'POST',
+        data:{'k1':123,'k2':'root'},
+        success:function(data){
+            var obj = json.parse(data);
+        }
+    })
+
+建议：永远让服务器返回一个字典。利用json.dump()将字典序列化成字符串。
+注意：不要用render和HttpResponseRedirect来返回。redirect虽然是跳转，但传递到ajax里面时ajax并不认这个跳转，所以设置了redirect也不会生效。
+而render返回的一般是渲染后的页面，而这个传给ajax作为数据显然是不合适的。所以，返回用HttpResponse就好。
+return HttpResponse(json.dump(字典))
+
+多对多：
+    创建多对多
+  方式一：自定义关系表
+    class Host(models.Model):
+        # 定义了nid自增列，所以不再自动添加id列
+        nid = models.AutoField(primary_key=True)
+        hostname = models.CharField(max_length=32,db_index=True)
+        ip = models.GenericIPAddressField(protocol='ipv4',db_index=True)
+        port = models.IntegerField()
+        # 注意，由于是ForeignKey，所以在数据库里面列名会变为b_id，而不是b。这时候b代表的是Bussiness对象，可以用b.code来获取Bussiness里面的code列数据
+        b = models.ForeignKey(on_delete='CASCADE',to=Bussiness,to_field='id')
+
+    class Applications(models.Model):
+        name = models.CharField(max_length=128)
+
+    # 创建多对多的关系映射表
+    创建myapp_hosttoapp表，包含列hobj_id,aobj_id
+    class HostToApp(models.Model):
+        hobj = models.ForeignKey(on_delete='CASCADE',to=Host,to_field='nid')
+        # 如果不写to_field，那么django会自动找到关联表的主键进行关联，Applcations表默认主键是id列
+        aobj = models.ForeignKey(on_delete='CASCADE',to=Applications)
+
+  方式二：自动创建关系表
+    class Host(models.Model):
+    # 定义了nid自增列，所以不再自动添加id列
+    nid = models.AutoField(primary_key=True)
+    hostname = models.CharField(max_length=32,db_index=True)
+    ip = models.GenericIPAddressField(protocol='ipv4',db_index=True)
+    port = models.IntegerField()
+    # 注意，由于是ForeignKey，所以在数据库里面列名会变为b_id，而不是b。这时候b代表的是Bussiness对象，可以用b.code来获取Bussiness里面的code列数据
+    b = models.ForeignKey(on_delete='CASCADE',to=Bussiness,to_field='id')
+
+    # ManyToManyField('Host)会自动创建一张关系表myapp_applications_r,这张表会将applications和host表的主键自动关联。列名applications_id，host_id
+    class Applications(models.Model):
+        name = models.CharField(max_length=128)
+        r = models.ManyToManyField('Host')
+
+    对自动添加的关联表application_r进行操作
+    找到在applications表里面id=1的对象
+    obj = Applications.objects.get(id=1)
+    obj.name
+    在关联表添加一行applications_id=1，host_id=2的关联。
+    obj.r.add(2)
+    在关联表里面添加多个对应关系，添加1-1 1-2 1-3 1-4
+    obj.r.add(1,2,3,4)
+    也可以用下面的列表的写法
+    obj.r.add(*[1,2,3,4])
+
+    删除1-2,注意是删除的applications_id=1,host_id=2这一行数据
+    obj.r.remove(2)
+    删除1-2 1-3
+    obj.r.remove(2,3)
+    obj.r.remove(*[2,3])
+
+    清除所有的applications_id=1的行
+    obj.r.clear()
+
+    更新
+    只保留1-2 1-3 1-4 只保留set里面的值,其他的删除，如1-2 1-5都会删除
+    obj.r.set([2,3,4])
+
+    拿到所有相关host对象的QuerySet，即找到applications表中id=1的数据在host表中的所有关联。
+    obj.r.all()
+    拿到应用表中id=1的应用在host表中属于zabbix主机的对象。id=1的应用可能对应了多个host主机，过滤出属于zabbix的主机。
+    obj.r.filter(hostname='zabbix')
+
+    两者的区别在于，自定义的可以自己再添加其他的列，而自动创建的表里面的列名是固定的，没法在里面再添加其它列。自定义的灵活性更好。
+    自动创建的无法对关联表通过类的方式直接操作，因为没有相应的类名。

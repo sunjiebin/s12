@@ -59,7 +59,6 @@ jquery
 
 
 
-
         <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.12.4.min.js"></script>
         jquery的底层实际还是调用的document,只是封装了.
         dom和jquery转换
@@ -83,11 +82,14 @@ jquery
 
     $().val() 获取值
     $().val('222') 设置值
-    注意val()和text()的区别，val是获取标签中value属性的值，一般多用于input标签，而text是获取标签里面的文本值。
-     示例： 下面的input val获取到“这是一个input标签1”
+    注意val()和text()以及attr()的区别，val是获取标签中value属性的值，一般多用于input标签，而text是获取标签里面的文本值。而attr（）是取任意自定义属性的值，包括value属性
+     示例： 下面的input val获取到“这是一个input标签1”,attr('value')也可以获取到值
      <input type="text" id="input1" value="这是一个input标签1">
      下面val获取不到值，但text可以获取到 “div有文本内容”
      <div id="div1">div有文本内容</div>
+     下面标签attr('name')能够取到，val()取不到。
+     <div name='host'><div>
+
 
    dom中
         tag=document.getElementById('i2')
@@ -112,6 +114,7 @@ jquery
         新增值 如果属性不存在则新增 name='hha'
         $('#i1').attr('name','hha')
         removeAttr() 删除属性
+
 
         prop专门用于checkbox,radio的选中与取消
         注意这里一定不要用attr来设置checked属性,这个会有bug,导致设置不生效

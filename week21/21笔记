@@ -1,0 +1,115 @@
+知识点：
+    URL
+        -
+        命名空间
+        在总的url里面
+        /admin/ include('app01.urls',namespace='m1')
+        /crm/   include('app01.urls',namespace='m2')
+        在下级url里面
+        app01.urls
+        /index/ name='n1'
+        函数里面反转就可以通过namespace:name来匹配到对应的url了
+        reverse('m1':'n1')      -->/admin/index/
+
+        From表单提交
+            提交 --> url -->函数或者类中的方法
+
+        ajax:
+            $.ajax({
+                url:'index',
+                data:{'k':'v'},   $(form对象).serialize()
+                type:'POST',
+                dataType:'JSON',
+                traditional:true,
+                success:function(d){
+                    location.reload()          #刷新
+                    location.href = '某个地址' #跳转
+                }
+            })
+            提交-->url-->函数或者方法
+                    HttpResponse('xxx')
+                    render(request,'index.html',
+
+        def func(request):
+            request.POST
+            request.GET
+            request.FILES
+            request.getlist
+            request.method
+            request.path_info
+
+
+
+    Views
+
+        - 请求的其他信息
+        获取请求头里面的信息
+        from django.core.handlers.wsgi import WSGIRequest
+        request.environ实际是一个包含所有请求信息的字典
+        request.environ
+        获取请求头里面客户端类型的字典。
+        request.environ['HTTP_USER_AGENT']
+        - 装饰器
+
+    Models
+
+
+    Templates
+        - 母版
+            extends 只能继承一个
+            include 可以任意个
+        - 自定义函数
+            simple_tag
+            a. app下创建templatetags目录，注意目录名称不能改
+            b. 在templatetags下创建任意xxoo.py函数
+            c. 创建template对象register，注意register名称是固定的，不能随便写
+                from django import template
+                register = template.Library()
+            d. 函数前面加上装饰器，再写自定义的函数
+               @register.simple_tag
+               def func(a1,a2,a3)
+                    return 'abcd'
+            e. 在settings中注册app
+            f. 在html文件顶部引用
+                {% load xxoo %}
+            g. html文件中调用
+                {% func arg1 arg2 arg3 %}
+            优点：参数任意个
+            缺点：不能作为if条件使用
+
+            filter
+            a. app下创建templatetags目录，注意目录名称不能改
+            b. 在templatetags下创建任意xxoo.py函数
+            c. 创建template对象register，注意register名称是固定的，不能随便写
+                from django import template
+                register = template.Library()
+            d. 函数前面加上装饰器，再写自定义的函数
+               @register.filter
+               def func(a1,a2)
+                    return a1+a2
+            e. 在settings中注册app
+            f. 在html文件顶部引用
+                {% load xxoo %}
+            g. html文件中调用
+                只能传两个参数，写法如下
+                {{ 参数1|函数名:"参数2" }}
+                如果要传入3个参数，那么要将多的参数都写道一个字符传里面，实际传入的还是两个参数。如"arg2,arg3".然后再函数里面通过split(',')来分割参数。
+                {{ 参数1|函数名:"参数2，参数3" }}
+                注意：：后面不能有空格。 {{ obj|func: "22" }}这样是错误的
+                {{ obj|func:"22" }}
+            优点：可以作为if条件
+            缺点：参数只能两个，且写法严格不能有空格。如果要传入多个参数，那么就的将多个参数作为一个字符串传入，然后在函数里面对字符串分割
+
+
+            django还内置了一些函数可以用，内置函数就是filter的模式
+            比如我们传一个name变量给html模板，|lower就会将name变量里面的大写都转换为小写
+            {{ name|lower }}
+            获取变量的前30个字符
+            {{ name|truncatewords:"30" }}
+    cookie和session
+
+    分页（自定义分页）
+        xss:
+            {{ page_str|safe }}
+            mark_safe(page_str)
+    From验证
