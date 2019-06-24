@@ -1,0 +1,180 @@
+{% extends 'host/base.html' %}
+ {% block css %}
+<link rel="stylesheet" href="/static/models.css"/>
+ {% endblock %}
+{% block header %}主机后台管理系统{% endblock %}
+{% block item %}
+<a>主机清单</a>
+{% endblock %}
+{% block content %}
+    <div class="content">
+    <div>
+        <input type="button" value="添加" id="add_host">
+    </div>
+    <div class="add_modal hidden">
+{#    添加主机模态对话框#}
+        <form action="/host/hostlist" method="post">
+            {% csrf_token %}
+            <input type="text" placeholder="主机名" name="hostname"/>
+            <input type="text" placeholder="IP" name="ip"/>
+            <input type="text" placeholder="端口" name="port"/>
+            <select name="department">
+                {% for i in d1 %}
+                <option value="{{ i.id }}">{{ i.fullname }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit">
+{#       后面用了ajax，就不要再用 href="/ajax"，否则后面reload就会报错#}
+            <a id='ajax_sub' >ajax验证</a>
+            <input type="button" value="取消" onclick="hide()">
+            <span style="text-align: center;color: red;font-size: 12px;" id="err_info"></span>
+        </form>
+    </div>
+{#    编辑主机模态对话框 #}
+    <div class="edit_modal hidden">
+        <form class="edit_form" action="/host" method="post">
+            <input type="text" name="nid" class="hidden"/>
+            <input type="text" placeholder="主机名" name="hostname"/>
+            <input type="text" placeholder="IP" name="ip"/>
+            <input type="text" placeholder="端口" name="port"/>
+            <select name="caption">
+                {% for i in b1 %}
+                <option value="{{ i.id }}">{{ i.caption }}</option>
+                {% endfor %}
+            </select>
+{#            注意：如果要和ajax绑定，就应该设置成button，而不是submit，如果用submit，那么submit按钮本身会自动提交一次，ajax又会提交一次，就会出现提交两次的情况#}
+{#            如果用在插入数据上，就会发现每次都被插入两条同样的数据，即插入语句被执行了两次#}
+            <input id="edit_ajax" type="button" value="修改">
+{#       后面用了ajax，就不要再用 href="/ajax"，否则后面reload就会报错#}
+{#            <a id='edit_ajax' >ajax验证</a>#}
+            <input type="button" value="取消" onclick="hide()">
+            <span style="text-align: center;color: red;font-size: 12px;" id="err_info2"></span>
+        </form>
+    </div>
+    <div class="shade hidden">遮罩层</div>
+
+{#    主机列表 #}
+    <hl>主机列表（对象）</hl>
+    <table border="1" >
+        <th>编号</th>
+        <th>主机名</th>
+        <th>IP</th>
+        <th>端口</th>
+        <th>所属部门</th>
+        <th>编码</th>
+        <th>编辑</th>
+        {% for i in v1 %}
+            {# 将两个表的id列在页面上隐藏，赋值给tr的hid，bid #}
+        <tr hid="{{ i.nid }}" bid="{{ i.to_department_id }}">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ i.hostname }}</td>
+            <td>{{ i.ip }}</td>
+            <td>{{ i.port }}</td>
+            <td>{{ i.to_department.fullname }}</td>
+            <td>{{ i.to_department.code }}</td>
+            {#注意这里要用class，不要用id，因为for循环后会生成多个编辑|删除按钮，而id必须唯一，如果用for会生成很多id相同的标签，会导致除了第一行有效，其他行按钮都不生效#}
+            <td><a class="edit">编辑</a>|<a class="delete">删除</a></td>
+            {% if  forloop.last %}
+                <tr style="background-color: aqua"><td style="text-align: center;color: black" colspan="7">已经到底啦</td></tr>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </table>
+    </div>
+{% endblock %}
+{% block js %}
+       <script>
+        $(function() {
+            $('#add_host').click(function () {
+                $('.add_modal,.shade').removeClass('hidden')
+            })
+        })
+        function hide(){
+            $('.add_modal,.edit_modal,.shade').addClass('hidden')
+        }
+        $('#ajax_sub').click(function () {
+            $.ajax({
+                {#提交的url地址#}
+                url:"/ajax",
+                {#提交类型#}
+                type:'POST',
+                {#传输的数据#}
+                data:{'hostname':$('[name="hostname"]').val(),'ip':$('[name="ip"]').val(),'port':$('[name="port"]').val(),'caption':$('[name="caption"]').val()},
+                {#接受到返回后执行的操作，这里必须有返回才会执行success，data即为返回的数据值#}
+                success:function (data) {
+                    console.log(data);
+                    {#将序列化的数据反序列化，字符串转换为字典对象。序列化JSON.stringify(dic)#}
+                    var dic=JSON.parse(data);
+                    {#如果dic.status为true#}
+                    if(dic.status){
+                        location.reload();
+                    }else {
+                        {#alert(data)#}
+                        $('#err_info').text(dic.error)
+                    }
+                }
+            })
+        });
+        $('.edit').click(function () {
+            console.log('aa');
+            $('.edit_modal,.shade').removeClass('hidden')
+            {#var h=$('.edit_modal').find('input[name="hostnmae"]').val();#}
+            {#找到bid,然后给select赋值对应的bid，这样在编辑的时候，默认所属部门就与编辑行的部门一致#}
+            var bid=$(this).parent().parent().attr('bid');
+            $('.edit_modal').find('select').val(bid);
+            {#注意用$().text()为jquery写法，在jquery中用text()来获取标签里面的文本，在dom中用innerText来获取标签中的文本#}
+            var n=$(this).parent().parent().attr('hid');
+            var h=$($(this).parent().siblings()[0]).text();
+            var i=$(this).parent().siblings()[1].innerText;
+            var p=$(this).parent().siblings()[2].innerText;
+            $('.edit_modal').find('[name="hostname"]').val(h);
+            $('.edit_modal').find('[name="ip"]').val(i);
+            $('.edit_modal').find('[name="port"]').val(p);
+            $('.edit_modal').find('[name="nid"]').val(n);
+            console.log(h,i,p)
+        });
+
+        $('#edit_ajax').click(function () {
+            $.ajax({
+                data:$('.edit_form').serialize(),
+                url:"/edit",
+                type:'POST',
+                success:function (data) {
+                    console.log(data);
+                    {#将序列化的数据反序列化，字符串转换为字典对象。序列化JSON.stringify(dic)#}
+                    var dic=JSON.parse(data);
+                    {#如果dic.status为true#}
+                    if(dic.status){
+                        location.reload();
+                    }else {
+                        {#alert(data)#}
+                        $('#err_info2').text(dic.error)
+                    }
+                }
+
+            })
+        });
+
+        $('.delete').click(function () {
+            var nid=$(this).parent().parent().attr('hid');
+            console.log(nid);
+            $.ajax({
+                url:"/delete",
+                type:"POST",
+                data:{'nid':nid},
+                success:function (data) {
+                    console.log(data);
+                    {#将序列化的数据反序列化，字符串转换为字典对象。序列化JSON.stringify(dic)#}
+                    var dic=JSON.parse(data);
+                    {#如果dic.status为true#}
+                    if(dic.status){
+                        location.reload();
+                    }else {
+                        alert(dic.error)
+                    }
+                }
+            })
+        })
+
+    </script>
+{% endblock %}
