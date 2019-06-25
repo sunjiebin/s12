@@ -150,3 +150,24 @@ session和cookie的区别
         from django.views.decorators.csrf import csrf_exempt,csrf_protect
         @csrf_exempt        这个装饰器用于忽略csrf检测，这样就算全局打开了检测，实际在该函数中也不必对csrf配置
         @csrf_protect       开启检测，如果全局关了，加上这个将强制检测。
+
+3. 中间件
+
+        在settings的MIDDLEWARE里面专门用于配置中间件，里面的方法都是中间件，在访问django时，都会经过这些中间件的过滤。
+        CSRF就是一个中间件，所有请求都会经过定义的这个方法，该方法就会检测是否符合csrf定义的规则，如果post请求里面没有csrftoken，
+        则在csrf这里就会返回403了，请求也就不会再继续下去。
+
+        中间件用于对所有的
+
+        自定义中间件，需要先继承MiddlewareMixin类。
+        process_request,process_response的名称是固定的，用于接收和返回，不能随意修改
+
+        from django.utils.deprecation import MiddlewareMixin
+        class row1(MiddlewareMixin):
+            def process_request(self,request):
+                print('中间件1')
+            def process_response(self,request,response):
+                print('返回1')
+                return response
+
+        在django1.10之后，process_request遇到return后，会从当前函数开始返回，在这之前的老版本中，会从最后一个中间件返回。

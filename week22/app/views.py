@@ -44,3 +44,7 @@ def index(request):
 def logout(request):
     request.session.clear()
     return redirect('/index')
+
+def test(request):
+    print('测试中间件流程')
+    return HttpResponse('ok')
