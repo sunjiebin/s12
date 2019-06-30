@@ -48,9 +48,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'Middle.m1.row1',
-    'Middle.m1.row2',
-    'Middle.m1.row3',
+    # 'Middle.m1.row1',
+    # 'Middle.m1.row2',
+    # 'Middle.m1.row3',
    # 'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>from验证</title>
+    <style>
+{#这里的c1写在views函数里面的#}
+        .c1{
+            width: 200px;
+            height: 100px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <form action="/fm/" method="post">
+        {% csrf_token %}
+{#        obj.errors.user.0拿到用户名的错误信息，注意0如果不写，就会是<ul>格式输出，而不是错误文本信息。#}
+        {# 用下面自己写的input框时，如果输入错误了，那么整个input框里面的内容会消失，要想不消失，可以用django自动生成的input  obj.user #}
+{#        <p><input type="text" name="user"/>{{ obj.errors.user.0 }}</p>#}
+{#        可以用 obj.user来自动生成对应的input标签。并且标签会自动添加浏览器验证参数required。新版的浏览器会自动校验你输入的参数是否正确#}
+{#        <p>{{ obj.user }}{{ obj.errors.user.0 }}</p>#}
+{#        <p>{{ obj.pwd }}{{ obj.errors.pwd.0 }}</p>#}
+{#        <p>{{ obj.email }}{{ obj.errors.email.0 }}</p>#}
+{#        <p>{{ obj.msg }}</p>#}
+{#        <p>{{ obj.radius }}</p>#}
+{#        <p>{{ obj.file }}</p>#}
+{#        <p>{{ obj.c1 }}</p>#}
+{#        <p>{{ obj.c2 }}</p>#}
+{#        <p>{{ obj.c3 }}</p>#}
+{#        可以直接用下面的方法生成fm函数里面定义的所有input，这种方法简便快捷，但是可定制性差#}
+        {{ obj.as_p }}
+{#        {{ obj.as_ul }}#}
+        <p><input type="submit" value="提交"/></p>
+    </form>
+</body>
+</html>

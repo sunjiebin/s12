@@ -23,6 +23,7 @@ urlpatterns = [
     path('index/',views.index),
     path('logout',views.logout),
     path('cache/',views.cache),
-    path('cache_view',views.cache_view)
+    path('cache_view',views.cache_view),
+    path('fm/',views.fm),
 ]
 
