@@ -1,0 +1,16 @@
+{% load cache %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>缓存</title>
+</head>
+<body>
+    {{ t }}
+    {{ t }}
+{% cache 2 aa %}
+    {{ t }}
+{% endcache %}
+
+</body>
+</html>

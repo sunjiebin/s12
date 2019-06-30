@@ -60,7 +60,7 @@
         id
         fk = ForignKey(A)
 
-本届内容
+本节内容
 1.session
     基于cookie做用户验证时：敏感信息不适合放在cookie中
 
@@ -157,7 +157,7 @@ session和cookie的区别
         CSRF就是一个中间件，所有请求都会经过定义的这个方法，该方法就会检测是否符合csrf定义的规则，如果post请求里面没有csrftoken，
         则在csrf这里就会返回403了，请求也就不会再继续下去。
 
-        中间件用于对所有的
+        中间件用于对所有的请求做校验，比如IP黑名单过滤，禁止某个app访问所有页面，某个页面也行。
 
         自定义中间件，需要先继承MiddlewareMixin类。
         process_request,process_response的名称是固定的，用于接收和返回，不能随意修改
@@ -166,8 +166,100 @@ session和cookie的区别
         class row1(MiddlewareMixin):
             def process_request(self,request):
                 print('中间件1')
+            def process_view(self,request,view_func,view_func_args,view_func_kwargs):
+                print('第二层1')
             def process_response(self,request,response):
                 print('返回1')
                 return response
+            def process_exception(self,request,exception):
+                # 如果exception是ValueError类型。isinstance用于判断对象类型。如isinstance(aa,str) 判断aa变量是否为str类型
+                if isinstance(exception,ValueError):
+                    print('值错误',request,exception)
+                elif isinstance(exception,TypeError):
+                    print('类型错误',request,exception)
+                return HttpResponse('程序有错误')
 
         在django1.10之后，process_request遇到return后，会从当前函数开始返回，在这之前的老版本中，会从最后一个中间件返回。
+        流程：
+            从上自下依次经过process_request-->遇到url之后-->再从上至下执行process_view-->执行对应函数-->再从下自上执行process_response。
+            如果函数出错，则从下至上先执行process_exception.然后执行process_response.
+
+
+4. 缓存
+    可以支持多种缓存格式，文件/缓存/数据库等，要用缓存，首先的在settings里面进行配置。
+    配置：
+        CACHE = {
+            'default':{
+            'BACKEND':'django.core.cache.backends.filebased.FileBasedCache',            使用的引擎，我这里是以文件形式存放
+            'LOCATION': os.path.join(BASE_DIR,'cache')          文件存放的位置
+            'TIMEOUT':              超时时间，默认300，None表示永不过期，0表示立即过期
+            ’OPTIONS':{
+                'MAX_ENTRIES':300   最大缓存个数，超过后会开始清除缓存
+
+            }
+            }
+        }
+
+
+    5种配置
+    3中应用：
+
+        全局缓存
+        全局缓存是针对整个网站的所有页面都进行缓存，比如一个静态网站，所有数据很少变动的博客等可以用。。
+        在settings文件的中间件配置的前后加上一下两个类。
+        FetchFromCacheMiddleware里面处理进来的request请求，判断是否有缓存，如果有，则从缓存直接取，如果没有，则从views视图里面取。
+        UpdateCacheMiddleware里面包含response返回的请求，在返回的最后一个节点进行处理，如果没有缓存，则将页面加入缓存。
+        MIDDLEWARE = [
+             'django.middleware.cache.UpdateCacheMiddleware',
+             ...其他中间件
+             'django.middleware.cache.FetchFromCacheMiddleware',
+        ]
+        视图函数缓存
+        导入模块cache_page，然后用@cache_page来装饰函数，就实现了对整个函数缓存
+            from django.views.decorators.cache import cache_page
+            @cache_page(10)
+            def cache(request):
+                import time
+
+        模板缓存
+        在html模板文件里面先load加载cache，然后将要缓存的内容放在cache里面。
+            {% load cache %}
+            {% cache 10 aa %}
+                {{ t }}
+            {% endcache %}
+
+        注意三个方式的优先级：全局>视图>模板  所以，当我们在全局里面设置了缓存，那么另外两个缓存配置是不会生效的。
+        根据django的请求生命周期来看，首先是到全局的中间件，如果全局的中间件有缓存，那么直接取缓存返回，也就不会经过视图和模板了。
+        如果全局的没有，再到视图缓存，如果有就会返回，不用再到模板里面渲染，
+        全局视图都没有，才会到模板里面的缓存。
+
+5. 信号
+    信号用于在初始化执行某些操作前后进行额外的操作。有点类似于装饰器，但是比装饰器更灵活，粒度更细。
+    比如，我要在插入数据前后/建表前后/删除前后/链接数据库前 等情况下，执行某些操作。就可以用信号。
+    信号的优势在于可以解耦，方便更改任务。有些任务更改比较频繁，频繁更改业务代码麻烦且易出错，通过信号就只需要更改信号里面的函数即可。
+    而与业务代码无关。比如监控，今天想用短信，改天改成邮箱，用信号就可以很方便的切换。
+
+    django内置信号
+        先写一个信号的函数sg.py
+        导入信号模块
+        from django.db.models.signals import pre_init,post_init
+        定义要执行的函数
+        def f1(sender,**kwargs):
+        print('single call')
+        将函数注册进信号
+        pre_init.connect(f1)
+        触发信号
+        在项目下的__init__.py初始化函数里面导入这个sg.py。代表每次启动应用时都执行了这个函数。这样就注册了里面定义的信号。否则写了也不会生效。
+        __init__.py
+        import sg.py
+    自定义信号
+        定义信号
+           import django.dispatch
+            pizz_done=django.dispatch.Signal(providing_args=["toppings","size"])
+        注册信号
+            def callback(sender,**kwargs):
+                print(sender,kwargs)
+            pizz_done.connect(callback)
+        触发信号
+            from 路径 import pizz_done
+            pizz_done.send(sender='seven',toppings=123,size=22)

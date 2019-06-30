@@ -1,5 +1,6 @@
 from django.shortcuts import render,redirect,HttpResponse
 from django.views.decorators.csrf import csrf_exempt,csrf_protect
+from django.views.decorators.cache import cache_page
 # Create your views here.
 
 #通过装饰器csrf_exempt可以将该函数跳过csrf检测
@@ -48,3 +49,19 @@ def logout(request):
 def test(request):
     print('测试中间件流程')
     return HttpResponse('ok')
+
+def cache_view(request):
+    import time
+    t=time.time()
+    return render(request,'cache.html',{'t':t})
+
+#对整个函数进行缓存 10代表缓存10s.那么访问页面时的时间数据就会10s变一次
+#函数如果还带了参数，那么每个参数都会做一个缓存
+@cache_page(10)
+def cache(request):
+    import time
+    from single import mysg
+    a=mysg.single.send(sender='test',args2='a',args3='b')
+    print('取信号里面的参数',a[0][1].get('args2'))
+    return HttpResponse(time.time())
+
