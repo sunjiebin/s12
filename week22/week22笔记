@@ -263,3 +263,88 @@ session和cookie的区别
         触发信号
             from 路径 import pizz_done
             pizz_done.send(sender='seven',toppings=123,size=22)
+
+6. Form操作
+    -  验证用户请求
+      导入模块
+        from django.forms import fields,widgets
+      创建form类
+        class FM(forms.Form):
+            user=fields.CharField(error_messages={'required':'用户名不能为空'},initial='sun',label='用户名',disabled=True)
+            pwd=fields.CharField(max_length=12,min_length=6,error_messages={'required':'密码不能为空','min_length':'太短了','max_length':'太长了'},widget=widgets.PasswordInput)
+      函数中调用类
+        实例化对象
+        obj=FM()
+        可以直接传入字典作为input里面的默认值
+        obj=FM({'user':'v1','pwd':'v2'})
+        调用form的方法
+        obj.is_valid() 校验结果，如果校验都通过，则返回True
+        obj.cleaned_data  返回校验通过后的数据，如果校验不通过，则为Null
+        obj.errors  返回校验不通过时的错误信息
+        return  render(request,'fm.html',{'obj':obj})  将obj对象传递给HTML模板
+
+    在HTML模板中引用form对象，生成对应的input框
+        {{ obj.email }}     生成email输入框
+        {{ obj.errors.email.0 }}    显示email框校验失败的结果
+
+        自动生成obj里面定义的所有输入框
+        {{ obj.as_p }}      p段落的形式生成所有input框
+        {{ obj.as_ul }}     ul标题的形式
+        {{ obj.as_table }}  table表格的形式
+
+    django内置字段：
+        字段主要用来校验，不同的字段实现不同的校验功能
+        #单选按钮
+        c3=fields.ChoiceField(choices=[(0,'北京'),(1,'上海'),(2,'NewYork')],widget=widgets.RadioSelect)
+        pwd=fields.SlugField(max_length=12,min_length=6,
+                         error_messages={'required':'密码不能为空','min_length':'太短了','max_length':'太长了','invalid':'只支持数字字母下划线减号'},
+                         widget=widgets.PasswordInput)
+
+        Field               基本属性
+            required=True   是否可以为空
+            label='用户名'  input框前面的标签名，默认将用from函数的变量名
+            inital='root'   初始值
+            help_text='aa'  标签提示信息,似乎不生效
+            error_messages=None         出错后的显示信息
+            show_hidden_inital=False    是否在当前插件后在加一个隐藏的且具有默认值的插件（可用于校验两次输入是否一致，如改密码不能改一样的密码）
+            validators=[]   自定义验证规则
+            localize=False  是否支持本地化时间，默认utc时间
+            disabled=False  是否可以编辑，就比如我们停止注册功能，那么就可以把注册的输入框设置成disabled=True
+            label_suffix=None   label内容的后缀，就比如“用户名：”的这个冒号
+        CharField(Field)        继承Field的属性
+            max_length=None
+            min_length=None         最小长度
+            strip=True              是否自动去掉空格
+        InterField(Field)
+        FloatField(Field)
+        DateField
+        TimeField
+        DateTimeField
+        EmailField
+        FileField                   上传文件，会生成一个文件上传的按钮
+        URLField
+        ChoiceField                 选择 单选/多选等
+        ComboField                  混合验证
+            比如我既要支持CharField验证，又要支持EmailField验证
+            fields.ComboField(fields=[fields.CharField(max_length=20),fields.EmailField(),])
+        FilePathField(ChoiceField)  用于将指定目录下的文件都以select框的形式显示出来,提交时就会将该文件路径提交上去。比如一个文件夹下都是脚本，让你选择执行那个脚本。
+        GenericIPAddressField       解析IP地址格式
+            protocol='both'         两种都支持
+            unpack_ipv4=False       解析成IPV4地址
+        SlugField(CharField)        数字字母下划线减号  其他的都不行 可以用于限定输入的字符类型
+
+    常用插件widget
+    插件用于生成不同的input类型
+        插件非常多，可以实现单选/多选/复选/密码框/select框等各类input框都可以。
+        widget=widgets.PasswordInput
+        widget=widgets.RadioSelect
+        插件里面还可以定义属性，这样就可以实现对input框自定义样式等功能
+        widget=widgets.Textarea(attrs={'class':'c1','name':'msg'})
+
+    自定义
+        - 类
+        - 字段（校验）
+        - 插件（生成HTML）
+
+    初始化操作
+
