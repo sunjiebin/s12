@@ -1,0 +1,13 @@
+
+Model
+    数据库操作
+    验证
+
+Form
+
+    - is_valid --> 每个字段进行正则+clean_字段-->clean(__all__)-->_post_clean
+    - cleand_data
+    - error
+
+ModelForm
+    Model+Form 结合 可验证+数据库操作

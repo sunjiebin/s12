@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{#注意提交数据时action里面的url要用/结尾。否则报错#}
+<form method="post" action="/edit-{{ nid }}/">
+    {% csrf_token %}
+    {{ u.as_p }}
+    <input type="submit">
+    </form>
+</body>
+</html>
