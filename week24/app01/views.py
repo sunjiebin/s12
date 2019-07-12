@@ -137,3 +137,15 @@ def user_edit(request,nid):
         else:
             print(u.errors.as_json())
         return render(request,'useredit.html',{'u':u})
+
+def ajax(request):
+    print('in ajax')
+    return render(request,'ajax.html')
+
+def ajax_json(request):
+    print('in ajax_json')
+    print(request.POST)
+    ret={'code':True,'data':None}
+    import json
+    #status可以定义响应码，reason可以定义响应内容
+    return HttpResponse(json.dumps(ret),status=201,reason='Not Found',)

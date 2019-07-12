@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ajax请求处理</title>
+</head>
+<body>
+    <input type="button" value="ajax提交" onclick="ajax1();"/>
+
+    <script>
+{#        设置不同浏览器的兼容性，比如ie6等老版本浏览器并没有xmlhttprequest对象 #}
+        function getXHR() {
+            var xhr=null;
+            if(XMLHttpRequest){
+                 xhr = new XMLHttpRequest()
+            }else{
+                xhr = new ActiveXObject("Microsoft XMLHTTP");
+            }
+            return xhr;
+        }
+        {#注意中括号不要写漏或写多了，不然函数不会运行，然后括号的作用范围不要写错了#}
+        function ajax1() {
+            var xhr = getXHR();
+            {# 当状态发生改变时就会执行，所以在打开、发送、接收都会触发 #}
+            xhr.onreadystatechange=function () {
+                console.log('in ajax'+xhr.readyState);
+                {#如果状态值为4，代表数据发送完毕#}
+                if (xhr.readyState == 4) {
+                    {# 接收发来的文本数据，并解析成对象 #}
+                    var obj = JSON.parse(xhr.responseText);
+                    console.log(obj);
+                }
+            };
+                xhr.open('POST','/ajax_json/');
+                {#xhr.open('GET','/index');#}
+                {# 必需在请求头里面设置数据发送类型，如果没有定义下面的请求头，那么后台将拿不到send过去的数据，可以通过查看request.POST的源码发现需要指定content_type#}
+                {# 注意源码里面的content_type是下划线，但这里要写content-type是中划线，不是content_type。因为在浏览器里面不认下划线，使用中划线传到后端时会自动转为下划线 #}
+            {# f12在浏览器里面查看headers请求头，会发现请求头的Key都是中划线的 #}
+                xhr.setRequestHeader('content-type','application/x-www-form-urlencoded;charset-UTF-8');
+            {# 自定义请求头键值对k1:v1，可以在浏览器里面f12查看Headers里面就会有请求头信息 #}
+                xhr.setRequestHeader('k1','v1');
+            {# 自定义csrf请求头，在ajax POST提交时，需要设置这个csrf头，不然报403错误 #}
+                xhr.setRequestHeader('X-CSRFtoken','{{ csrf_token }}');
+                //send里面用;号隔开不同的键值对，且里面必需用字符串的格式。
+                xhr.send('name=root;pwd=123');
+
+        }
+    </script>
+</body>
+</html>

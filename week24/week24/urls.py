@@ -24,4 +24,6 @@ urlpatterns = [
     path('user/',views.user_list),
     # 这里要注意，使用正则时，需要用re_path，如果用path不会报错，但是(\d+)是不会生效的。
     re_path('edit-(\d+)/',views.user_edit),
+    path('ajax/',views.ajax),
+    path('ajax_json/',views.ajax_json),
 ]

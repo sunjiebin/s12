@@ -31,3 +31,46 @@ ModelForm
                         instance.save()
                         mf.save_m2m()
     ModelForm操作起来比Model更方便。但是也增加了model类的耦合，所以在小的项目场景是很方便的，在复杂场景可能用Model更好。
+
+Ajax
+    jquery是对原生ajax进行的上层封装，底层还是调用的ajax。
+    注意在ajax里面语法不要写错了，比如少了}，出现这种错误会导致ajax无法正常执行，但是程序又不会报错。
+
+    在jquery中创建一个对象
+    xhr= new XMLHttpRequest()
+    该对象主要包含了以下几种方法
+    a.创建请求
+        xhr.open('GET','/login/')
+        参数：请求方式  请求地址  是否异步（默认异步提交）
+    b.发送请求
+        xhr.send('string body')
+    c.设置请求头
+        数据发送过去包含了请求头和请求内容，这里设置请求头
+        xhr.setRequestHeader()
+    d.获取所有响应头
+        xhr.getAllResponseHeaders()
+    e.获取指定的响应头
+        和上面的不一样的是，可以获取指定某一个响应头的值
+        xhr.getResponseHeader(string header)
+    f.终止请求
+        如果ajax请求一直未完成，可以设置终止掉该请求
+        xhr.abort()
+
+    其它功能
+    a.获取状态值
+        获取当前ajax的状态值，得到ajax执行在哪个阶段
+        xhr.readyState
+        0 未初始化方法，尚未调用open()方法
+        1 启动  调用了open方法，未send()
+        2 发送  调用了send()，但未接收数据
+        3 接收  已经接收了部分数据
+        4 完成  数据已经全部接收
+
+    xhr.onreadystatechange 当状态发生改变时，都会触发该函数
+    xhr.responseText 获取服务器返回的数据
+    xhr.responseXML 获取返回的xml对象
+    xhr.states  获取返回的状态码 如200 404
+    xhr.statesText 获取返回的状态文本 如OK NotFound
+
+    注意用ajax发送POST数据时，必需要先设置请求头的类型。然后要注意content-type这里是中划线。
+    xhr.setRequestHeader('content-type','application/x-www-form-urlencoded;charset-UTF-8');
