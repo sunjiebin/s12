@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>传文件的三种提交方式</title>
+    <style>
+        .d1{
+            width: 100px;
+            height: 50px;
+
+        }
+        .file{
+            position: absolute;
+            width: 100px;
+            height: 50px;
+            opacity: 0;
+            z-index: 10;
+        }
+        .upload{
+            display: inline-block;
+            color: aqua;
+            background: antiquewhite;
+            width: 100px;
+            height: 50px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 50px;
+            font-size: 20px;
+            z-index: 9;
+        }
+    </style>
+</head>
+<body>
+    <div class="d1" >
+        {# 文件按钮样式是不能够修改的，我们可以先将文件按钮填满整个div，完后设置透明度为0，用z-index将按钮置顶，这样就实现上传按钮不可见，但是点击又能够触发上传的效果 #}
+        <input class="file" type="file" id="uploadfile" name="uploadfile"/>
+        <a class="upload">上传</a>
+    </div>
+    <input type="button" value="ajax提交" onclick="xhrsubmit();"/>
+    <input type="button" value="jquery提交" onclick="jqsubmit();"/>
+    <hr/>
+    {# 利用target='ifm’实现form表单和frame的绑定关系，将表单的数据交给iframe去提交，这样就不会触发form提交后的刷新动作 #}
+    <form id="fm" method="post" action="/upload_file/" enctype="multipart/form-data" target="ifm">
+        {% csrf_token %}
+        {#        注意这里是name="ifm",这个属性要是name，不能是其它的，名字和form里面定义的target要相同，不然不生效。用display:none隐藏表单 #}
+        {# iframe在提交数据后，返回给form的结果也会传给iframe，并在iframe里面显示，所以可以从iframe里面拿到返回值 #}
+        <iframe name="ifm" id="ifm" style="display: none"></iframe>
+        {# 绑定一个onchange事件，在点击上传文件时就触发，这样就不用点击下面的提交按钮，就能实现自动上传文件了 #}
+        <input type="file" name="uploadfile" onchange="changeupload();"/>
+{#        <input type="submit" value="form伪ajax提交"/>#}
+        <input type="submit" value="form伪ajax提交" onclick="iframesubmit();"/>
+    </form>
+    <div class="img"></div>
+
+    <script src="/static/jquery.js"></script>
+    <script>
+        function initdata() {
+            var file_obj = document.getElementById('uploadfile').files[0];
+            {# 建立一个FormData的对象 #}
+            var fd = new FormData();
+            {# 通过fd.append往FormData对象里面追加数据 #}
+            fd.append('user','sun');
+            fd.append('uploadfile',file_obj);
+            {# 通过return实现变量在不同函数间的传递 #}
+            return fd
+        }
+        {# 通过原生ajax上传文件 #}
+        function xhrsubmit() {
+            {# 获取文件需要用.files来获取文件，[0]获取第一个，这里必须要用[0]才能获取到具体的文件 #}
+            console.log(document.getElementById('uploadfile').files);
+            {# 将initdata()执行，得到return fd的返回值，再把fd= fd，实现函数间变量传递 #}
+            var fd = initdata();
+            var xhr= new XMLHttpRequest();
+            xhr.open('POST','/upload_file/');
+            xhr.setRequestHeader('x-CSRFToken','{{ csrf_token }}');
+            xhr.send(fd);
+        }
+        {# 通过jquery上传文件 #}
+        function jqsubmit() {
+            var fd=initdata();
+            var cook='{{ csrf_token }}';
+            $.ajax({
+                url:'/upload_file/',
+                type:'POST',
+                data:fd,
+            {# 注意由于我们传的是文件，不是字符串，所以processData,contentType都要设置成false，避免jquery将传输的内容变成字符串传过去 #}
+                processData:false,
+                contentType:false,
+                headers:{'X-CSRFtoken':cook},
+                success:function (arg,a1,a2) {
+                    console.log(arg,a1,a2);
+                }
+            });
+        }
+        {# 不需要触发这个函数也可以上传文件 #}
+        {# 通过frame伪ajax上传文件，并且实现预览 #}
+        function iframesubmit() {
+            {# 当点击按钮触发subform函数时，找到iframe，然后用load给这个iframe绑定一个事件 #}
+            {# 注意在jquery3.4的版本中，用load就会报错，里面的函数自然也不会执行。在老版本中，用load就不会报错。 #}
+            $('#ifm').load(function () {
+                {#iframe里面获取到的数据是一个document对象，对象里面又包含了一个完整的html标签。#}
+                {#所以我们需要先contents()获取到这个document对象，再find到里面的body标签，再通过text()取到body里面的文本#}
+                var i = $('#ifm').contents().find('body').text();
+                var obj = JSON.parse(i);
+                console.log(i,obj);
+                //首先清空这个div，否则多次传图片时，会出现多张图片显示
+                $('.img').empty();
+                {# 生成一个img标签 #}
+                img=document.createElement("img");
+                {# 给标签赋值src和style属性 #}
+                img.src='/'+obj.data;
+                img.style='width:50%;height:50%';
+                {#  将Img标签添加到class=img的div标签中去 #}
+                $('.img').append(img);
+            })
+        }
+        function changeupload() {
+            console.log('触发了');
+
+            {# 只有在执行form表单提交时，下面的load函数才会被触发，如果没有submit提交，这个函数不会被触发 #}
+            $('#ifm').load(function () {
+                {#iframe里面获取到的数据是一个document对象，对象里面又包含了一个完整的html标签。#}
+                {#所以我们需要先contents()获取到这个document对象，再find到里面的body标签，再通过text()取到body里面的文本#}
+                var i = $('#ifm').contents().find('body').text();
+                var obj = JSON.parse(i);
+                console.log(i,obj);
+                $('.img').empty();
+                img=document.createElement("img");
+                img.src='/'+obj.data;
+                img.style='width:50%;height:50%';
+                $('.img').append(img);
+            });
+            {# 必须要有这个submit，否则上面的load不会执行，也就无法实现预览 #}
+            $('#fm').submit();
+        }
+
+    </script>
+</body>
+</html>

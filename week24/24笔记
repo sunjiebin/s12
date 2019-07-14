@@ -74,3 +74,16 @@ Ajax
 
     注意用ajax发送POST数据时，必需要先设置请求头的类型。然后要注意content-type这里是中划线。
     xhr.setRequestHeader('content-type','application/x-www-form-urlencoded;charset-UTF-8');
+
+    注意在ajax里面创建变量用 xhr = new XMLHttpRequest(),在jquery里面是 var xhr = $('#xxoo')
+
+    我们有三种方式可以提交数据，那么选择顺序可以如下。
+    如果发送的是普通数据，先用jquery提交，jquery不行再用XMLHttpRequet，最后再用iframe
+
+文件上传
+    - from提交
+    - ajax上传文件
+    时机
+        如果发送的是文件 --> iframe优先，jquery(FormData),XMLHttpRequest(FormData)
+        jquery和XMLHttpRequest都依赖FormData对象，而FormData并不是所有浏览器兼容的，对于老版本的IE是不支持的。
+        所以，上传文件尽量都使用iframe，这个不存在兼容性问题。

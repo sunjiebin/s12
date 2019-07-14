@@ -5,8 +5,25 @@
     <title>ajax请求处理</title>
 </head>
 <body>
+    <input type="text" id="t1"/>
+{#    基于jquery的伪ajax #}
+    <input type="button" value="伪ajax" onclick="iframerequest()"/>
     <input type="button" value="ajax提交" onclick="ajax1();"/>
+{# iframe可用于嵌入别的页面。比如在文本框里面显示百度页面，利用ajax可以在不刷新原来页面的情况下，只刷新里面的页面#}
+    <iframe id="ifr" src="http://www.baidu.com" style="width: 400px;height: 200px"></iframe>
 
+{#    基于form的伪ajax,利用target='ifm'将form提交与iframe关联，让表单提交到了iframe，这样整个页面就不会刷新，而iframe会刷新，后台依然能够拿到整个数据#}
+    <form method="post" action="/ajax_json/" target="ifm">
+        {% csrf_token %}
+{#        注意这里是name="ifm",这个属性要是name，不能是其它的，名字和form里面定义的target要相同，不然不生效。 #}
+        <iframe name="ifm" id="ifm"></iframe>
+        <input type="text" name="user"/>
+        <input type="text" name="email"/>
+        <input type="submit" value="form伪ajax" onclick="subform();"/>
+    </form>
+
+{#    <script src="/static/jquery-3.4.1.js"></script>#}
+    <script src="/static/jquery.js"></script>
     <script>
 {#        设置不同浏览器的兼容性，比如ie6等老版本浏览器并没有xmlhttprequest对象 #}
         function getXHR() {
@@ -31,19 +48,28 @@
                     console.log(obj);
                 }
             };
-                xhr.open('POST','/ajax_json/');
-                {#xhr.open('GET','/index');#}
-                {# 必需在请求头里面设置数据发送类型，如果没有定义下面的请求头，那么后台将拿不到send过去的数据，可以通过查看request.POST的源码发现需要指定content_type#}
-                {# 注意源码里面的content_type是下划线，但这里要写content-type是中划线，不是content_type。因为在浏览器里面不认下划线，使用中划线传到后端时会自动转为下划线 #}
-            {# f12在浏览器里面查看headers请求头，会发现请求头的Key都是中划线的 #}
-                xhr.setRequestHeader('content-type','application/x-www-form-urlencoded;charset-UTF-8');
-            {# 自定义请求头键值对k1:v1，可以在浏览器里面f12查看Headers里面就会有请求头信息 #}
-                xhr.setRequestHeader('k1','v1');
-            {# 自定义csrf请求头，在ajax POST提交时，需要设置这个csrf头，不然报403错误 #}
-                xhr.setRequestHeader('X-CSRFtoken','{{ csrf_token }}');
                 //send里面用;号隔开不同的键值对，且里面必需用字符串的格式。
                 xhr.send('name=root;pwd=123');
 
+        }
+
+        function iframerequest() {
+            //从文本框拿数据
+            var i=$('#t1').val();
+            //将拿出的数据赋值给iframe框，iframe框会自动提交刷新数据
+            $('#ifr').attr('src',i);
+        }
+
+        function subform() {
+            {# 当点击按钮触发subform函数时，找到iframe，然后用load给这个iframe绑定一个事件 #}
+            {# 注意在jquery3.4的版本中，用load就会报错，里面的函数自然也不会执行。在老版本中，用load就不会报错。 #}
+            $('#ifm').load(function () {
+                {#iframe里面获取到的数据是一个document对象，对象里面又包含了一个完整的html标签。#}
+            {#所以我们需要先contents()获取到这个document对象，再find到里面的body标签，再通过text()取到body里面的文本#}
+            var i = $('#ifm').contents().find('body').text();
+            var obj = JSON.parse(i);
+            console.log(obj,i);
+              })
         }
     </script>
 </body>

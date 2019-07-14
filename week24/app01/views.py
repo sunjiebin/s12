@@ -144,8 +144,38 @@ def ajax(request):
 
 def ajax_json(request):
     print('in ajax_json')
+    # import time
+    # time.sleep(4)
     print(request.POST)
-    ret={'code':True,'data':None}
+    ret={'code':True,'data':request.POST.get('user')}
     import json
     #status可以定义响应码，reason可以定义响应内容
     return HttpResponse(json.dumps(ret),status=201,reason='Not Found',)
+
+def upload(request):
+
+    return render(request,'upload.html')
+
+def upload_file(request):
+    # 注意，在传文件的时候，这里要用FILES方法，而不是用POST，用request.POST.get是取不到数据的
+    file_obj=request.FILES.get('uploadfile')
+    #通过file_obj.name拿到上传的文件名称
+    print(file_obj,file_obj.name)
+    import os
+    print(os.path.curdir,os.path.join(os.pardir,'upload',file_obj.name))
+    # 注意上传的文件如果要通过url访问，那么可以放在static目录下，因为这个目录在settings里面定义了是静态目录，所以可以直接访问该目录
+    # 如果上传的目录直接放在根目录下，那么通过http://127.0.0.1:8000/upload/aa.jpg 这样是不能访问的。
+    upfile_path=os.path.join('static/upload',file_obj.name)
+    print(upfile_path)
+    #上传文件要以二进制的方式来写入，用wb，不是w
+    with open(upfile_path,'wb') as e:
+        # 对file_obj.chunks()得到每一个文件块，并进行循环写入
+        for item in file_obj.chunks():
+            e.write(item)
+    #注意用ajax时不要用render返回，render会返回当前页面，把整个页面当作字符串传给ajax是不对的。
+    #当用render返回时，ajax中的success:function (arg,a1,a2) 中的arg参数就收到的就是整个html页面。
+    #return render(request,'upload.html',{'obj':upfile})
+    ret={'data':upfile_path,'code':True,}
+    import json
+    #注意字典返回时要用json.dumps转换为字符串。不然取到的数据不是完整的字典。
+    return HttpResponse(json.dumps(ret))
