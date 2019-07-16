@@ -179,3 +179,24 @@ def upload_file(request):
     import json
     #注意字典返回时要用json.dumps转换为字符串。不然取到的数据不是完整的字典。
     return HttpResponse(json.dumps(ret))
+
+def checkcode(request):
+    from io import BytesIO
+    from utils import check_code
+    stream=BytesIO()
+    img,code=check_code.create_validate_code()
+    img.save(stream,'PNG')
+    request.session['CheckCode']=code
+    return HttpResponse(stream.getvalue())
+
+def login(request):
+    if request.method == 'POST':
+        code=request.POST.get('checkcode').upper()
+        Session=request.session.get('CheckCode').upper()
+        print(code,Session)
+        if code == Session:
+            print('验证码正确')
+        else:
+            print('验证码错误')
+            
+    return render(request,'login.html')

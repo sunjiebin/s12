@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>验证码</title>
+</head>
+<body>
+<form method="post" action="/login/" target="frame">
+    {% csrf_token %}
+    <iframe name="frame" hidden></iframe>
+    <input type="text">
+    <input type="text" name="checkcode" placeholder="请输入验证码"/>
+    <img src="/checkcode.html" onclick="updatecheckcode(this);"/>
+    <input type="submit"/>
+</form>
+<script>
+    {# 注意上面onclick要写this，下面的函数里面可以写任意的形参名称，但不要写this。 #}
+    function updatecheckcode(ths) {
+        ths.src = ths.src +'?';
+    }
+
+</script>
+</body>
+</html>

@@ -27,5 +27,7 @@ urlpatterns = [
     path('ajax/',views.ajax),
     path('ajax_json/',views.ajax_json),
     path('upload/',views.upload),
-    path('upload_file/',views.upload_file)
+    path('upload_file/',views.upload_file),
+    path('checkcode.html',views.checkcode),
+    path('login/',views.login),
 ]

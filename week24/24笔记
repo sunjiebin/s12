@@ -87,3 +87,33 @@ Ajax
         如果发送的是文件 --> iframe优先，jquery(FormData),XMLHttpRequest(FormData)
         jquery和XMLHttpRequest都依赖FormData对象，而FormData并不是所有浏览器兼容的，对于老版本的IE是不支持的。
         所以，上传文件尽量都使用iframe，这个不存在兼容性问题。
+
+图片验证码
+    - session
+    - check_code.py(依赖：Pillow,字体文件)
+    - 点击刷新 src属性后面加上？
+
+    1.访问页面url
+    - 先创建一个图片并返回给用户
+    - session存放验证码
+
+    创建一个bytesio对象
+    stream = BytesIO()
+    调用函数生成验证码图片和对应验证码
+    img, code = create_validate_code()
+    将图片保存在内存对象里面
+    img.save(stream,'PNG')
+    将随机验证码保存在session中
+    request.session['CheckCode'] = code
+    将内存里面的图片拿出来并返回给浏览器
+    return HttpResponse(stream.getvalue())
+
+    实现点击验证码就刷新
+    先绑定一个点击事件
+    <img src="/check_code.html" onclick="changeCheckCode(this);">
+    当点击时，将img里面的src属性的值进行修改，多加一个?号，这样url就变化了，就会重新请求服务器，拿到新的随机验证码。
+    如果url还是原来的，那么浏览器不会去再次请求，所以这里要把url改变一下
+            function changeCheckCode(ths){
+            ths.src = ths.src +  '?';
+
+        }
