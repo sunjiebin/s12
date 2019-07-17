@@ -117,3 +117,24 @@ Ajax
             ths.src = ths.src +  '?';
 
         }
+
+富文本编辑
+    http://kindeditor.net
+
+       $(function () {
+        {# 如果{}什么都不加，那么就是用默认功能，里面参数非常多，可以参考官方文档#}
+        KindEditor.create('#content',{
+            width:'100%',   //可以百分比或者像素
+            height:'300px', //文本框高度（只能像素）
+            minWidth:'50',  //最小宽度（像素）
+            minHeight:'200',
+            {#items:[         //指定显示的插件，默认是全部都有#}
+        {#'source', '|', 'undo', 'redo', '|', 'preview', 'print', 'template', 'code', 'cut', 'copy', 'paste',#}
+        {#'plainpaste', 'wordpaste', '|', 'justifyleft', 'justifycenter', 'justifyright',],#}
+        {#    noDisableItems:['source','undo','redo','fullscreen'],   //指定插件可用，其他插件都是灰色不可选，依赖designMode为false#}
+        {#    designMode:false,#}
+        })
+    })
+    还支持很多参数
+    afterCreate
+    afterChange

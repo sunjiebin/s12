@@ -30,4 +30,7 @@ urlpatterns = [
     path('upload_file/',views.upload_file),
     path('checkcode.html',views.checkcode),
     path('login/',views.login),
+    path('kind/',views.kind),
+    path('uploadimg/',views.uploadimg),
+    path('filemanager/',views.file_manager),
 ]

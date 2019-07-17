@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kind</title>
+</head>
+<body>
+<form>
+    <div style="width:50%;margin: 50px auto">
+        <textarea id="content"></textarea>
+    </div>
+</form>
+<script src="/static/jquery-3.4.1.js"></script>
+<script src="/static/kindeditor-4.1.10/kindeditor-all-min.js"></script>
+<script>
+
+
+    $(function () {
+        {# 如果{}什么都不加，那么就是用默认功能，里面参数非常多，可以参考官方文档#}
+        KindEditor.create('#content', {
+            width: '100%',   //可以百分比或者像素
+            height: '300px', //文本框高度（只能像素）
+            minWidth: '50',  //最小宽度（像素）
+            minHeight: '200',
+            uploadJson: '/uploadimg/',    //上传图片  后面接的时上传图片的url 代表你要将上传的文件提交到那个url去接收
+            fileManagerJson: '/filemanager/',     //文件管理的url，这里要自己写好对应的文件管理的函数，才能够进行管理。
+            allowFileManager: true,      //是否允许文件管理，如显示“图片空间”等，也就是可以浏览服务器上上传的所有图片，便于管理。
+            extraFileUploadParams: {   //增加上传提交时的额外的自定义参数，比如csrf时我们需要添加的，这里就可以加上，就能够通过csrf验证了
+                csrfmiddlewaretoken: '{{ csrf_token }}'      //要注意，后面的值一定要引号引起来，不然不是字符串就会报错。
+            },
+            filePostName: 'fafafa',        //定义上传时input的name属性。默认名称我们可以通过浏览捕捉到如?dir=image，image就是name属性的值
+            {#allowImageUpload:false,     //是否允许本地上传，false代表不允许，本地上传选项会被隐藏#}
+            {#allowImageRemote:false,     //是否允许链接图片url#}
+            {#autoHeightMode:true,    //当输入内容行数超出文本框高度时，自动增高文本框。默认false就会出现滚动条。而不是增高#}
+            {#items:[         //指定显示的插件，默认是全部都有#}
+            {#'source', '|', 'undo', 'redo', '|', 'preview', 'print', 'template', 'code', 'cut', 'copy', 'paste',#}
+            {#'plainpaste', 'wordpaste', '|', 'justifyleft', 'justifycenter', 'justifyright',],#}
+            {#    noDisableItems:['source','undo','redo','fullscreen'],   //指定插件可用，其他插件都是灰色不可选，依赖designMode为false#}
+            {#    designMode:false,#}
+        })
+    })
+</script>
+</body>
+</html>

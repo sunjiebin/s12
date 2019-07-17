@@ -1,5 +1,6 @@
 from django.shortcuts import render,HttpResponse
 from django import forms
+from django.views.decorators.csrf import csrf_exempt
 from django.forms import fields as Ffields
 from app01 import models
 from django.forms import widgets
@@ -200,3 +201,114 @@ def login(request):
             print('验证码错误')
             
     return render(request,'login.html')
+
+def kind(request):
+    
+    return render(request,'kind.html')
+
+#@csrf_exempt
+def uploadimg(request):
+    import os,json
+    print(request.GET.get('dir'))
+    print(request.FILES.get('imgFile'))
+    #注意这里用get得到的是上传的文件，而不是一个文件名。如果要得到文件名，需要img.name才可以
+    img=request.FILES.get('imgFile')
+    #注意这里拼接需要上传图片的文件名，而img是图片不是图片名称。所以要img.name获取名称
+    srcimg=os.path.join('static/upload',img.name)
+    with open(srcimg,'wb') as e:
+        for i in img.chunks():
+            e.write(i)
+    print(srcimg)
+
+    dic = {
+        'error':0,
+        #url后面接要预览的图片访问路径
+        'url':'/'+srcimg,
+        'message':'0代表上传成功，1代表失败了',
+    }
+    return HttpResponse(json.dumps(dic))
+
+def file_manager(request):
+    """
+    文件管理
+    :param request:
+    :return:
+    {
+        moveup_dir_path:
+        current_dir_path:
+        current_url:
+        file_list: [
+            {
+                'is_dir': True,
+                'has_file': True,
+                'filesize': 0,
+                'dir_path': '',
+                'is_photo': False,
+                'filetype': '',
+                'filename': xxx.png,
+                'datetime': time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(os.path.getctime(abs_item_path)))
+            },
+            {
+                'is_dir': True,
+                'has_file': True,
+                'filesize': 0,
+                'dir_path': '',
+                'is_photo': False,
+                'filetype': '',
+                'filename': xxx.png,
+                'datetime': time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(os.path.getctime(abs_item_path)))
+            }
+        ]
+
+    }
+
+
+    """
+    import os,time,json
+    dic = {}
+    root_path = 'D:/学习相关/python/s12/week24/static'
+    static_root_path = '/static/'
+    request_path = request.GET.get('path')
+    if request_path:
+        abs_current_dir_path = os.path.join(root_path, request_path)
+        move_up_dir_path = os.path.dirname(request_path.rstrip('/'))
+        dic['moveup_dir_path'] = move_up_dir_path + '/' if move_up_dir_path else move_up_dir_path
+
+    else:
+        abs_current_dir_path = root_path
+        dic['moveup_dir_path'] = ''
+
+    dic['current_dir_path'] = request_path
+    dic['current_url'] = os.path.join(static_root_path, request_path)
+
+    file_list = []
+    for item in os.listdir(abs_current_dir_path):
+        abs_item_path = os.path.join(abs_current_dir_path, item)
+        a, exts = os.path.splitext(item)
+        is_dir = os.path.isdir(abs_item_path)
+        if is_dir:
+            temp = {
+                'is_dir': True,
+                'has_file': True,
+                'filesize': 0,
+                'dir_path': '',
+                'is_photo': False,
+                'filetype': '',
+                'filename': item,
+                'datetime': time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(os.path.getctime(abs_item_path)))
+            }
+        else:
+            temp = {
+                'is_dir': False,
+                'has_file': False,
+                'filesize': os.stat(abs_item_path).st_size,
+                'dir_path': '',
+                'is_photo': True if exts.lower() in ['.jpg', '.png', '.jpeg'] else False,
+                'filetype': exts.lower().strip('.'),
+                'filename': item,
+                'datetime': time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(os.path.getctime(abs_item_path)))
+            }
+
+        file_list.append(temp)
+    dic['file_list'] = file_list
+    return HttpResponse(json.dumps(dic))
