@@ -142,6 +142,10 @@ EasyUI   主要用于后台管理页面的布局
 
     创建app
     python manage.py satrtapp cmdb   创建一个名为cmdb的app,会在对应的django项目下面生成一个目录
+    注意：创建对应的app之前，先不要在settings.py的INSTALLED_APPS里面添加该应用名称，否则启动会报错，提示：
+    ModuleNotFoundError: No module named 'cmdb'
+    正确的步骤是先创建app，再到settings.py里面填上新增的app名称。顺序不能反
+
 
     app目录:
         我们用python的orm时,无法对已有的表进行加列修改列的操作.但django可以.
@@ -193,6 +197,10 @@ EasyUI   主要用于后台管理页面的布局
         2. 创建app
             cd 工程名
             python manage.py startapp xxx
+            在settings.py里面添加app名称(如果不在INSTALLED_APPS里面添加，那么在执行models.py初始化数据库时，就会无法生效，不会建表)
+            INSTALLED_APPS = [
+            .....
+            'app01',]
         3. 静态文件
             在settings.py中设置
             STATICFILES_DIRS=(os.path.join(BASE_DIR,'static'),)
