@@ -276,7 +276,7 @@ django.db.utils.OperationalError: no such table: app01_username
         class User(models.Model):
             age = models.IntegerField()
             name = models.CharField(max_length=10)
-            user_type = models.ForeignKey("UserType",to_field='id')  和UserType表里面的id列外键约束
+            user_type = models.ForeignKey("UserType",on_delete=models.CASCADE,to_field='id')  和UserType表里面的id列外键约束
             注意，在django中实际生成的的列名将会是user_type_id，而不是user_type。
            name age user_type_id
          # 张扬 18        3
