@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>文章标题</title>
+    <style>
+        .condition a {
+            display: inline-block;
+            border: aqua solid;
+            margin: 5px 5px;
+            padding: 1px 10px;
+        }
+
+        .condition a.choice {
+            background: aquamarine;
+        }
+    </style>
+</head>
+<body>
+<div class="condition">
+    <h1>过滤条件</h1>
+    <div>
+        {% if kwargs.category_id == 0 %}
+            <a class="choice" href="article-0-{{ kwargs.article_type_id }}.html">全部</a>
+        {% else %}
+            <a href="article-0-{{ kwargs.article_type_id }}.html">全部</a>
+        {% endif %}
+        {% for i in category %}
+            {# 注意：category数据库里面拿的id是数字，而kwargs的id是字符串，两者不相等。所以在kwargs里面我们将v转换成为了int类型 #}
+            {% if i.id == kwargs.category_id %}
+                <a class="choice" href="article-{{ i.id }}-{{ kwargs.article_type_id }}.html">{{ i.caption }}</a>
+            {% else %}
+                <a href="article-{{ i.id }}-{{ kwargs.article_type_id }}.html">{{ i.caption }}</a>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div>
+        {% if kwargs.article_type_id == 0 %}
+            <a class="choice" href="article-{{ kwargs.category_id }}-0.html">全部</a>
+        {% else %}
+            <a href="article-{{ kwargs.category_id }}-0.html">全部</a>
+        {% endif %}
+        {% for i in articletype %}
+            {% if i.id == kwargs.article_type_id %}
+                <a class="choice" href="article-{{ kwargs.category_id }}-{{ i.id }}.html">{{ i.caption }}</a>
+            {% else %}
+                <a href="article-{{ kwargs.category_id }}-{{ i.id }}.html">{{ i.caption }}</a>
+            {% endif %}
+        {% endfor %}
+
+    </div>
+</div>
+
+<ul>
+    <h1>查询结果</h1>
+    {% for i in result %}
+        <li>{{ i.id }}-{{ i.title }}</li>
+    {% endfor %}
+</ul>
+</body>
+</html>
