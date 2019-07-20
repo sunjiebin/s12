@@ -52,6 +52,7 @@ def filter_article_type(type,select_id,item_type):
     art_list=[]
     if item_type == 'category':
         for i in type:
+            # 这里的type是category表里面的数据，是Queryset类型，所以用i.id取值
             n1=i.id
             n2=select_id.get('category_id')
             n3=select_id.get('article_type_id')
@@ -64,11 +65,12 @@ def filter_article_type(type,select_id,item_type):
             # print(1,art_list)
     elif item_type == 'articletype':
         print('type',type)
+        # 这里的type是article类里面返回的元组
         for i in type:
-            n1 = i.id
+            n1 = i[0]
             n2 = select_id.get('article_type_id')
             n3 = select_id.get('category_id')
-            n4 = i.caption
+            n4 = i[1]
             if n1 == n2:
                 ret = '<a class="choice" href="article-%s-%s.html">%s</a>' % (n3, n1, n4)
             else:

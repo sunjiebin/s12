@@ -14,7 +14,9 @@ def article(request,**kwargs):
         if v != '0':
             dic[k]=v
     print(dic)
+    #category是从表里面查询出所有的数据，返回的是queryset类型的数据
     category=models.Category.objects.all()
-    articletype=models.ArticleType.objects.all()
+    #articletype是从Article类里面取的数据，type_choice是放在内存里面的，并没有在数据库里面存放。返回的是元组。
+    articletype=models.Article.type_choice
     result=models.Article.objects.filter(**dic)
     return render(request,'article_template.html',{'result':result,'category':category,'articletype':articletype,'kwargs':kwargs})
