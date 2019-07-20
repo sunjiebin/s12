@@ -14,11 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,re_path
+from django.urls import path,re_path,include
 from app01 import views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # 注意这里的名称article_type_id不是随便写的，名称是数据库里面的外键名称，这样就可以直接以字典的形式传给后端的filter查询
     re_path('article-(?P<category_id>\d+)-(?P<article_type_id>\d+).html',views.article),
+    path('app02/',include('app02.urls')),
 ]

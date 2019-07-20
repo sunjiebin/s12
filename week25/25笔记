@@ -23,3 +23,56 @@ html里面使用函数
     {% locad filter %}
     再调用里面的函数
     {% filter_all a1 a2 %}
+
+JSONP
+    jsonp是一种请求方式，能够在不同的代码接口之间相互传递数据。
+
+    使用ajax请求其他域名时，无法获取返回的数据，浏览器会报错。
+            xhr=new XMLHttpRequest();
+            xhr.open('GET','http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301');
+            xhr.send();
+            console.log('1',xhr.responseText);
+    得到数据为空，提示如下错误。代表浏览器默认不允许ajax跨域请求数据。
+    Failed to load http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301: No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://127.0.0.1:8000' is therefore not allowed access.
+    由于浏览器具有上面的同源策略，阻止ajax请求其他域名返回数据。但无法阻止<script src='xxx'></script>。所以可以利用<script>标签来完成跨域请求。
+
+    创建script标签
+            var a=document.createElement("script");
+    设置src要请求的地址
+            a.src='http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301';
+    将script脚本添加到head标签下面。
+            document.head.appendChild(a);
+    返回的数据必须是js格式，要能够被js解析。
+        接口示例函数：
+        获取get请求里面的callback参数的值，然后把这个值返回过去。
+            def jsonp(request):
+                func = request.GET.get('callback')
+                content= '%s(data)'%(func)
+                return HttpResponse(content)
+
+
+    获取到返回的数据后，清除script标签
+            document.head.removeChild(a);
+
+    只能发get请求
+
+    一个完整的JSONP请求函数
+    1.这里只能是get请求，因为后台函数是通过get获取到参数的值。
+    2.url里面要有callback参数名，这个是业界共识，基本都用这个名称。接口后台拿到这个参数的值list，并返回list(data)
+    3.下面要写一个对应的list函数。这个函数名称要和接口返回的list(data)名称一样。一般接口返回的名称就是我们callback=list定义的list名称。如callback=fun,那么下面就要有个fun()函数。
+        function getcontent() {
+            var a=document.createElement("script");
+            a.src='http://www.jxntv.cn/data/jmd-jxtv2.html?callback=list&_=1454376870403';
+            document.head.appendChild(a);
+            document.head.removeChild(a);
+        }
+        function list(arg) {
+            console.log(arg);
+        }
+
+        接口示例函数：
+        获取get请求里面callback参数的值，并将这个值作为函数名称返回过去。
+            def jsonp(request):
+                func = request.GET.get('callback')
+                content= '%s(data)'%(func)
+                return HttpResponse(content)

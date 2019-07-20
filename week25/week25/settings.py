@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app01',
+    'app02',
 ]
 
 MIDDLEWARE = [
@@ -120,7 +121,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-
-STATICFILE_DIRS=(
+#注意是STATICFILES_DIRS,不是STATICFILE_DIRS
+STATICFILES_DIRS=(
     os.path.join(BASE_DIR,'static'),
 )
