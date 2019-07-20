@@ -38,11 +38,12 @@ def index(request):
     #获取值
     u=request.session.get('user')
     l=request.session.get('login')
+    ret={'k':'v1','k2':'v2'}
 #    if request.session['login']:
     if request.session.get('login'):
         return render(request,'index.html')
     else:
-        return HttpResponse('用户未登录')
+        return HttpResponse("list(%s)" %(ret))
     
 def logout(request):
     request.session.clear()

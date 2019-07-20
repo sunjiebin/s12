@@ -20,6 +20,7 @@
     <script src="/static/jquery.js"></script>
     <script src="/static/jquery.cookie.js"></script>
     <script>
+        {# ajaxSetup定义全局ajax参数，这样就不用在每个ajax里面重复写一些代码了 #}
         $.ajaxSetup({
         {# beforSend定义在发送ajax前执行的操作 #}
         {# xhr指xmlhttprequest，封装了所有的http请求信息；settings封装了ajax里面发送的所有信息，所以可以通过settings.type获取ajax里面的type字段 #}

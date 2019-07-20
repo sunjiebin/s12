@@ -52,6 +52,7 @@ MIDDLEWARE = [
     # 'Middle.m1.row2',
     # 'Middle.m1.row3',
    # 'django.middleware.cache.FetchFromCacheMiddleware',
+    'Middle.cors.cors',
 ]
 
 ROOT_URLCONF = 'week22.urls'

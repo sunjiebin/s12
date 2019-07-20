@@ -348,3 +348,5 @@ session和cookie的区别
 
     初始化操作
 
+
+先找is_valid
