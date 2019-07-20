@@ -1,0 +1,25 @@
+21节内容回顾
+html里面使用函数
+1. 在settings注册创建的app01项目
+2. 建立templatetags文件夹
+3. 建立filter.py函数
+4. 导入template模块，该模块用于生成模板装饰器
+    from django import template
+5. 导入mark_safe模块,该模块用于向前端页面返回html标签时，告诉前端这个数据是安全的，可以解析里面的代码。
+    如果不配置，则所有数据都会被当作字符串返回，而不会解析里面的html语法。
+    from django.utils.safestring imort mark_safe
+6. 创建register变量，注意名称固定的，不能随便写。实例化template
+    register=template.Library()
+7. 装饰需要的函数
+    @regisger.simple_tag
+8. 写函数主体,注意返回时要mark_safe来返回
+    def filter_all(arg1,arg2):
+        ...
+        ret=xxx
+        return mark_safe(ret)
+9. html中调用
+    注意在html中，变量的引用使用{{ }},函数的调用使用{% %}
+    先载入模块
+    {% locad filter %}
+    再调用里面的函数
+    {% filter_all a1 a2 %}
