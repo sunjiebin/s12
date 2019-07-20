@@ -43,8 +43,8 @@ def index(request):
     if request.session.get('login'):
         return render(request,'index.html')
     else:
-        return HttpResponse("list(%s)" %(ret))
-    
+        return HttpResponse('请先登录')
+
 def logout(request):
     request.session.clear()
     return redirect('/index')
