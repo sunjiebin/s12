@@ -1,3 +1,4 @@
+{% load filter %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,28 +21,12 @@
 <div class="condition">
     <h1>过滤条件</h1>
     <div>
-    {% load filter %}
-    {% filter_all kwargs 'category_id' %}
-    {% filter_article_type category kwargs 'category' %}
-{#        {% for i in category %}#}
-            {# 注意：category数据库里面拿的id是数字，而kwargs的id是字符串，两者不相等。所以在kwargs里面我们将v转换成为了int类型 #}
-{#            {% if i.id == kwargs.category_id %}#}
-{#                <a class="choice" href="article-{{ i.id }}-{{ kwargs.article_type_id }}.html">{{ i.caption }}</a>#}
-{#            {% else %}#}
-{#                <a href="article-{{ i.id }}-{{ kwargs.article_type_id }}.html">{{ i.caption }}</a>#}
-{#            {% endif %}#}
-{#        {% endfor %}#}
+        {% filter_all kwargs 'category_id' %}
+        {% filter_article_type category kwargs 'category' %}
     </div>
     <div>
         {% filter_all kwargs 'article_type_id' %}
         {% filter_article_type articletype kwargs 'articletype' %}
-{#        {% for i in articletype %}#}
-{#            {% if i.id == kwargs.article_type_id %}#}
-{#                <a class="choice" href="article-{{ kwargs.category_id }}-{{ i.id }}.html">{{ i.caption }}</a>#}
-{#            {% else %}#}
-{#                <a href="article-{{ kwargs.category_id }}-{{ i.id }}.html">{{ i.caption }}</a>#}
-{#            {% endif %}#}
-{#        {% endfor %}#}
 
     </div>
 </div>

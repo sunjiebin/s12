@@ -14,6 +14,7 @@
     <div id="container"></div>
     <script src="/static/jquery-3.4.1.js"></script>
     <script>
+        {# 原生ajax跨站请求，服务器如果没有针对该域名返回Access-Control-Allow-Origin响应头，则返回数据会被浏览器阻止 #}
         function getContent() {
             xhr=new XMLHttpRequest();
           //  xhr.open('GET','http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301');

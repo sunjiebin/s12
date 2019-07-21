@@ -24,55 +24,148 @@ html里面使用函数
     再调用里面的函数
     {% filter_all a1 a2 %}
 
+models里面内存外键
+class Article(models.Model):
+        ....
+        type_choice=(
+        (1,'python'),
+        (2,'openstack'),
+        (3,'docker'),
+        (4,'go'),
+    )
+    article_type_id=models.IntegerField(choices=type_choice,default=1)
+通过上面的语句，将article_type_id与type_choice建立了关联关系，就跟外键类似的效果。
+注意：type_choice只是存在于内存之中，一般是不修改的，如果要修改就得改models函数，所以只有静态的数据一般才用这种方式。这个type_choice在数据库里面是不存在的。
+通过 result=models.Article.objects.filter({'category_id': 2, 'article_type_id': 1})
+
+流程：
+先得到type_choice对象
+articletype=models.Article.type_choice
+循环type_choice对象,得到一个个元组，如（1，'python')。i[0]拿到第一个1，i[1]拿到Python.
+for i in articletype:
+    n1 = i[0]
+    n4 = i[1]
+将拿到的n4数据显示在前端，实现前端标签显示python
+n1作为<a>标签里面的参数传递。出现在浏览器的get请求链接中 如：article-2-1.html
+通过article-2-1.html得到的2和1(其中1就是从type_choice中得来)，将category=2,将article_type_id=1，这时候就建立了article_type_id与type_choice[0]的关联
+通过联合查询得到category=2,article_type_id=1的组合查询得到同时符合两个搜索条件的结果。models.Article.objects.filter({'category_id': 2, 'article_type_id': 1})
+
+requests请求
+    首先导入requests模块，这个模块默认没有，需要pip3 install requests
+    import requests
+    def req(request):
+        # 通过下面的方式来发送请求，并获取返回的数据到response
+        response = requests.get('http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301')
+        # 注意传过来的是字节，我们需要将其用utf-8编码一下，不然传到前端的中文就是乱码的
+        response.encoding='utf-8'
+        # 通过response.text获取返回的文本
+        print(response.text)
+        # 传递给前端页面
+        return render(request,'req.html',{'result':response.text})
+
+
 JSONP
     jsonp是一种请求方式，能够在不同的代码接口之间相互传递数据。
 
-    使用ajax请求其他域名时，无法获取返回的数据，浏览器会报错。
+    默认使用ajax请求其他域名时，无法获取返回的数据，浏览器会报错。
             xhr=new XMLHttpRequest();
             xhr.open('GET','http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301');
             xhr.send();
             console.log('1',xhr.responseText);
     得到数据为空，提示如下错误。代表浏览器默认不允许ajax跨域请求数据。
     Failed to load http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301: No 'Access-Control-Allow-Origin' header is present on the requested resource. Origin 'http://127.0.0.1:8000' is therefore not allowed access.
-    由于浏览器具有上面的同源策略，阻止ajax请求其他域名返回数据。但无法阻止<script src='xxx'></script>。所以可以利用<script>标签来完成跨域请求。
+    由于浏览器具有上面的同源策略，阻止ajax请求其他域名返回数据。但无法阻止<script src='xxx'></script>。所以可以利用<script>标签来完成跨域请求，即JSONP的请求方式。
 
-    创建script标签
-            var a=document.createElement("script");
-    设置src要请求的地址
-            a.src='http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301';
-    将script脚本添加到head标签下面。
-            document.head.appendChild(a);
-    返回的数据必须是js格式，要能够被js解析。
-        接口示例函数：
-        获取get请求里面的callback参数的值，然后把这个值返回过去。
-            def jsonp(request):
-                func = request.GET.get('callback')
-                content= '%s(data)'%(func)
-                return HttpResponse(content)
+    利用JS原生的方式发送JSONP请求
+        创建script标签
+                var a=document.createElement("script");
+        设置src要请求的地址
+                a.src='http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301';
+        将script脚本添加到head标签下面。
+                document.head.appendChild(a);
+        返回的数据必须是js格式，要能够被js解析。
+            接口示例函数：
+            获取get请求里面的callback参数的值，然后把这个值返回过去。
+                def jsonp(request):
+                    func = request.GET.get('callback')
+                    content= '%s(data)'%(func)
+                    return HttpResponse(content)
 
 
-    获取到返回的数据后，清除script标签
-            document.head.removeChild(a);
+        获取到返回的数据后，清除script标签
+                document.head.removeChild(a);
 
-    只能发get请求
+        一个完整的原生JSONP请求函数
+        1.这里只能是get请求，因为后台函数是通过get获取到参数的值。
+        2.url里面要有callback参数名，这个是业界共识，基本都用这个名称。接口后台拿到这个参数的值list，并返回list(data)
+        3.下面要写一个对应的list函数。这个函数名称要和接口返回的list(data)名称一样。一般接口返回的名称就是我们callback=list定义的list名称。如callback=fun,那么下面就要有个fun()函数。
+            function getcontent() {
+                var a=document.createElement("script");
+                a.src='http://www.jxntv.cn/data/jmd-jxtv2.html?callback=list&_=1454376870403';
+                document.head.appendChild(a);
+                document.head.removeChild(a);
+            }
+            function list(arg) {
+                console.log(arg);
+            }
 
-    一个完整的JSONP请求函数
-    1.这里只能是get请求，因为后台函数是通过get获取到参数的值。
-    2.url里面要有callback参数名，这个是业界共识，基本都用这个名称。接口后台拿到这个参数的值list，并返回list(data)
-    3.下面要写一个对应的list函数。这个函数名称要和接口返回的list(data)名称一样。一般接口返回的名称就是我们callback=list定义的list名称。如callback=fun,那么下面就要有个fun()函数。
-        function getcontent() {
-            var a=document.createElement("script");
-            a.src='http://www.jxntv.cn/data/jmd-jxtv2.html?callback=list&_=1454376870403';
-            document.head.appendChild(a);
-            document.head.removeChild(a);
+            接口示例函数：
+            获取get请求里面callback参数的值，并将这个值作为函数名称返回过去。
+                def jsonp(request):
+                    func = request.GET.get('callback')
+                    content= '%s(data)'%(func)
+                    return HttpResponse(content)
+
+    利用jquery来发送JSONP请求
+        {# 通过jquery的方式实现jsonp跨域请求，实际上jquery也是执行的上面的getcontent里面的操作，只是jquery封装了而已 #}
+        function jqgetcontent() {
+            $.ajax({
+                url:'http://www.jxntv.cn/data/jmd-jxtv2.html?',     //url后面不用再写callback=list这个参数，会自动加上对应的get参数
+                type:'GET',     //这里不管是写的get还是post，实际上都会被jquery转换为get请求
+                dataType:'JSONP',       //数据类型JSONP
+                jsonp:'callback',       //参数名称
+                jsonpCallback:'list',   //回调函数的名称，和上面的加起来就是 callback=list
+            })
         }
-        function list(arg) {
-            console.log(arg);
-        }
 
-        接口示例函数：
-        获取get请求里面callback参数的值，并将这个值作为函数名称返回过去。
-            def jsonp(request):
-                func = request.GET.get('callback')
-                content= '%s(data)'%(func)
-                return HttpResponse(content)
+    利用CORS规则允许跨域请求（需要在被跨站的服务器端设置）
+         默认情况下，ajax是不能跨站请求的，但是我们可以在被跨站访问的服务器上设置响应头来允许跨站请求。
+         流程
+         浏览器---》A站点---》A站点返回JS代码跨站请求B站点--》B站点返回数据，并携带响应头：Access-Control-Allow-Origin:A站点的URL--》浏览器发现B站点允许A站点跨站
+         --》浏览器顺利拿到B站点的数据。
+         所以，这个需要在B站点的服务器上设置响应头。
+
+         from django.utils.deprecation import MiddlewareMixin
+         在B站点设置中间件，这样所有的请求都会带上这个中间件的响应头
+           settins.xml中
+             MIDDLEWARE = [
+                ....
+                'Middle.cors.cors',
+                ]
+           Middle文件夹中添加cors.py文件，写上下面的设置响应头的函数
+            class cors(MiddlewareMixin):
+                '''CORS中间件，允许来自http://127.0.0.1:8000的跨域请求，加上这个中间件后，
+                服务器响应数据时，会在Response Hearders里面加上响应头：Access-Control-Allow-Origin:http://127.0.0.1:8000
+                浏览器在接受到这个响应头之后，就会允许页面接受跨域请求的数据
+                与week25里面的跨域请求结合测试使用
+                '''
+                def process_response(self,request,response):
+                    print(request)
+                    response['Access-Control-Allow-Origin']='http://127.0.0.1:8000'     //允许来自URL 127.0.0.1:8000的跨站请求
+                    return response
+          A站点请求
+            当B站点允许A的跨站后，A站点就用普通的ajax就能实现跨站了
+              function getContent() {
+                xhr=new XMLHttpRequest();
+                xhr.open('GET','http://127.0.0.1:8001/index/');
+                xhr.send();
+                {#这里默认是获取不到数据的，因为浏览器拦截了。要想能够通过，需要再被调用的api接口服务器上设置Access-Control-Allow-Origin响应头，#}
+                {# 告诉浏览器，我这个网站允许从别的url请求并返回数据，和week22结合测试，week22已经开启了允许跨域，所以能够或拿到跨域返回的数据#}
+                console.log('1',xhr.responseText);
+                xhr.onreadystatechange=function () {
+                    console.log('2',xhr.responseText);
+                    if ( xhr.readyState == 3 ){
+                        alert(xhr.responseText);
+                    };
+                }
+            }
