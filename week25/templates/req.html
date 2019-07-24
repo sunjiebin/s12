@@ -7,18 +7,18 @@
 <body>
     <h1>后台获取结果传递给浏览器</h1>
     {{ result }}
-    <h1>浏览器js直接获取结果</h1>
+    <h1>原生JS及jquery通过JSONP方式跨域获取结果</h1>
+    {# getcontent()为原生js获取，jqgetcontent()为jquery方式获取#}
     <input type="button" value="获取数据" onclick="jqgetcontent();"/>
-    <h1>跨域请求</h1>
-    <input type="button" value="跨端口" onclick="getContent();"/>
+    <h1>服务端允许跨域请求</h1>
+    <input type="button" value="跨端口" onclick="cors_header();"/>
     <div id="container"></div>
     <script src="/static/jquery-3.4.1.js"></script>
     <script>
         {# 原生ajax跨站请求，服务器如果没有针对该域名返回Access-Control-Allow-Origin响应头，则返回数据会被浏览器阻止 #}
-        function getContent() {
+        function cors_header() {
             xhr=new XMLHttpRequest();
-          //  xhr.open('GET','http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301');
-            xhr.open('GET','http://127.0.0.1:8001/index/');
+            xhr.open('GET','http://127.0.0.1:8001/index/');     //在week22中已经配置好了允许跨域，启动week22的django就能获取到数据
             xhr.send();
             {#这里默认是获取不到数据的，因为浏览器拦截了。要想能够通过，需要再被调用的api接口服务器上设置Access-Control-Allow-Origin响应头，#}
             {# 告诉浏览器，我这个网站允许从别的url请求并返回数据，和week22结合测试，week22已经开启了允许跨域，所以能够或拿到跨域返回的数据#}
@@ -27,12 +27,13 @@
                 console.log('2',xhr.responseText);
                 if ( xhr.readyState == 3 ){
                     alert(xhr.responseText);
-                };
+                }
             }
         }
         {# 通过原生ajax的方式实现JSONP跨域请求数据 #}
         function getcontent() {
             var a=document.createElement("script");
+            {# 一般src访问的url里面，要加上callback=list，表示让api接口服务器获取callback的值list,返回函数名为list()的函数。 #}
             a.src='http://www.jxntv.cn/data/jmd-jxtv2.html?callback=list&_=1454376870403';
             document.head.appendChild(a);
             document.head.removeChild(a);
@@ -43,13 +44,15 @@
                 url:'http://www.jxntv.cn/data/jmd-jxtv2.html?',     //url后面不用再写callback=list这个参数，会自动加上对应的get参数
                 type:'GET',     //这里不管是写的get还是post，实际上都会被jquery转换为get请求
                 dataType:'JSONP',
-                jsonp:'callback',       //参数名称
-                jsonpCallback:'list',   //回调函数的名称，和上面的加起来就是 callback=list
+                jsonp:'callback',       //参数名称，这个名称不是固定的，只是一般大家都用这个作为参数名
+                jsonpCallback:'list',   //回调函数的名称，和上面的加起来就是 callback=list。这个名称也不固定，但是自己页面里面要有对应的list()回调函数
             })
         }
+        //回调函数
+        {# 这个函数名称要和api接口服务器返回的函数名一致。一般接口服务器返回的名称就是我们callback参数定义的名称。如callback=list，那么接口服务器就会返回名为list()函数。 #}
         function list(arg) {
             {#data= new JSON.parse(arg);#}
-            aa=arg;
+            aa=arg;     //arg即接口返回的数据
             var Week=arg.data[1];
             var Time=Week.list[7].time;
             var Name=Week.list[7].name;
