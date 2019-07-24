@@ -83,6 +83,8 @@ JSONP
                 a.src='http://weatherapi.market.xiaomi.com/wtr-v2/weather?cityId=101121301';
         将script脚本添加到head标签下面。
                 document.head.appendChild(a);
+        获取到返回的数据后，清除script标签
+                document.head.removeChild(a);
         返回的数据必须是js格式，要能够被js解析。
             接口示例函数：
             获取get请求里面的callback参数的值，然后把这个值返回过去。
@@ -91,9 +93,6 @@ JSONP
                     content= '%s(data)'%(func)
                     return HttpResponse(content)
 
-
-        获取到返回的数据后，清除script标签
-                document.head.removeChild(a);
 
         一个完整的原生JSONP请求函数
         1.这里只能是get请求，因为后台函数是通过get获取到参数的值。
@@ -169,3 +168,212 @@ JSONP
                     };
                 }
             }
+
+迭代器循环删除问题
+        python3里面，dic.items  dic.keys生成的都是迭代器，而迭代器是不允许在循环的时候删除的。可以将其转换为list列表，然后在循环中删除。
+
+        dic={'k1':'v1','k2':'v2'}
+        for k in  dic.keys():
+            if k == 'k2':
+                '''下面的删除会报错RuntimeError: dictionary changed size during iteration,因为在字典的迭代过程中，
+                如果删除其中的值，会导致迭代器的中迭代次数改变，这个是不支持的
+                '''
+                del dic[k]
+
+        将上面的改为下面的List形式再执行就可以了
+        for k in  list(dic.keys()):
+            if k == 'k2':
+                del dic[k]
+
+博客系统讲解
+    KindEditor
+        - html标签过滤
+        beautifulsoup4对标签进行过滤，防范非法字符的xss攻击
+
+        - 单例模式
+        在创建对象时，如果每个对象里面封装的值都是一样的，那么就适用于弄成单例模式，都调用同一个内存空间就行了。便于节省内存空间
+        就比如我们的xss过滤，里面的过滤条件所有的都是一样的，
+            class foo2(object):
+            instance=None
+            def __init__(self):
+                print('init')
+                self.name='alex'
+
+            '''在创建对象时，首先会先执行new方法，再执行init'''
+            def __new__(cls, *args, **kwargs):
+                print('new')
+                if foo2.instance:
+                    return foo2.instance
+                else:
+                    # object.__new__(cls,*args,**kwargs) == foo2().
+                    foo2.instance=object.__new__(cls,*args,**kwargs)
+                    return foo2.instance
+            创建obj/obj2，会发现最终的内存id都是一样的，就是只开辟了一块内存空间。
+            obj=foo2()
+            obj2=foo2()
+            print(id(obj),id(obj2))
+
+
+        回复评论
+            # 1 楼下sb 程毅强 11         None
+            # 2 是的 马良    11          None
+            # 3 说的太对了 yanhang    11  1
+            # 4 2楼是sb   程毅强 11      None
+            # 5 你说的都对   程毅强 11      4
+            class Comment(models.Model):
+            """
+            评论表
+            """
+            nid = models.BigAutoField(primary_key=True)
+            content = models.CharField(verbose_name='评论内容', max_length=255)
+            create_time = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
+            #这里建立了to='self'代表和自己这个表进行关联。回复评论时，可以针对具体的评论进行回复，这时候需要关联到本表已经生成的回复帖子的id。和帖子id进行关联。
+            reply = models.ForeignKey(verbose_name='回复评论', to='self', related_name='back', null=True)
+            article = models.ForeignKey(verbose_name='评论文章', to='Article', to_field='nid')
+            user = models.ForeignKey(verbose_name='评论者', to='UserInfo', to_field='nid')
+
+    事务操作
+        from django.db import transaction
+        with transaction.atomic():      实现事务操作，缩进里面的多个sql语句为一个事务，只要有一条语句失败，那么所有操作都回滚
+                tags = form.cleaned_data.pop('tags')
+                content = form.cleaned_data.pop('content')
+                print(content)
+                content = XSSFilter().process(content)
+                form.cleaned_data['blog_id'] = request.session['user_info']['blog__nid']
+                obj = models.Article.objects.create(**form.cleaned_data)
+                models.ArticleDetail.objects.create(content=content, article=obj)
+                tag_list = []
+                for tag_id in tags:
+                    tag_id = int(tag_id)
+                    tag_list.append(models.Article2Tag(article_id=obj.nid, tag_id=tag_id))
+                models.Article2Tag.objects.bulk_create(tag_list)
+    根据年月对文章进行分类
+         # date_format(create_time,"%Y-%m")
+        date_list = models.Article.objects.raw(
+        #下面语句将创建事件格式化为年-月的格式了。group by也时根据年月来统计。strftime时sqllite的格式化语句，在mysql中用data_format格式化。
+            'select nid, count(nid) as num,strftime("%Y-%m",create_time) as ctime from repository_article group by strftime("%Y-%m",create_time)')
+
+        for item in date_list:
+        #由于上面我们用了as别名，所以这里可以直接用别名来取值。如item.num
+            print(item.nid,item.num,item.ctime)
+
+    筛选条件
+        利用数据库内置函数来实现筛选
+            article_list = models.Article.objects.filter(blog=blog).extra(
+            where=['strftime("%%Y-%%m",create_time)=%s'], params=[val, ]).all()
+            #上面的语句相当于 select * from article where strftime("%Y-%m",create_time)=2017-02
+
+
+作业
+    评论和点赞
+    评论：
+    1.给那篇文章评论（与文章id关联）
+    2.是否时回复别人的评论（NULL代表不是回复别人的评论，回复别人的评论那就是别人的评论的id)
+    3.谁发表的评论
+    点赞：
+    1.给哪篇文章点赞
+    2.是否点过赞，点过就不让再点（点赞状态）
+    3.总点赞数加1
+
+cmdb主机管理系统
+    1.资产自动收集
+    2.API接口
+    3.可视化管理
+
+    1.资产自动收集
+        - 基于parmiko/ansible/fabric
+          通过api获取主机名，利用parmiko链接到目标服务器获取数据，将获取的数据解析成字典，返回给api，api在处理后写入数据库
+          优点：无依赖 不用安装客户端
+          缺点：慢 （基于ssh实现）
+          适用：机器不多时如200台以下
+        - 基于saltstack
+          通过api获取主机名，利用salt api链接到目标服务器获取数据，将获取的数据解析成字典，返回给api，api在处理后写入数据库
+          优点：无依赖
+          缺点：有点慢 （基于消息队列实现）
+        - puppet
+
+        - agent
+           优点：快
+           缺点：要装agent
+           import subprocess    导入模块
+           dir(subprocess)   查看subprocess支持的方法
+           v = subprocess.getoutput('hostname')    执行本地shell命令并返回执行的结果
+           k,v = subprocess.getstatusoutput('ipconfig')  执行本地命令并返回状态码和执行结果
+
+定义一个基类，所有类都继承这个基类，这样其他类返回数据就都可以通过一样的方式来返回了
+        class BaseResponse(object):
+            def __init__(self):
+                self.status = False
+                self.message = ''
+                self.data = None
+
+            # ret = {'status': '','mssage': ''}
+            # ret['status']
+            # response = BaseResponse()
+            # response.status = True
+            # 对实例执行__dict__获取到的是init里面的属性的值，返回字典
+            # response.__dict__
+
+        在类里面定义这个执行函数，类里面其他方法都调用它。这样的好处在于，这个exec_shell_cmd里面可以很方便的更换具体的执行方法，
+        比如都要执行shell命令，就用subprocess。如果要执行salt命令，这个类里面就写成salt的方式。
+        基类里面写了这个方法，那么子类里面都可以用这个方法。
+        def exec_shell_cmd(self, cmd):
+            # private_key_path = config.configration['key_path']
+            # key = paramiko.RSAKey.from_private_key_file(private_key_path)
+            # ssh = paramiko.SSHClient()
+            # ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            # ssh.connect(hostname=self.hostname, port=self.port, username=self.username, pkey=key)
+            # stdin,stdout,stderr = ssh.exec_command(cmd)
+            # result = stdout.read()
+            # ssh.close()
+            import subprocess
+            status, output = subprocess.getstatusoutput(cmd)
+            return output
+
+        调用上面的方法执行shell命令
+        def os_hostname(self):
+            output = self.exec_shell_cmd('hostname')
+            return output.strip()
+
+            def exec_shell_cmd(self, cmd):
+        # private_key_path = config.configration['key_path']
+        # key = paramiko.RSAKey.from_private_key_file(private_key_path)
+        # ssh = paramiko.SSHClient()
+        # ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        # ssh.connect(hostname=self.hostname, port=self.port, username=self.username, pkey=key)
+        # stdin,stdout,stderr = ssh.exec_command(cmd)
+        # result = stdout.read()
+        # ssh.close()
+        import subprocess
+        status, output = subprocess.getstatusoutput(cmd)
+        return output
+
+下面函数 让所有子类都能执行shell方法。
+1.定义基类BasePlugin，
+class BasePlugin(object):
+    def __init__(self):
+        pass
+    def execute(self):
+        return self.linux()
+
+    def exec_shell_cmd(self, cmd):
+        import subprocess
+        status, output = subprocess.getstatusoutput(cmd)
+        return output
+    def linux(self):
+        raise Exception('You must implement Linux method.')
+
+    def windows(self):
+        raise Exception('You must implement Linux method.')
+
+class NicPlugin(BasePlugin):
+     def linux(self):
+         self.exec_shell_cmd('cmd')
+
+obj = NicPlugin()
+obj.execute()
+执行过程解析：
+1.obj.excute()--->执行了NicPlugin里面父类BasePlugin里面的execute方法，该方法返回了self.linux()
+2.这时候会先查找NicPlugin里面是否有self.linux()方法，如果有，则执行该方法。如果没有，则在父类里面查找linux()方法。父类里面的linux()方法抛出了异常，提示你需要在子类里面定义linux方法。
+3.此时NicPlugin里面有linux()方法，所以执行它。执行父类里面的exec_shell_cmd('cmd')。
+所以，只要子类里面写了linux()方法，并且调用了exec_shell_cmd，那么这个子类就可以用obj.execute()来执行任意shell命令。便于所有子类共用这个方法。
