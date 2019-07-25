@@ -262,7 +262,7 @@ django.db.utils.OperationalError: no such table: app01_username
     外键
         示例：
         author = models.ForeignKey(AuthModel, null=True, blank=True, on_delete=models.SET_NULL)
-
+                 models.ForeignKey('关联表', on_delete=models.SET_DEFAULT, default='默认值')
         注意：在django2.0以后，定义外键需要添加on_delete参数。
         models.CASCADE  级联删除，当表里面的数据删除时，对应外键也跟着删除
         models.SET_NULL 置空模式，删除的时候，外键字段被设置为空，前提就是blank=True, null=True,定义该字段的时候，允许为空。
