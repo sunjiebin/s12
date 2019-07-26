@@ -1,0 +1,27 @@
+
+一. cmdb
+    - 资产采集
+    - api
+    - 后台管理
+        - 资产列表
+        - 业务列表
+        - 用户列表
+        - 组列表
+        ....
+
+    对于后台管理，有很多都是对数据库进行查询和修改等操作，我们可以写一个公共的组件来完成这些功能，这样就不用重复的写代码了。
+    公共组件：删改查
+    查：
+    将查询条件，返回的列都做成统一的配置文件
+        result = models.TB.object.filter(条件).values(要返回的列)  #返回形式：[{},{},{}]
+        资产列表：
+            config=[
+                {
+                    'q':'id',
+                }
+                {
+                    'q':'name',
+                }
+                ]
+            value_list=['id','name']
+            result = models.TB.object.filter(条件).values(*value_list)

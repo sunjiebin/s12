@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <table id="tb" border="1">
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+    </table>
+<script src="/static/jquery.js"></script>
+<script>
+    $(function () {
+        init();
+    });
+    function init() {
+        //获取要显示的列
+        //获取数据
+        $.ajax({
+            url:'server-json.html',
+            type:'GET',
+            dataType:'JSON',
+            success:function (arg) {
+                if(arg.status){
+                    //创建表格标题
+                    createTablehead(arg.data.table_config);
+                    createTablebody(arg.data.table_config,arg.data.data_list);
+                }else {
+                    alert(arg.message)
+                }
+                
+            }
+        })
+    }
+    function createTablehead(config) {
+        console.log(config);
+        var tr=document.createElement("tr");
+        //对config进行循环,config相当于一个字典，所以相当于对字典的循环，function(k,v) 其中k为config的第一个值，v为第二个值。
+        $.each(config,function (k,v) {
+            console.log(k,v);       // k:0 v:{title: "主机名", display: 1}   k:1 v:{title: "用户组", display: 0}
+            if(v.display){
+                var th=document.createElement("th");    //创建th
+                th.innerText=v.title;                   //给th标签里面添加文本,相当于<th>{{ v.title }}</th>
+                tr.append(th);                          //将th标签添加到tr标签里面
+                $('#tb').append(tr);                    //找到table标签，并添加tr标签
+            }
+        })
+    }
+    function createTablebody(tableconfig,datalist) {
+        /*
+           datalist=[{'hostname': 'zabbix', 'user_id': 2, 'port': 110}, {'hostname': 'nagios', 'user_id': 1, 'port': 22}]
+           tableconfig=table_config=[
+                {
+                    'q':'hostname',
+                    'title':'主机名',
+                    'display':1,
+                },
+                {
+                    'q':'user_id',
+                    'title':'用户组',
+                    'display':0,
+                },
+                ]
+         */
+        $.each(datalist,function (k,row) {
+            console.log(k,row);
+            var tr=document.createElement("tr");
+
+            $.each(tableconfig,function (k2,configitem) {
+                if(configitem.display == 1) {
+                    var listname = configitem.q;
+                    console.log(row.hostname);
+
+                    var td = document.createElement("td");
+                    /*
+                   注意：这里用row.listname是不行的，必须用row[listname]。因为变量listname得到的值是一个字符串。相当于row['hostname']
+                   我们用row.hostnmae可以得到key值，但是row.listname是不行的，虽然listname="hostname",这相当于row."hostname"
+                    */
+                    td.innerText = row[listname];
+                    tr.append(td);
+                };
+
+            });
+            $('#tb').append(tr);
+
+        })
+    }
+</script>
+</body>
+</html>
