@@ -20,4 +20,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('server.html',views.ServerView.as_view()),     # CBV模式
     path('server-json.html',views.ServerJsonView.as_view()),
+    path('business.html',views.BusinessView.as_view()),
+    path('business-json.html',views.BusinessJsonView.as_view()),
 ]

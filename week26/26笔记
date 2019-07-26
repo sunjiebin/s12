@@ -25,3 +25,29 @@
                 ]
             value_list=['id','name']
             result = models.TB.object.filter(条件).values(*value_list)
+
+将js代码解耦，做成一个插件可供其他页面调用
+    1. 先创建一个nb_list.js的文件
+    2. 创建一个自执行的函数，目的在于将函数里面的其他函数封装在里面，这样就避免了插件里面的函数名称和代码里面的函数名称重复。
+        (func(){xxx})();
+    3. 在自执行函数里面定义一个外部接口函数，这样其它页面就可以通过这个函数来调用接口函数里面封装的其他函数了。
+        如下：先jq.extend来定义一个扩展，里面定义Int，在Int里面对应执行init()函数。
+        (func(jq){
+            function init(){
+              .....
+            }
+            ....
+            jq.extend({                 //注意：这里的jq要与上面的function(jq)对应
+                /*
+                从外部调用时，可以传递参数进来，参数url就是接受外面传递的参数。
+                外部调用方法：$.Int('/server-json.html');
+                此时 url='server-json.html'
+                requesturl在自执行函数上面有定义。
+                 */
+                'Int':function (url) {
+                    requesturl = url;
+                    init();
+                }
+            })
+        })(jQuery);     //注意：这里必须要写jQuery将jquery传进来，如果不传进来，那么jq.extend方法就找不到。另外，这里要写jQuery，不是jquery，两个不是同一个东西。
+    4. 其他页面的js里面通过 $.Int('/server-json.html')来调用。从而触发执行init()函数。并且，还可以把参数进去。
