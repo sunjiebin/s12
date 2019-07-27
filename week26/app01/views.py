@@ -23,29 +23,51 @@ class ServerJsonView(View):
             table_config=[
                 # 这里面的元素就是要显示的表格标题名称
                 {
+                    'q':'id',
+                    'title':'id',
+                    'display':0,
+                    'text':{},
+                },
+                {
                     'q':'hostname',     #注意这里的q的值hostname必须于数据库里面的表的列名一样，因为后面会直接用这个值去查询数据库
                     'title':'主机名',
                     'display':1,
+                    # 自定义显示数据
+                    'text':{'content':'{n}-{m}','kwargs':{'n':'华东1','m':'@hostname'}},
+                    """
+                    自定义属性。 设置original等于数据库查出来的原来的值。这样做便于在我们对表单修改后，可以比对修改后的数据，如果有变化就提交数据库更新。
+                    没有变化，则不提交更新。因为我们行和列很多，有些行列不一定有更改，如果没有修改的数据也提交到数据库更新，就会消耗数据库性能。
+                    在前端先判断一下，再将有更改的数据提交更新，这样可以减轻数据库的压力。
+                    """
+                    'attr':{'original':'@hostname','k1':'v1'}
                 },
                 {
                     'q':'user_id__name',
                     'title':'用户组',
-                    'display':0,
+                    'display':1,
+                    'text': {'content': '{n}-{m}', 'kwargs': {'n': '深圳区', 'm': '@user_id__name'}},
+                    'attr': {'original': '@user_id__name', 'k1': 'v1'}
                 },
                 {
                     'q':'port',
                     'title':'端口',
-                    'display':1
+                    'display':1,
+                    'text': {'content': '{m}', 'kwargs': {'m': '@port'}},
+                    'attr': {'original': '@port', 'k1': 'v1'}
                 },
                 {
-                    'q':'bussiness_unit__name',
+                    'q':'bussiness_unit__name',     #注意__name是双下划线，代表连表查询。根据外键跨表查询app01_BusinessUnit表里面的name字段
                     'title':'业务线',
                     'display':1,
+                    'text': {'content': '{m}', 'kwargs': {'m': '@bussiness_unit__name'}},
+                    'attr': {'original': '@bussiness_unit__name', 'k1': 'v1'}
                 },
                 {
                     'q':None,
                     'title':'操作',
                     'display':1,
+                    'text':{'content':'<a href="/server-detail-{n}.html">查看详细</a>','kwargs':{'n':'@id'}},
+                    'attr': {'k1': 'v1'}
                 }
             ]
             value_list=[]
