@@ -11,6 +11,8 @@
             success: function (arg) {
                 if (arg.status) {
                     //创建表格标题
+                    console.log('数据类型',typeof arg.data.table_config);
+                    console.log('table_config',arg.data.table_config);
                     createTablehead(arg.data.table_config);
                     createTablebody(arg.data.table_config, arg.data.data_list);
                 } else {
@@ -24,7 +26,11 @@
     function createTablehead(config) {
         console.log(config);
         var tr = document.createElement("tr");
-        //对config进行循环,config相当于一个字典，所以相当于对字典的循环，function(k,v) 其中k为config的第一个值，v为第二个值。
+        /*
+        对config进行循环,config相当于一个字典，所以相当于对字典的循环，function(k,v) 其中k为config的第一个值，v为第二个值。
+        config: 0 {q: "hostname", title: "主机名", display: 1}
+         */
+
         $.each(config, function (k, v) {
             console.log(k, v);       // k:0 v:{title: "主机名", display: 1}   k:1 v:{title: "用户组", display: 0}
             if (v.display) {
@@ -59,17 +65,15 @@
             $.each(tableconfig, function (k2, configitem) {
                 if (configitem.display == 1) {
                     var listname = configitem.q;
-                    console.log(row.hostname);
-
                     var td = document.createElement("td");
                     /*
                    注意：这里用row.listname是不行的，必须用row[listname]。因为变量listname得到的值是一个字符串。相当于row['hostname']
                    我们用row.hostnmae可以得到key值，但是row.listname是不行的，虽然listname="hostname",这相当于row."hostname"
                     */
-                    td.innerText = row[listname];
+                    console.log('listname类型',typeof listname);  //最后一个config.q得到的值为None，None为一个对象，所以最后一次循环返回的是object
+                    td.innerText = row[listname];       //这里用row.listname是错误的
                     tr.append(td);
                 }
-                ;
 
             });
             $('#tb').append(tr);

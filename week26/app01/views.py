@@ -21,6 +21,7 @@ class ServerJsonView(View):
         try:
             # 获取显示的列
             table_config=[
+                # 这里面的元素就是要显示的表格标题名称
                 {
                     'q':'hostname',     #注意这里的q的值hostname必须于数据库里面的表的列名一样，因为后面会直接用这个值去查询数据库
                     'title':'主机名',
@@ -62,8 +63,9 @@ class ServerJsonView(View):
         except Exception as e:
             response.status=False
             response.message=str(e)
-
-        return HttpResponse(json.dumps(response.__dict__))      #注意这里要json.dumps将其转换为字符串传过去，否则取不到传入的数据
+        # 注意这里要json.dumps将其转换为字符串传过去，否则取不到传入的数据. response.__dict__将得到BaseResponse里面的静态属性。
+        # views.BaseResponse().__dict__  将返回 {'status': True, 'data': None, 'message': None}
+        return HttpResponse(json.dumps(response.__dict__))      
 
 class BusinessView(View):
     def get(self,request,*args,**kwargs):
@@ -96,7 +98,7 @@ class BusinessJsonView(View):
                     value_list.append(item['q'])
             # values(*value_list)在查询中传入value_list列表，列表里面是要显示的字段名称
             result=models.BusinessUnit.objects.values(*value_list)
-            # 由于返回的是QuerySet类型，并不能想列表一样直接操作，所以需要用list(result)将QuerySet转换为list列表格式
+            # 由于返回的是QuerySet类型，并不能像列表一样直接操作，所以需要用list(result)将QuerySet转换为list列表格式
             result=list(result)
             print(result)
             ret={'table_config':table_config,'data_list':result}

@@ -33,6 +33,7 @@
     3. 在自执行函数里面定义一个外部接口函数，这样其它页面就可以通过这个函数来调用接口函数里面封装的其他函数了。
         如下：先jq.extend来定义一个扩展，里面定义Int，在Int里面对应执行init()函数。
         (func(jq){
+            var requesturl;
             function init(){
               .....
             }
@@ -51,3 +52,65 @@
             })
         })(jQuery);     //注意：这里必须要写jQuery将jquery传进来，如果不传进来，那么jq.extend方法就找不到。另外，这里要写jQuery，不是jquery，两个不是同一个东西。
     4. 其他页面的js里面通过 $.Int('/server-json.html')来调用。从而触发执行init()函数。并且，还可以把参数进去。
+
+本节需要注意的知识点：
+    1. models查询数据库时用values()来显示指定列，里面可以接列表。但是要注意是values(*value_list).前面的*不能少。
+    同样的，filter()查询时，里面可以接字典，字典需要用filter(**dict).
+    这个就是一个函数，函数里面可以接参数，和func(*args,**kwargs)的用法是一样的。
+    result=models.Server.objects.values(*value_list)
+    另外，通过models查询出的数据时QuerySet类型的数据，如果我们要循环操作，需要用list将它转换为列表。
+    result=list(result)
+
+    2. 返回数据给前端的ajax时，传过去的要是一个字符串。所以这里需要json.dumps序列化一下。然后在前端再dataType: 'JSON'反序列化解析出来。
+    BaseResponse().__dict__拿到的时这个类中定义的静态属性，会议字典形式返回
+    views.BaseResponse().__dict__  将返回 {'status': True, 'data': None, 'message': None}
+
+    class BaseResponse(object):
+    def __init__(self):
+        self.status=True
+        self.data=None
+        self.message=None
+
+    response=BaseResponse()
+    return HttpResponse(json.dumps(response.__dict__))
+
+    3. 注意从ajax里面传过来的arg.data.table_config是一个document对象。不再是views里面的列表。
+    arg.data.table_config得到的数据形式如下,所以对这个对象循环，第一个值是索引0，1，2。数据要取第二个值。
+    [
+    0：{q: "hostname", title: "主机名", display: 1}
+    1:{q: "user_id__name", title: "用户组", display: 0}
+    2:{q: "port", title: "端口", display: 1}
+    ]
+        $.ajax({
+            url: requesturl,
+            type: 'GET',
+            dataType: 'JSON',
+            success: function (arg) {
+                    createTablehead(arg.data.table_config);
+                    createTablebody(arg.data.table_config, arg.data.data_list);
+            }
+        })
+        用each对传过来的document对象进行循环，第二个值v才是我们需要的具体数据。
+        function createTablehead(config) {
+            $.each(config, function (k, v) {
+            console.log(k, v);       // k:0 v:{title: "主机名", display: 1}   k:1 v:{title: "用户组", display: 0}
+            }
+        }
+
+    4.注意var listname=configitem.q，这里面configitem.q得到的是字符串，而不是一个对象。所以不能直接用row.listname调用。
+      这个当你console.log(listname)时，得到的是hostname，所以会觉得row.listname就是row.hostname,实际上并不是这样。
+      实际上 row.listname = row."hostname", "hostname"是字符串不是对象，所以这是页面时会报错的。正确的用法时row["hostname"]
+      row[listname]=row["hostname"]这才是对的。
+
+                $.each(tableconfig, function (k2, configitem) {
+                if (configitem.display == 1) {
+                    var listname = configitem.q;
+                    var td = document.createElement("td");
+                    /*
+                   注意：这里用row.listname是不行的，必须用row[listname]。因为变量listname得到的值是一个字符串。相当于row['hostname']
+                   我们用row.hostnmae可以得到key值，但是row.listname是不行的，虽然listname="hostname",这相当于row."hostname"
+                    */
+                    console.log('listname类型',typeof listname);
+                    td.innerText = row[listname];           //这里用row.listname时错误的
+                    tr.append(td);
+                }
