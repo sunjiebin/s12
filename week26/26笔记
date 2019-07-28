@@ -62,7 +62,7 @@
     result=list(result)
 
     2. 返回数据给前端的ajax时，传过去的要是一个字符串。所以这里需要json.dumps序列化一下。然后在前端再dataType: 'JSON'反序列化解析出来。
-    BaseResponse().__dict__拿到的时这个类中定义的静态属性，会议字典形式返回
+    BaseResponse().__dict__拿到的时这个类中定义的静态属性，会以字典形式返回
     views.BaseResponse().__dict__  将返回 {'status': True, 'data': None, 'message': None}
 
     class BaseResponse(object):
@@ -114,3 +114,67 @@
                     td.innerText = row[listname];           //这里用row.listname时错误的
                     tr.append(td);
                 }
+
+
+    5. format格式化输出
+        生成下面的函数，后面在js页面可以用 .format 来调用它
+        String.prototype.format=function (args) {
+        return this.replace(/\{(\w+)\}/g,function (s,i) {
+            return args[i];
+        })
+        };
+        使用示例：
+        '{n}-{m}-test'.format({'n':'sun','m':'jie'})
+        得到结果："sun-jie-test"
+       示例2：
+        # configitem.text.content = '{n}-{m}'
+        # kwargs = {'n': '深圳区', 'm': '小v'}
+        newstring=configitem.text.content.format(kwargs);
+        替换结果就是
+        newstring = '深圳区-小v'
+
+    6. 在配置中定义变量
+    我们可以利用这个动态生成表单，将数据库里面的数据二次加工生成到td表格里面，还可以动态生成td表单属性。
+    在函数的配置文件中定义一个@hostname：
+        'text':{'content':'{n}-{m}','kwargs':{'n':'华东1','m':'@hostname'}},
+    在Js的函数中,对@开头进行判断，如果以@开头，就截取@后面的字符串（这个字符串是数据库的字段名），并将字符串row[v]即取到数据库中该字段的值。然后赋值给Kwargs。
+    如果不是以@开头，则不处理。最终将kwargs里面的@hostname转换为具体的值。
+    如：'kwargs':{'n':'华东1','m':'@hostname'}  ---> 'kwargs':{'n':'华东1','m':'zabbix'}
+        $.each(configitem.text.kwargs,function (key,value) {
+            if (value.startsWith('@')){         //如果得到的值是以@开头，则进入判断
+                var v=value.substring(1,value.length);      //从第二个字符开始截取，直到最后。就是截取@之后的字段，如@hostname就会得到hostname
+                kwargs[key]=row[v]              // 从row字典里面拿到拿到对应v列的数据，并写入到kwargs字典
+            }else{
+                kwargs[key]=value
+            }
+        });
+
+
+    1. 写配置文件
+
+    2. 拷贝html页面
+
+    3. 添加url
+
+    4. 复制修改view函数
+
+算法：
+    时间复杂度算法
+    o(1)<o(logn)<o(n)<o(nlogn)<o(n平方)<o(n平方logn)<o(n立方）
+    不常见的事件复杂度
+    o(n阶乘) o(2的n次方) o(n的n次方)
+
+    判断函数事件复杂度的简便方法
+    函数有对半砍的情况就是o(logn)
+    如： while n>1:
+            print(n)
+            n = n//2
+    函数有几层循环就是n的几次方，如两层就是o(n平方)
+    如： for i in n:
+            for j in n:
+                print(j)
+
+    空间复杂度
+    a='b'  o(1)
+    a=['1','a']  o(n)
+    b=[a,a] o(n方)

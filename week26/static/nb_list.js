@@ -2,6 +2,7 @@
     var requesturl;
 
     String.prototype.format=function (args) {
+        //用于替换{n},{n}是变量，将会被替换成具体的值
         return this.replace(/\{(\w+)\}/g,function (s,i) {
             return args[i];
         })
@@ -94,13 +95,15 @@
                         }
                     });
                     newstring=configitem.text.content.format(kwargs);
-                    console.log(kwargs,newstring);
+                    console.log('newstring',kwargs,newstring);
                     td.innerHTML=newstring;
 
                     //对td标签设置自定义属性
+                    // console.log('attr',configitem.attr);
                     $.each(configitem.attr,function (key,value) {
+                        console.log('attrvalue',value);
                        if(value.startsWith('@')){
-                           var v=value.substr(1,value.length);
+                           var v=value.substring(1,value.length);
                            value=row[v];
                            td.setAttribute(key,value)
                        } else {
