@@ -13,11 +13,11 @@ def timmer(func):
         starttime=time.time()
         result=func(*args,**kwargs)
         endtime=time.time()
-        print(endtime-starttime)
+        print('total time',endtime-starttime)
         return result
     return wrappen
 
-aa=range(100440000)
+
 
 #递归查找，时间很久
 @timmer
@@ -43,13 +43,15 @@ def bin_search(data_set,value):
             low=mid+1
 
 #使用这两个算法要注意，首先输入的基数要大，然后要查找的值要大，这样才会循环足够多次
-#print(line_search(aa,50060300))
+aa=range(100440000)
+line_search(aa,50060300)
+# print(line_search(aa,50060300))
 #print(bin_search(aa,50060300))
 
 #排序算法
 
 #冒泡排序      时间复杂度o(n平方)
-'''从最下面的数开始，前面的数要是比它小，那就向上进1
+'''从最下面的数开始，前面的数要是比它小，那就向上进1（将前面的数和这个数位置互换）,如果比它大则不动，进入下一次冒泡循环
 下面的函数就时不管传入的数据是否有序，都会把所有的数字循环一遍
 '''
 @timmer
@@ -183,3 +185,40 @@ sys_sort(data3)
 # print(data3)
 
 
+#堆排序
+def shift(data,low,heigh):      # data整个数组列表 low数组第一个节点下标 heigh最后节点下标
+    i=low                       #父节点下标
+    j=2*low+1                   #左子节点下标
+    tmp=data[i]                 #父节点的元素
+    while j<=heigh:             #如果子节点下标小于等于最后节点下标
+        if j<heigh and data[j]<data[j+1]:       #如果子节点下标小于最后节点下标，代表树的右边还有节点。那么就和右边节点比较，如果小于右边节点
+            j=j+1                               #那就右边节点被选中，用于和父节点比较大小。 这样就完成了子节点大小的比较，大的被选举出来
+        if tmp<data[j]:                         #如果父节点小于选举出来的最大的子节点
+            data[i]=data[j]                     #那么将父节点位置的数字替换成子节点的数字，即子节点的数字上位。
+            i=j                                 #循环走到子节点，将子节点变成父节点，即进入下一级继续循环
+            j=2*i+1                             #孙子节点变成子节点
+        else:
+            break                               #如果父节点的数字大于子节点的数字，那么退出本次循环
+    data[i]=tmp                                 #所有循环完毕后，将拿出的父节点的数字放回到i的位置。i的位置可能有两个，当父节点小于子节点，那么i就是子节点的位置，如果大于，i就还是原来的位置。
+
+def head_sort(data):
+    n=len(data)
+    #建堆
+    for i in range(n//2-1,-1,-1):       #最后一个有子节点的堆的下标是n//2-1,直到最后下标为0（堆的根节点的元素），每次i都减少1，证明堆在从底部一个个的循环，直到最顶层根结点代表堆的排序结束。
+        shift(data,i,n-1)               #data代表整个需要排序的数组，i代表一个循环里面的父节点，n-1就是heigh，代表数组里面最后一个节点
+    #挨个出数
+    for i in range(n-1,-1,-1):
+        data[0],data[i]=data[i],data[0]     # 将最上面下位的数字和最下面上位的数字位置互换
+        shift(data,0,i-1)                   #互换位置后，最下面位置的下标从循环中踢出，即整个参与出数的个数-1.因为下位的数不再参与循环，所以参与出数的个数会越来越少
+    print(data)
+    '''也可以用下面的方法，只是要多申请个内存，然后生成的是倒序的'''
+    # li=[]
+    # for i in range(n-1,-1,-1):
+    #     li.append(data[0])
+    #     data[0]=data[i]
+    #     shift(data,0,i-1)
+    # print(li)
+head_sort([3,8,2,1,9,7,6,5])
+# data=list(range(1000))
+# random.shuffle(data)
+#head_sort(data)
