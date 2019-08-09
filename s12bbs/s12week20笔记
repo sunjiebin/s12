@@ -1,0 +1,69 @@
+
+一. 设计表结构
+    1，贴子表
+
+    2，评论表
+        评论/回帖/点赞
+    3，板块
+
+
+
+class Article(models.Model):
+    # 默认第一个字段就是verbose_name，如果不写，默认将用变量名称作为该名称,如title，那么django后台就会显示title
+    title=models.CharField('文章标题',max_length=255)
+    brief=models.CharField(null=True,blank=True,max_length=255,verbose_name='文章简介')
+
+    models.CharField('文章标题',max_length=255) 和 models.CharField(verbose_name='文章标题',max_length=255) 是等价的
+    这个注释不是存在数据库里面的，这个注释是给django后台用的，添加这个注释后，django后台就会显示这个名称，不添加默认就显示列名。
+    注意: 在python2里面，如果写中文注释，前面要加个u。在python3里面不用写u，Python2写法如下
+    title=models.CharField(u'文章标题',max_length=255)
+    注意对于外键/多对多等，不能用('文章标题',)这种写法，因为这一类字段第一个参数必须是一个关联的表对象，所以不能写注释。
+
+#引用django自带的用户
+from django.contrib.auth.models import User
+
+注意：
+blank=True和unll=True的区别：
+blank=True表示用户可以不填写这个字段，用于用户输入校验。如果有唯一约束，两个blank为空的列会存储空字符串，会违反唯一性约束的。而两个null不会违反约束。
+null=True表示允许数据库存储空字段，用于数据库的存储，不作用户校验
+head_img=models.ImageField(height_field=150,width_field=150,blank=True,null=True)
+
+
+auto_now_add表示只在第一次创建的时候更新时间，auto_now表示每次修改数据都会更新时间。
+    pub_date=models.DateTimeField(auto_now_add=True)
+    last_modify=models.DateTimeField(auto_now=True)
+
+创建django后台管理员用户
+    python manage.py createsuperuser
+
+修改settings.py文件，修改后台语言和时区
+注意中文是zh-hans，写错了会导致无法启动。
+    LANGUAGE_CODE = 'zh-hans'
+    TIME_ZONE = 'Asia/Shanghai'
+
+要用后台管理数据表，需要做两步
+1.在admin.py中创建类
+class ArticleAdmin(admin.ModelAdmin):
+    '''list_display用于定义在后台显示的列'''
+    list_display = ('title','category','author','pub_date','last_modify','status')
+
+2.注册类
+admin.site.register(models.Article,ArticleAdmin)
+
+要在后台显示具体的文字，而不是对象信息就要写上这个函数。
+__str__函数用于设置这个类的返回值，默认返回的是这个对象，定义这个函数后，返回的就是这里面写的值。
+在python2里面，用__unicode__
+        def __unicode__(self):
+        return self.title
+在python3里面，要用__str__,上面的unicode没用了。。
+    '''定义str函数，这样在django后台的外键下拉框里面就会显示对应的name的值，而不是返回一个object的对象'''
+    def __str__(self):
+        return self.name
+
+
+clean方法用于在后台django校验，当写了这个方法后，插入表数据时会先执行这个方法来校验。
+下面的方法要求我们在帖子评论为空时，在admin后台会返回一个“评论不能为空”的错误。
+    def clean(self):
+         #这里用 self.comment == is None是错误的，当我们没有写评论时的值应该时''，而不是None。所以要用len来判断长度才对
+        if self.comment_type==1 and len(self.comment)==0:
+            raise ValidationError('评论不能为空')

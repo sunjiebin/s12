@@ -17,8 +17,6 @@ def timmer(func):
         return result
     return wrappen
 
-
-
 #递归查找，时间很久
 @timmer
 def line_search(data_set,value):
