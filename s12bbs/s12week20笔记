@@ -116,14 +116,15 @@ django 认证
     {% endblock %}
 
     在前端页面通过外键反查数据
-    comment表外键关联了article表。所以article表可以通过“关联表名_set"的方式反查关联表。
-    select_related.count 反查与article该篇文章相关联的所有评论的总数（这里点赞也算在了里面）
-    {{ article.comment_set.select_related.count }}
-    html里面没法用filter去过滤输出,下面的写法在html里面是错误的！
-    {{ article.comment_set.select_related.filter(comment_type=1).count }}       <--HTML模板并不支持这个写法
+        comment表外键关联了article表。所以article表可以通过“关联表名_set"的方式反查关联表。
+        select_related.count 反查与article该篇文章相关联的所有评论的总数（这里点赞也算在了里面）
+        {{ article.comment_set.select_related.count }}
+        html里面没法用filter去过滤输出,下面的写法在html里面是错误的！
+        {{ article.comment_set.select_related.filter(comment_type=1).count }}       <--HTML模板并不支持这个写法
 
-    通过上面的方法可以查到所有与该篇文章相关联的评论总数，但是没法区分点赞和评论。可以用下面函数过滤的方法来实现。
-    现定义一个filter函数
+    filter过滤输出
+        通过上面的方法可以查到所有与该篇文章相关联的评论总数，但是没法区分点赞和评论。可以用下面函数过滤的方法来实现。
+        现定义一个filter函数
         @register.filter
         def filter_comment(article_obj):
             query_set=article_obj.comment_set.select_related()
@@ -132,9 +133,76 @@ django 认证
                 'thumb_count':query_set.filter(comment_type=2).count(),
             }
             return comments.get('comment_count')
-    html模板中调用该filter函数，让函数去处理过滤信息，这样返回的就是评论的总数了（不包括点赞）
+        html模板中调用该filter函数，让函数去处理过滤信息，这样返回的就是评论的总数了（不包括点赞）
         {% load custom %}
         <span>{{ article|filter_comment }}</span>
+
+    如何使用bootstrap里面的元素？
+        参考：https://v3.bootcss.com/css/
+        比如我们需要查看按钮的样式配置，可以直接参考上面的官档-->全局css样式-->右边的按钮，就看可以看到按钮的样式选择代码了
+        比如如下就是一个绿色的成功按钮
+        <button type="button" class="btn btn-success">（成功）Success</button>
+        支持多行文本的表单控件。可根据需要改变 rows 属性。（全局css样式-->表单-->被支持的控件-->文本域)
+        <textarea class="form-control" rows="3"></textarea>
+
+    csrc_tocken
+        前端通过这个函数会生成一个input标签。{% csrf_token %}
+        <input type="hidden" name="csrfmiddlewaretoken" value="ZZfqgmDjdIhHQw6iONzGcuYu5tsHVRfPeuEpICUdFZDeoiBOncqbakD0EGmZUamY">
+        可以通过jquery获得这个input标签里面的value
+        function getcsrf(){
+            var csrftoken = $('input[name="csrfmiddlewaretoken"]').val();
+            return csrftoken;
+        }
+        执行getcsrf()将返回csrftoken的值。
+        在post中，转递这个csrf键值对给服务器即可通过验证。
+        注意name名称csrfmiddlewaretoken不能错。
+         csrfmiddlewaretoken:getcsrf(),
+
+    跳转带上参数路径
+        {{ request.path_info }} 获取当前页面的url路径
+        <a class="btn-link" href="{% url 'login' %}?next={{ request.path_info }}">登录</a>后再评论!</h4>
+
+    前端登录校验
+        request.user.is_authenticated 是django自带的用户校验工具，用于校验用户是否已经登录
+        {% if request.user.is_authenticated %}
+            <textarea class="form-control" rows="4"></textarea>
+            <button class="btn btn-sm btn-primary pull-right" style="margin-top:10px;">评论</button>
+        {% else %}
+            <div class="jumbotron" style="text-align: center">
+                <h4><a class="btn-link" href="{% url 'login' %}?next={{ request.path_info }}">登录</a>后再评论!</h4>
+            </div>
+        {% endif %}
+
+    利用jquery的post提交数据
+        提交数据可以用form/ajax/iframe等，还可以用$.post()的写法，比ajax写法更简洁
+        $.post(
+            "{% url 'post_comment' %}",
+            {
+                comment_type: 1,
+                article_id: '{{ article_obj.id }}',
+                parent_comment_id: null,
+                comment: comment_text.trim(),
+                csrfmiddlewaretoken: getcsrf(),
+            },
+            function (callback) {
+                console.log(callback);
+            }
+        )
+
+    url灵活写法
+        在html不将url写死，这样以后在别的地方移植，或者我们需要更改url路径时，就不用再修改静态页面里面的url了。这么写通用性更高，更灵活，便于移植。
+        首先在urls.py里面写path时，加上name参数，如
+            path('login/',views.acc_login,name='login'),
+        然后在html页面里面通过url来直接调用， 其中的'login'就是对应上面urls.py里面的name的值。{% url 'login' %}  -->等价于 login/
+            {% url 'login' %}
+            <h4><a class="btn-link" href="{% url 'login' %}?next={{ request.path_info }}">登录</a>后再评论!</h4>
+
+        static静态路径也可以这么写
+            在html中：
+            {% load  static %}
+            {% truncate_url article_obj.head_img.url as imgpath %}
+            <img class="article-detail-head-img" src="{% static imgpath %}"/>
+
 
 django静态页面STATIC_URL
     定义URL映射
@@ -171,4 +239,15 @@ django静态页面STATIC_URL
     那么
     <img src="{% static imgpath %}"/>  --> 将得到 /static/img/aa.jpg
 
+
+views
+    定义返回url，自动跳回原来的url
+        当url=http://127.0.0.1:8000/login/?next=/bbs/detail/1
+        request.GET.get()将获得一个queryset的值，结果{'next':'/bbs/detail/1'},所以 request.GET.get('next') = ‘/bbs/detail/1’
+
+        HttpResponseRedirect(backurl or'/bbs')  返回值可以写or，当backurl为空时，就执行后面的/bbs。
+        所以，当我们直接访问登录url时，url=http://127.0.0.1:8000/login/, 这时候GET后面为空，就会跳转到http://127.0.0.1:8000/bbs/
+        当我们从帖子页面过来时，url=http://127.0.0.1:8000/login/?next=/bbs/detail/1, 就会跳到http://127.0.0.1:8000/bbs/detail/1
+            backurl=request.GET.get('next')
+            return HttpResponseRedirect(backurl or'/bbs')
 

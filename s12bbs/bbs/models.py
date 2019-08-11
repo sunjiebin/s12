@@ -52,10 +52,10 @@ class Comment(models.Model):
         (2,'点赞')
                     )
     comment_type=models.IntegerField(choices=comment_choice,default=1)
-    user=models.ForeignKey('UserProfile',on_delete=models.CASCADE)
+    user=models.ForeignKey('UserProfile',on_delete=models.CASCADE,verbose_name='用户')
     date=models.DateTimeField(auto_now_add=True)
     #内容比较多的大文本就用TextField，用CharField就不合适了。
-    comment=models.TextField(blank=True,null=True)
+    comment=models.TextField('评论',blank=True,null=True)
 
     def __str__(self):
         return '%s,%s,%s'%(self.article,self.parent_comment,self.comment)

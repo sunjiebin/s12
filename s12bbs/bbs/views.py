@@ -34,7 +34,9 @@ def acc_login(request):
         if user is not None:    #认证成功
             #login用于登录，本质上会在后端生成相关的session
             login(request,user)
-            return HttpResponseRedirect('/bbs')
+            #获取get的参数 URL后面？部分的数据，会被以字典的形式获取到，这里将获取到next的值
+            backurl=request.GET.get('next')
+            return HttpResponseRedirect(backurl or'/bbs')       # or用于当backurl为空时，则自动跳转到用/bbs
         else:
             login_err='用户名或密码错误'
             return render(request,'login.html',{'login_err':login_err})
@@ -46,4 +48,16 @@ def acc_logout(request):
 
 def article_detail(request,article_id):
     article_obj=models.Article.objects.get(id=article_id)
-    return render(request,'bbs/article_detail.html',{'article_obj':article_obj})
+    return render(request,'bbs/article_detail.html',{'article_obj':article_obj,'category_list':category_list})
+
+def comment(request):
+    print(request.POST)
+    new_comment_obj=models.Comment(
+        article_id=request.POST.get('article_id'),
+        parent_comment_id=request.POST.get('parent_comment_id') or None,
+        comment_type=request.POST.get('comment_type'),
+        comment=request.POST.get('comment'),
+        user_id=request.user.userprofile.id,
+    )
+    new_comment_obj.save()
+    return HttpResponse('ok')

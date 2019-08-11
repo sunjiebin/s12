@@ -8,4 +8,5 @@ urlpatterns = [
     path('',views.index),
     re_path('category/(?P<id>\d+)',views.category),
     re_path('detail/(\d+)', views.article_detail, name='article_detail'),
+    path('comment/',views.comment,name='post_comment')
 ]

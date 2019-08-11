@@ -5,7 +5,7 @@ class ArticleAdmin(admin.ModelAdmin):
     '''list_display用于定义在后台显示的列'''
     list_display = ('title','category','author','pub_date','last_modify','status')
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('article','parent_comment','comment_type','comment','user')
+    list_display = ('comment','user','article','parent_comment','comment_type',)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name','set_as_top_menu')
 
