@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block page-container %}
+
+    <div class="container" style="width: 400px;background: #e7e7e7;border-radius: 2%">
+        <form class="form-signin" action="" method="post">
+            {% csrf_token %}
+            <h2 class="form-signin-heading">请登录</h2>
+            <label for="inputUsername" class="sr-only">Email address</label>
+            <input type="text" id="inputUsername" class="form-control" placeholder="用户名" required="" autofocus=""
+                   name="username">
+            <label for="inputPassword" class="sr-only">Password</label>
+            <input type="password" id="inputPassword" class="form-control" placeholder="密码" required="" name="password">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" value="remember-me"> 记住密码
+                </label>
+            </div>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
+            <div>
+                {% if login_err %}
+                    <p style="color: red">{{ login_err }}</p>
+                {% endif %}
+            </div>
+        </form>
+    </div> <!-- /container -->
+{% endblock %}

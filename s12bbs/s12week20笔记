@@ -67,3 +67,108 @@ clean方法用于在后台django校验，当写了这个方法后，插入表数
          #这里用 self.comment == is None是错误的，当我们没有写评论时的值应该时''，而不是None。所以要用len来判断长度才对
         if self.comment_type==1 and len(self.comment)==0:
             raise ValidationError('评论不能为空')
+django 认证
+    导入认证模块
+    from django.contrib.auth import login,logout,authenticate
+    authenticate用于数据库验证，会根据post提交的username,password来去数据库查，如果匹配则返回user对象（如果我们在models的类里面定义了__str__，则返回str函数定义的值），不匹配则返回空
+        user = authenticate(username=request.POST.get('username'),password=request.POST.get('password'))
+    login用于登录，根据前面验证成功的user对象以及request对象，来生成对应URL对应用户的session.实现登录。
+        login(request,user)
+    logout用于退出登录
+        logout(request)
+    is_authenticated() 判断是否认证成功
+    在views视图验证
+        def my_view(request):
+            if not request.user.is_authenticated():
+            return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
+            from django.contrib.auth.decorators import login_required
+    在前端html里面验证
+        {% if request.user.is_authenticated %}
+    在前端通过django自带的user表关联查询到userprofile表里面的name字段
+    这里一定要注意，页面里面通过user反向查找时，userprofile一定要小写，不是models里面定义的UserProfile。如果写models里面的类名称会查不出数据
+        {{ request.user.userprofile.name }}
+
+    登录校验装饰器，装饰一个函数或者类，这个函数就得在登录校验通过后才能访问，如果未登录，会跳转到登录页面，默认是django后台登录页面/accounts/login/
+        from django.contrib.auth.decorators import login_required
+        对index添加登录校验的装饰器，那么这个index.html页面就得先登录才能访问
+        @login_required
+        def index(request):
+            #提取文章分类标签，过滤出set_as_top_menu为True的数据，并且依照position_index来排序
+            category_list=models.Category.objects.filter(set_as_top_menu=True).order_by('position_index')       #倒序(-'position_index')
+            return render(request,'bbs/index.html',{'category_list':category_list})
+        可以修改settings.py,添加下面的参数，让认证不通过时跳转到我们指定的/login/页面，而不是默认的/accounts/login/。
+        LOGIN_URL = '/login/'
+
+
+前端页面设计
+    在bootstrap上下载一个模板
+    Bootstrap3中文文档-->起步-->实例精选-->bootstrap框架的基本用法 里面找打一个自己需要的模板  -->打开模板页面-->网页另存为。
+    将里面的css文件全放到/statics/bootstrap-3.3.7-dist/css里面
+    将里面的js文件放到/static/bootstrap-3.3.7-dist/js里面
+    将首页放在templates目录下. 将首页命名为base.html，将里面的静态css/js路径替换为我们的路径
+    在index.html中{% extends 'base.html' %}。 注意：就算base.html只是一个普通的页面，依然可以被extends引用。相当于index.html就是base.html
+
+    注意我们在使用block时，位置不要搞错了。要么都在div里面，要么都在外面。不然样式会混乱
+    {% block page-container %}
+        <div class="jumbotron" deep="1">
+            ....
+        </div>
+    {% endblock %}
+
+    在前端页面通过外键反查数据
+    comment表外键关联了article表。所以article表可以通过“关联表名_set"的方式反查关联表。
+    select_related.count 反查与article该篇文章相关联的所有评论的总数（这里点赞也算在了里面）
+    {{ article.comment_set.select_related.count }}
+    html里面没法用filter去过滤输出,下面的写法在html里面是错误的！
+    {{ article.comment_set.select_related.filter(comment_type=1).count }}       <--HTML模板并不支持这个写法
+
+    通过上面的方法可以查到所有与该篇文章相关联的评论总数，但是没法区分点赞和评论。可以用下面函数过滤的方法来实现。
+    现定义一个filter函数
+        @register.filter
+        def filter_comment(article_obj):
+            query_set=article_obj.comment_set.select_related()
+            comments={
+                'comment_count':query_set.filter(comment_type=1).count(),
+                'thumb_count':query_set.filter(comment_type=2).count(),
+            }
+            return comments.get('comment_count')
+    html模板中调用该filter函数，让函数去处理过滤信息，这样返回的就是评论的总数了（不包括点赞）
+        {% load custom %}
+        <span>{{ article|filter_comment }}</span>
+
+django静态页面STATIC_URL
+    定义URL映射
+    STATIC_URL = '/static/'
+
+    STATIC_ROOT 是在部署的时候才发挥作用,执行 python managy.py collectstatic ，会在工程文件下生成(STATIC_ROOT )文件夹，把各个app下的静态文件收集到这个目录下。
+   利于前后端分离，比如将静态资源交给Nginx。这个参数默认没有
+    STATIC_ROOT = os.path.join(BASE_DIR, 'collect_static')
+
+    STATICFILES_DIRS 定义静态文件的目录，可以同时定义多个静态文件夹
+    静态文件的一般安放位置有两种:
+    (1).一种就是在每个app里面新建一个static文件夹，将静态文件放到里面，在加载静态文件时，比如要在模板中用到静态文件，django会自动在每个app里面搜索static文件夹(所以，不要把文件夹的名字写错， 否则django就找不到你的文件夹)。
+    (2).另一种,就是在所有的app文件外面，建立一个公共的文件夹,，也就是我们的STATICFILES_DIRS。因为有些静态文件不是某个app独有的,那么就可以把它放到一个公共文件夹里面，方便管理(注意，建立一个公共的静态文件的文件夹只是一种易于管理的做法，但是不是必须的，app是可以跨app应用静态文件的，因为最后所有的静态文件都会在STATIC_ROOT里面存在) 
+    那现在的问题是如何让django知道你把一些静态文件放到app以外的公共文件夹中呢，那就需要配置STATICFILES_DIRS了
+
+    在static标签中引用文件时有两个查找路径：1、app下的static。2、工程下的commen_static（STATICFILES_DIRS） 。
+    STATICFILES_DIRS告诉django,首先到STATICFILES_DIRS里面寻找静态文件,其次再到各个app的static文件夹里面找(注意，django查找静态文件是惰性查找，查找到第一个，就停止查找了)
+
+    STATICFILES_DIRS=(
+        os.path.join(BASE_DIR,'static'),
+        os.path.join(BASE_DIR,'uploads'),
+    )
+
+    可以在html里面用变量替代静态页路径，这样便于我们页面的移植，其他人用我们的代码就不用修改静态url路径
+    首先在html最上面load载入static模块
+    {% load static %}
+    动态的获取我们的图片地址，这里用了truncate_url来处理了图片的url。 as imgpath 代表将处理的结果赋值给变量imgpath
+    {% truncate_url article.head_img.url as imgpath %}
+    static是内置静态url函数，会返回setting.xml里面STATIC_URL定义的值。 imgpath是我们上面定义的变量，也就是函数处理过的图片路径。两者相加得到最终路径
+    <img src="{% static imgpath %}"/>
+    比如
+    imgpath='img/aa.jpg'
+    STATIC_URL = '/static/'
+    那么
+    <img src="{% static imgpath %}"/>  --> 将得到 /static/img/aa.jpg
+
+

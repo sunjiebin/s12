@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block page-container %}
+
+    <div class="wrap-left">
+        <h2>{{ article_obj.title }}</h2>
+        {{ article_obj.content }}
+    </div>
+    <div class="wrap-right">
+    right
+    </div>
+{% endblock %}

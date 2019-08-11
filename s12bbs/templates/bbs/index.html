@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom %}
+{% block page-container %}
+    <div class="wrap-left">
+        <hr>
+        {% for article in article_list %}
+            <!--
+            bootstrip它自带了row样式，用于将多个div放到一行里面显示，下面的子div用col-md-4来调用就行了。总长度是12，所以我们用了
+            col-md-4,col-md-8两个y样式，刚好充满一行。
+            -->
+            <div class="article-box row">
+                <div class="article-head-img col-md-4">
+                    {#                <img src="/static/{% truncate_url article.head_img.url %}"/>   {# simple_tag写法 #}
+                    {#                <img src="/static/{{ article.head_img.url|truncate_url2 }}"/>       {# filter写法 #}
+                    {% truncate_url article.head_img.url as imgpath %}
+                    <img src="{% static imgpath %}"/>
+                </div>
+
+                <div class="article-brief col-md-8">
+                    <a href="{%   url 'article_detail' article.id %}">{{ article.title }}</a>
+                    <div class="article-brief-text" style="margin-bottom: 0">
+                        <span>{{ article.author.name }}</span>
+                        <span>{{ article.pub_date }}</span>
+                        {#                        <span>{{ article.comment_set.select_related.count }}</span>#}
+                        {% filter_comment article as comments %}
+
+                        <span class="glyphicon glyphicon-comment" aria-hidden="true"> </span>
+                        {{ comments.comment_count }}
+
+                        赞{{ comments.thumb_count }}
+                    </div>
+                    <div>
+                        <p class="article-brief-text">{{ article.brief }}</p>
+                    </div>
+                </div>
+            </div>
+            <hr>    {# hr标签在bootstrap中已经带有样式了，chrome控制台可以看到引用的bootstrap.css文件的1140行 #}
+        {% endfor %}
+    </div>
+    <div class="wrap-right">
+        right
+    </div>
+    <div class="clear-both"></div>
+    {#    上面的div用于清除浮动，设置了clear后，下面的footer标签就会保持在底部，而不会飘到上面去了#}
+    <div class="footer">footer</div>
+{% endblock %}
