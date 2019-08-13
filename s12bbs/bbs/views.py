@@ -1,7 +1,10 @@
 from django.shortcuts import render,HttpResponse,HttpResponseRedirect
-from bbs import  models
+from bbs import  models,comment_handler
 from django.contrib.auth import login,logout,authenticate
 from django.contrib.auth.decorators import login_required
+import json
+
+
 # Create your views here.
 
 category_list = models.Category.objects.filter(set_as_top_menu=True).order_by('position_index')  # 倒序(-'position_index')
@@ -48,6 +51,7 @@ def acc_logout(request):
 
 def article_detail(request,article_id):
     article_obj=models.Article.objects.get(id=article_id)
+    comment_tree=comment_handler.build_tree(article_obj.comment_set.select_related())
     return render(request,'bbs/article_detail.html',{'article_obj':article_obj,'category_list':category_list})
 
 def comment(request):
@@ -61,3 +65,13 @@ def comment(request):
     )
     new_comment_obj.save()
     return HttpResponse('ok')
+
+def get_comments(request,article_id):
+    article_obj=models.Article.objects.filter(id=article_id)[0]     #filter(id=1)[0] 等价于 get(id=1) ,filter返回的是对象列表，get返回的是对象
+    comment_related=article_obj.comment_set.select_related()
+    print(comment_related)
+    for comment in comment_related:
+        print(comment.id,comment.parent_comment_id)
+    comment_tree=comment_handler.build_tree(comment_related)
+    print(comment_tree)
+    return HttpResponse(json.dumps(comment_tree))

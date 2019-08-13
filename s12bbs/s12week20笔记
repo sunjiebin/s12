@@ -122,6 +122,13 @@ django 认证
         html里面没法用filter去过滤输出,下面的写法在html里面是错误的！
         {{ article.comment_set.select_related.filter(comment_type=1).count }}       <--HTML模板并不支持这个写法
 
+    views函数里面反查数据
+        comment表里面设置了外键关联article表，那么我们可以通过article对象来反查comment里面的数据
+        首先查询出id=article_id的文章对象artcile_obj，然后就可以利用这个对象来反查
+         article_obj=models.Article.objects.filter(id=article_id)
+         comment_set中的comment代表comment表，_set代表对这个表反查。select_related()代表查询出于article_obj相关的comment表的数据
+         article_obj.comment_set.select_related()
+
     filter过滤输出
         通过上面的方法可以查到所有与该篇文章相关联的评论总数，但是没法区分点赞和评论。可以用下面函数过滤的方法来实现。
         现定义一个filter函数

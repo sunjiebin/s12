@@ -58,7 +58,13 @@ class Comment(models.Model):
     comment=models.TextField('评论',blank=True,null=True)
 
     def __str__(self):
-        return '%s,%s,%s'%(self.article,self.parent_comment,self.comment)
+        '''
+        这里的返回将影响django后台父级评论列的显示。
+        parent_comment,comment两个都定义时，会把多级父评论都显示。可以看到该评论的所有层级
+        只定义comment时，则只会显示评论上级父评论，而上上级等则不会再显示
+        '''
+        # return '%s'%(self.comment)
+        return '%s,%s'%(self.parent_comment,self.comment)
     def clean(self):
         # if self.comment_type==1 and self.comment is None:   #这里用 is None是错误的，当我们没有写评论时的值应该时''，而不是None。所以要用len来判断长度才对
         if self.comment_type==1 and len(self.comment)==0:
