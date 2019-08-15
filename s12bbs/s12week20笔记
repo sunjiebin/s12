@@ -304,3 +304,32 @@ views
             $('.comment-list').html(callback));
 
     此时前端和后台的中文都会正确显示: <span style='margin-left:10px'>建立就立刻</span>
+
+    当我们get数据时，如果为None会报错，可以写的时候后面加上or None就行了。如果有数据则得到数据，没有就时None.
+    parent_comment_id=request.POST.get('parent_comment_id') or None,
+
+    在发布评论后，一般最后发的评论应该放在最前面，所以需要倒序排列
+    order_by()用于排序。列名如果有-号则代表倒序，没有就是正序
+    以下为以id倒序排列
+        comment_related=article_obj.comment_set.select_related().order_by('-id')
+
+    回复评论绑定事件：
+        给回复评论绑定事件，注意这个事件必须写在get_Comment的function里面。如果不写这里会出现事件无法绑定的情况，
+        导致按钮点击没有反应，无法触发点击事件。
+        这是因为js的函数时异步执行的，如果写在get_comment()函数外面，那么当get_Comment()都还没有执行完时，这个click
+        函数就已经执行了，而此时评论都还没有获取到，自然就无法对这些评论绑定事件了。
+        所以，必须先等评论加载完后，再绑定事件。那么为了保证执行顺序，就需要把这个click事件写道get_Comment()的function函数里面，
+        确保评论已经加载完成后再执行这个绑定事件。
+            function get_Comment() {
+            $.get("{% url 'get_comments' article_obj.id %}",
+                function (callback) {
+                    {#console.log(callback);#}
+                    $('.comment-list').html(callback);
+                    // click事件必须写在这个里面
+                    $('.click-comment').click(function () {
+                        var id = $(this).attr('comment-id');
+                        console.log(id);
+                    })
+                }
+            )
+        }

@@ -29,7 +29,9 @@ def render_comment_tree(tree_dic,margin_val=0):
     html=""
     for k,v in tree_dic.items():
         ele="<div class='root-comment'style='margin-left:%spx'>"%margin_val+"<span style='margin-left:10px'>%s</span>"%k.date + \
-            "<span style='margin-left:10px'>%s</span>"%k.comment + "</div>"
+            "<span style='margin-left:10px'>%s</span>"%k.comment + \
+            '<span comment-id=%s style="margin-left:10px;color:#033" class="glyphicon glyphicon-comment click-comment" aria-hidden="true"></span>' %k.id+ \
+        "</div>"
         html+=ele
         html+=render_comment_tree(v,margin_val+10)
     return html

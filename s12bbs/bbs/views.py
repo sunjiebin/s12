@@ -68,10 +68,8 @@ def comment(request):
 
 def get_comments(request,article_id):
     article_obj=models.Article.objects.filter(id=article_id)[0]     #filter(id=1)[0] 等价于 get(id=1) ,filter返回的是对象列表，get返回的是对象
-    comment_related=article_obj.comment_set.select_related()
-    print(comment_related)
-    for comment in comment_related:
-        print(comment.id,comment.parent_comment_id)
+    comment_related=article_obj.comment_set.select_related().order_by('-id')        #order_by('-id') id倒序排列  order_by('id')id正序排列
+    # print(comment_related)
     comment_obj=comment_handler.build_tree(comment_related)
     comment_tree=comment_handler.render_comment_tree(comment_obj)
     print(comment_tree)
