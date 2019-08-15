@@ -23,9 +23,10 @@ class Article(models.Model):
 from django.contrib.auth.models import User
 
 注意：
-blank=True和unll=True的区别：
+blank=True和null=True的区别：
 blank=True表示用户可以不填写这个字段，用于用户输入校验。如果有唯一约束，两个blank为空的列会存储空字符串，会违反唯一性约束的。而两个null不会违反约束。
 null=True表示允许数据库存储空字段，用于数据库的存储，不作用户校验
+一般两个一起用，表示这个字段允许为空
 head_img=models.ImageField(height_field=150,width_field=150,blank=True,null=True)
 
 
@@ -70,7 +71,9 @@ clean方法用于在后台django校验，当写了这个方法后，插入表数
 django 认证
     导入认证模块
     from django.contrib.auth import login,logout,authenticate
-    authenticate用于数据库验证，会根据post提交的username,password来去数据库查，如果匹配则返回user对象（如果我们在models的类里面定义了__str__，则返回str函数定义的值），不匹配则返回空
+    authenticate用于数据库验证，会根据post提交的username,password来去数据库查，
+    如果匹配则返回user对象（如果我们在models的类里面定义了__str__，则返回str函数定义的值），不匹配则返回空
+    这里的get('username'),get('password')就是django后台表auth_user里面的列名
         user = authenticate(username=request.POST.get('username'),password=request.POST.get('password'))
     login用于登录，根据前面验证成功的user对象以及request对象，来生成对应URL对应用户的session.实现登录。
         login(request,user)
@@ -81,10 +84,13 @@ django 认证
         def my_view(request):
             if not request.user.is_authenticated():
             return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
-            from django.contrib.auth.decorators import login_required
+
     在前端html里面验证
         {% if request.user.is_authenticated %}
     在前端通过django自带的user表关联查询到userprofile表里面的name字段
+    如果要通过user反查到userprofile表，首先在models里面定义userprofile表时，要添加OneToOneField字段，将user表与之一对一的关联。
+    models.py
+        user = models.OneToOneField(User,on_delete=models.CASCADE)
     这里一定要注意，页面里面通过user反向查找时，userprofile一定要小写，不是models里面定义的UserProfile。如果写models里面的类名称会查不出数据
         {{ request.user.userprofile.name }}
 
@@ -124,8 +130,11 @@ django 认证
 
     views函数里面反查数据
         comment表里面设置了外键关联article表，那么我们可以通过article对象来反查comment里面的数据
-        首先查询出id=article_id的文章对象artcile_obj，然后就可以利用这个对象来反查
-         article_obj=models.Article.objects.filter(id=article_id)
+        首先查询出id=article_id的文章对象artcile_obj，然后就可以利用这个对象来反查.
+        注意filter（）得出来的是一个对象列表，而不是一个具体的对象。要得到对象，就得[0]
+         article_obj=models.Article.objects.filter(id=article_id)[0]
+         用get得到的就是单个的对象，但是用get时要注意返回的只能时一个值，要是查出来时多个值就会报错了。
+          article_obj=models.Article.objects.get(id=article_id)
          comment_set中的comment代表comment表，_set代表对这个表反查。select_related()代表查询出于article_obj相关的comment表的数据
          article_obj.comment_set.select_related()
 
@@ -167,7 +176,12 @@ django 认证
 
     跳转带上参数路径
         {{ request.path_info }} 获取当前页面的url路径
+        后端函数可以通过get('next')获取到前端传过来的next=/xxx。next=/aaa.html在request.GET里面会成为一个字典{'next':'/aaa.html'}
+     html:
         <a class="btn-link" href="{% url 'login' %}?next={{ request.path_info }}">登录</a>后再评论!</h4>
+     views:
+        backurl=request.GET.get('next')
+        return HttpResponseRedirect(backurl or'/bbs')       # or用于当backurl为空时，则自动跳转到用/bbs
 
     前端登录校验
         request.user.is_authenticated 是django自带的用户校验工具，用于校验用户是否已经登录
@@ -203,10 +217,13 @@ django 认证
         然后在html页面里面通过url来直接调用， 其中的'login'就是对应上面urls.py里面的name的值。{% url 'login' %}  -->等价于 login/
             {% url 'login' %}
             <h4><a class="btn-link" href="{% url 'login' %}?next={{ request.path_info }}">登录</a>后再评论!</h4>
+        article_obj.id=1时，下面的url等价于/get_comments/1
+            re_path('get_comments/(\d+)',views.get_comments,name='get_comments'),
+            {% url 'get_comments' article_obj.id %}
 
         static静态路径也可以这么写
             在html中：
-            {% load  static %}
+            {% load  custom static %}
             {% truncate_url article_obj.head_img.url as imgpath %}
             <img class="article-detail-head-img" src="{% static imgpath %}"/>
 
@@ -228,6 +245,7 @@ django静态页面STATIC_URL
     在static标签中引用文件时有两个查找路径：1、app下的static。2、工程下的commen_static（STATICFILES_DIRS） 。
     STATICFILES_DIRS告诉django,首先到STATICFILES_DIRS里面寻找静态文件,其次再到各个app的static文件夹里面找(注意，django查找静态文件是惰性查找，查找到第一个，就停止查找了)
 
+    可以同时定义多个目录，如果有同名文件，依照惰性查找规则，找到第一个就不管后面是否还有同名的文件了
     STATICFILES_DIRS=(
         os.path.join(BASE_DIR,'static'),
         os.path.join(BASE_DIR,'uploads'),
@@ -258,3 +276,31 @@ views
             backurl=request.GET.get('next')
             return HttpResponseRedirect(backurl or'/bbs')
 
+    注意：当我返回的是一个html时，是不需要json.dumps的。多此一举。如果用了json.dumps传给前端，那么前端必须要用JSON.parse()来解析出来。
+    否则，当我们传递给前端的html中有中文时，前端中文显示就会变成 \u5f53\u7136OK\u4e86\uff01
+    错误示例：
+    views函数
+             return HttpResponse(json.dumps(comment_tree))
+        传递值在views里面print显示为 <span style='margin-left:10px'>建立就立刻</span>
+
+    js接收
+                function (callback) {
+                    console.log(callback);
+
+                    {#callback = decodeURIComponent(callback);#}
+                    $('.comment-list').html(callback);
+                }
+         console.log和前端打印出来的结果为：<span style='margin-left:10px'>\u5efa\u7acb\u5c31\u7acb\u523b</span>
+
+    正确示例
+        views
+            return HttpResponse(json.dumps(comment_tree))
+        js
+            $('.comment-list').html(JSON.parse(callback));
+    或者
+        views
+            return HttpResponse(comment_tree)
+        js
+            $('.comment-list').html(callback));
+
+    此时前端和后台的中文都会正确显示: <span style='margin-left:10px'>建立就立刻</span>

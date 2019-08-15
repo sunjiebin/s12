@@ -72,6 +72,25 @@ def get_comments(request,article_id):
     print(comment_related)
     for comment in comment_related:
         print(comment.id,comment.parent_comment_id)
-    comment_tree=comment_handler.build_tree(comment_related)
+    comment_obj=comment_handler.build_tree(comment_related)
+    comment_tree=comment_handler.render_comment_tree(comment_obj)
     print(comment_tree)
-    return HttpResponse(json.dumps(comment_tree))
+    return HttpResponse(comment_tree)
+
+
+# def get_comments2(request,article_id):
+#     article_obj=models.Article.objects.filter(id=article_id)[0]     #filter(id=1)[0] 等价于 get(id=1) ,filter返回的是对象列表，get返回的是对象
+#     comment_obj=article_obj.comment_set.select_related()
+#     print(comment_obj)
+#     comment_related=[]
+#     for comment in comment_obj:
+#         # print(comment.id,comment.parent_comment_id)
+#         if comment.parent_comment:
+#             comment_related.append((comment.comment,comment.parent_comment.comment))
+#         else:
+#             comment_related.append((comment.comment,None))
+#     # print(comment_related)
+#     comment_tree=comment_handler.build_tree2(comment_related)
+#     print(comment_tree)
+#     # comment_tree=comment_tree.encoding='utf-8'
+#     return HttpResponse(comment_tree)
