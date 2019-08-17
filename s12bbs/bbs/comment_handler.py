@@ -5,6 +5,7 @@ def add_node(tree_dic,comment):
     if comment.parent_comment is None:
         tree_dic[comment]={}
     else:
+        # 这里有bug，如果父级评论里面有特殊字符如！图标等，这个if会失效，照成评论无法获取
         for k,v in tree_dic.items():
             if k == comment.parent_comment:
                 tree_dic[comment.parent_comment][comment]={}
@@ -15,6 +16,7 @@ def build_tree(comment_set):
     # print(comment_set)
     tree_dic={}
     for comment in comment_set:
+        print(comment.parent_comment)
         add_node(tree_dic,comment)
     return tree_dic
 

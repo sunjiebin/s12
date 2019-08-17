@@ -24,20 +24,20 @@
         <div class="comment-box">
 
             {% if request.user.is_authenticated %}
+                <div class="comment-area">
                 <textarea class="form-control" rows="4"></textarea>
                 <button class="btn btn-sm btn-primary pull-right" style="margin-top:10px;">评论</button>
-
+                </div>
             {% else %}
-
-
                 <div class="jumbotron" style="text-align: center">
                     <h4><a class="btn-link" href="{% url 'login' %}?next={{ request.path_info }}">登录</a>后再评论!</h4>
                 </div>
             {% endif %}
-            <button onclick="get_Comment()">获取评论</button>
+            <div class="comment-list" style="margin-top: 50px;"></div>
+
+
         </div>
-        <div class="comment-list">
-        </div>
+{#        <button onclick="get_Comment()">获取评论</button>#}
 
     </div>
     <div class="wrap-right">
@@ -65,10 +65,16 @@
                     所以，必须先等评论加载完后，再绑定事件。那么为了保证执行顺序，就需要把这个click事件写道get_Comment()的function函数里面，
                     确保评论已经加载完成后再执行这个绑定事件。
                      */
-
+                    //回复评论
                     $('.click-comment').click(function () {
                         var id = $(this).attr('comment-id');
                         console.log(id);
+                        // 点击回复评论按钮时，清空主贴回复框的内容，否则复制过来的回复框里面会有主贴留下的内容
+                        $('.comment-area textarea').val('');
+                        var comment_div=$(".comment-area").clone(true);     //clone要加上true，代表同时克隆绑定的事件
+                        {#comment_div.attr('parent-id',id);#}
+                        $('.comment-area').remove();        //删除之前的标签，保证同时只有一个标签，否则下次clone的标签会复制多个
+                        $(this).parent().append(comment_div);
                     })
                 }
             )
@@ -76,24 +82,45 @@
 
         //当页面的文字等都加载完成后，执行这个
         $(document).ready(function () {
-            $('.comment-box button').click(function () {
-                var comment_text = $('.comment-box textarea').val();
+             get_Comment();
+            $('.comment-area button').click(function () {
+                var comment_text = $('.comment-area textarea').val();
                 if (comment_text.trim().length < 5) {            //当文字少于5时，trim()是用于去除输入前后的空格，相当于Python的strip
                     alert('评论不能少于5个字符')
                 } else {
+                    var parent_comment_id=$(this).parent().prev().attr('comment-id');
+                    console.log(parent_comment_id);
                     $.post(
                         "{% url 'post_comment' %}",
                         {
                             comment_type: 1,
                             article_id: '{{ article_obj.id }}',
-                            parent_comment_id: null,
+                            parent_comment_id: parent_comment_id,
                             comment: comment_text.trim(),
                             csrfmiddlewaretoken: getcsrf(),
                         },
                         function (callback) {
                             if (callback == 'ok') {
-                                {#alert(comment_text);#}
                                 get_Comment();
+                                {#alert(comment_text);#}
+                                /*
+                                下面的判断用于防止出现多个评论框，如果不加，当我们点击主评论框时，每点击一次就会复制一次。
+                                判断class comment-box下面是否有comment-area元素，
+                                如果没有，则添加一个comment-area。
+                                如果有，就不添加。防止出现重复的input框
+                                $('.comment-box').children('.comment-area').length 查找comment-box下面是否有comment-area，有的话length就会大于0
+                                有一个就是1，有两个就是2....
+                                 */
+                                var len=$('.comment-box').children('.comment-area').length;
+                                if (len==0){
+                                    var new_comment_div=$(".comment-area").clone(true);
+                                    console.log(new_comment_div);
+                                    //清空回复评论里面的内容，否则在回复框提交评论后，复制的评论框会有原来回复的内容
+                                    new_comment_div.children('textarea').val('');
+                                  //  $('.comment-box').append(new_comment_div);
+                                    $('.comment-list').before(new_comment_div);
+                                }
+
                             }
                         }
                     );
@@ -101,7 +128,7 @@
                 }
 
             });
-            get_Comment();
+
 
         })
     </script>

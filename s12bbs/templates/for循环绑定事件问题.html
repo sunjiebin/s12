@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script src="../static/bootstrap-3.3.7-dist/js/jquery-2.1.4.js"></script>
+<script>
+
+
+(function () {
+/*
+注意用For循环复制绑定的事件时，要给每一个div标签绑定不同的属性，比如不同的class，或者不同的index
+如果标签属性都是一样的，会导致绑定无法获取绑定元素的属性，因为就几个标签都是一样的，没法判断需要获取
+哪个标签的属性。
+*/
+/*
+//错误写法，会发现console.log无法打印colors[c]
+    var div = $("<div></div>").css({width: "100px", height: "100px"});
+    var colors = ["red", "blue", "yellow"];
+    for (var c = 0; c < colors.length; c++) {
+        var perDiv = div.clone(true);
+        perDiv.css({
+            background: colors[c]
+        });
+        perDiv.click(function () {
+            console.log(colors[c]);
+        });
+        $("body").append(perDiv);
+    }
+
+})($);
+*/
+
+/*
+//正确写法，为每个标签赋予不同的class
+(function ($) {
+
+    var div = $("<div></div>").css({width: "100px", height: "100px"});
+    var colors = ["red", "blue", "yellow"];
+    for (var c = 0; c < colors.length; c++) {
+        var perDiv = div.clone();
+        perDiv.css({
+            background: colors[c]
+        });
+        perDiv.addClass("a"+c); //为每个标签赋值不同的class
+        $("body").append(perDiv);
+    }
+
+    for (var e=0;e<colors.length;e++){
+        $(".a"+e).click(function () {
+            console.log($(this));
+        });
+    }
+
+ */
+
+//正确写法，运用$this来实现
+            var colors = ["red", "blue", "green"];
+            var div = $("<div></div>").css({width: "100px", height: "100px"});
+            function cloneDiv(num) {
+                for (var i = 0; i < num; i++) {
+                    var odiv = div.clone();
+                    odiv.css("background", colors[i]);
+                    $("body").append(odiv);
+                    odiv.on("click", function () {
+                        console.log(this);
+                    })
+                }
+            }
+            cloneDiv(colors.length);
+
+})($);
+</script>
+</body>
+</html>

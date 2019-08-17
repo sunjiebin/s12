@@ -333,3 +333,85 @@ views
                 }
             )
         }
+
+js克隆绑定的事件
+    默认clone()只会复制标签，而不会克隆事件的，导致标签绑定的事件失效，加上true就能够把事件一起克隆过来
+    var comment_div=$(".comment-area").clone(true);
+    $('.comment-area').remove();
+    $(this).parent().append(comment_div);
+
+jquery查找子元素是否存在
+    查找comment-box下面是否有comment-area类，如果有，那么length返回的值就会大于0.没有就是0
+    注意children和find的区别，children是查找当前元素下级，不会查找下下级，查找深度为1. find是遍历标签下面所有元素，会打破砂锅查到底。
+    var len=$('.comment-box').children('.comment-area').length;
+    if (len==0){console.log(len)}
+
+jquery在指定元素前面插入数据
+    下面代码会在comment-list前面插入克隆的new_comment_div
+    var new_comment_div=$(".comment-area").clone(true);
+    $('.comment-list').before(new_comment_div);
+
+清空文本框里面的内容，用val('')。注意val()是获取评论框内容。
+下面三种，都可以清空内容
+    $('.comment-area').children('textarea').val('');
+    $('.comment-area textarea').val('');
+    清空克隆过来的标签的文本内容
+     var new_comment_div=$(".comment-area").clone(true);
+     new_comment_div.children('textarea').val('');
+
+主评论框点击评论时被复制，导致多个评论框出现（视频中未出现这个bug，同样代码在我这里会出现）
+解决办法
+    添加if判断，判断评论框comment-box是否已经有comment-area，有的话就不添加
+                var len=$('.comment-box').children('.comment-area').length;
+                if (len==0){
+                    var new_comment_div=$(".comment-area").clone(true);
+                    new_comment_div.attr('id',1);
+                    console.log(new_comment_div);
+                  //  $('.comment-box').append(new_comment_div);
+                    $('.comment-list').before(new_comment_div);
+
+
+一个困扰很久的错误解决
+这个问题告诉我们，匹配标签的时候一定不要出错，否则后果很严重！
+
+    评论框标签
+        <div class="comment-box">
+                <div class="comment-area">
+                <textarea class="form-control" rows="4"></textarea>
+                <button class="btn btn-sm btn-primary pull-right" style="margin-top:10px;">评论</button>
+                </div>
+        </div>
+
+    正确示例：
+        clone上面的标签
+                var comment_div=$(".comment-area").clone(true);
+                $('.comment-area').remove();
+                $(this).parent().append(comment_div);
+        获取标签内容
+            $('.comment-area button').click(function () {
+                    var comment_text = $('.comment-area textarea').val();
+                    console.log(comment_text);
+
+    错误示例：
+    下面的示例会导致无法获取到comment_text数据，console.log(comment-text)返回undefinde，而console.log(comment_text.trim())则会直接报错，
+    因为comment_text没有值，不能直接trim().
+    trim()报错如下：
+        Uncaught TypeError: Cannot read property 'trim' of undefined
+            at HTMLButtonElement.<anonymous> (3:177)
+            at HTMLButtonElement.dispatch (jquery-2.1.4.js:4435)
+            at HTMLButtonElement.elemData.handle (jquery-2.1.4.js:4121)
+
+    原因：
+        clone的是comment-area区域，而下面获取标签绑定的是comment-box下面的button，且获取的val也是comment-box下的button
+        而我们clone时，并没有把comment-box复制过来，而只是复制了comment-box下面的comment-area标签，就导致了标签没有comment-box，
+        从而无法触发comment-box下的button触发的事件，也无法获取到comment-area下的textarea的值。
+        但是comment-area下的button还是可以点击的，因为这是一个button固有的属性。但是无法触发事件。
+
+        clone上面的标签
+                var comment_div=$(".comment-area").clone(true);
+                $('.comment-area').remove();
+                $(this).parent().append(comment_div);
+        获取标签内容
+            $('.comment-box button').click(function () {
+                    var comment_text = $('.comment-box textarea').val();
+                    console.log(comment_text.trim());
