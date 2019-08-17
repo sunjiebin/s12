@@ -14,10 +14,11 @@ Form验证
 
 ModelForm
     通过ModelForm可以生成html标签，能够实现form表单的验证，还能将验证完的数据提交到数据库里面去。将Model和Form的功能结合在了一起。
-    通过modelform查询外键在页面上显示的是一个object对象，如果要像form一样显示对应的名称，则需要在函数里面用__str 。具体如何使用，暂时未知
+    通过modelform查询外键在页面上显示的是一个object对象，如果要像form一样显示对应的名称，则需要在model建表函数里面用__str__返回查询的字段。
+
     ModelForm存取POST提交的数据非常简单，直接obj.save()即可。
 
-    1.生成HTML标签： class Meta: ...
+    1. 生成HTML标签： class Meta: ...
     2. 将数据库里面的数据直接提取出来，显示在页面上。 instance里面接model对象
         mf = xxxModelForm(instance=Modelobj)
     3. 定义额外的标签
