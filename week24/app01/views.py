@@ -14,13 +14,15 @@ class UserInfoModelForm(forms.ModelForm):
         #定义从那个models对象里面取数据。这里会把UserInfo里面的对象都取出来，并生成html标签
         # 和form不同在于modelform不用再自己写字段了，而是自动从生成的数据库对象里面将字符段都取出来
         model=models.UserInfo
-        #这里的__all__相当于获取userinfo的所有字段并显示在前端
+        #这里的__all__相当于获取userinfo的所有字段并显示在前端,也可以用exclude='__all__'一样的效果。或者exclude=[]也时显示所有列。
         fields='__all__'
-        #也可以直接写字段名称，只显示指定的列
-        # fields=['username','user_type']
         #也可以指定排除不显示某些列，而显示其他列
         # exclude=['username']
+        #也可以直接写字段名称，只显示指定的列
+        # fields=['username','user_type']
+
         # 可以在Model Form里面定义labels,widgets等各个属性。注意各个属性之间不要有","逗号，否则会报错
+        # labels定义字段显示的别名，这样生成的html列名就是用的别名，而不是字段名称。也可以在models类里面用verbose_name指定列别名，这样就不用在这里写了。
         labels ={
             'username':'用户',
             'email':'邮箱',
@@ -37,7 +39,7 @@ class UserInfoModelForm(forms.ModelForm):
         error_messages={
             '__all__':{'用于定义整体的错误信息'},
             'email':{'required':'邮箱不能为空','invalid':'邮箱格式不正确'},
-            'username':{'required':'用户名不能为空','invalid':'输入正确的格式'},
+            'username':{'required':'用户名不能为空','invalid':'请输入正确的格式'},
         }
         #修改字段的类,我们model里面定义的email为邮件格式，这里我们可以修改为url格式，在网页上就会提示”请输入网址“
         #注意fields前面定义变量时已经用了，和模块fields重名了，在调用的时候就会出错，所以我们在导入模块时用了as Ffields，将fileds模块重命名了

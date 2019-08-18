@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom %}
+{% block page-container %}
+    <div class="wrap-left">
+        {{ obj.as_ul }}
+    </div>
+    <div class="wrap-right">
+        right
+    </div>
+    <div class="clear-both"></div>
+    {#    上面的div用于清除浮动，设置了clear后，下面的footer标签就会保持在底部，而不会飘到上面去了#}
+    <div class="footer">footer</div>
+{% endblock %}

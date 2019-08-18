@@ -146,7 +146,7 @@
                     type:'POST',
                     dataType:'JSON',
                     data:{'app':appname,'host':host_list,'appid':appid},
-                    {#注意，由于上面data传的host是一个列表，所以必须要加上下面的traditonal:true，否则传过去的值是空的#}
+                    // {# 注意，由于上面data传的host是一个列表，所以必须要加上下面的traditonal:true，否则传过去的值是空的 #}
                     traditional:true,
                     success:function (data) {
                         if(data.status){

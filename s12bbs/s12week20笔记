@@ -370,6 +370,13 @@ jquery在指定元素前面插入数据
                   //  $('.comment-box').append(new_comment_div);
                     $('.comment-list').before(new_comment_div);
 
+富文本编辑
+    UEditor  百度的UEditor，功能齐全，适合国人，但是没有python版本，只有java/php/.net
+    KindEditor  国内的
+    CKEditor 国外的
+    CKEditor 使用，下载完整版 https://download.cksource.com/CKEditor/CKEditor/CKEditor%204.12.1/ckeditor_4.12.1_full.zip
+    在项目的static目录下建一个plugin,复制进去
+
 
 一个困扰很久的错误解决
 这个问题告诉我们，匹配标签的时候一定不要出错，否则后果很严重！

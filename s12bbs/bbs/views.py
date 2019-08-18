@@ -93,3 +93,9 @@ def get_comments(request,article_id):
 #     print(comment_tree)
 #     # comment_tree=comment_tree.encoding='utf-8'
 #     return HttpResponse(comment_tree)
+
+def new_article(request):
+    from bbs.form import ArticleModelForm
+    if request.method=='GET':
+        obj=ArticleModelForm()
+        return render(request,'bbs/new_article.html',{'obj':obj})

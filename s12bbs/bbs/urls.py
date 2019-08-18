@@ -10,4 +10,5 @@ urlpatterns = [
     re_path('detail/(\d+)', views.article_detail, name='article_detail'),
     path('comment/',views.comment,name='post_comment'),
     re_path('get_comments/(\d+)',views.get_comments,name='get_comments'),
+    path('new_article/',views.new_article,name='new_article'),
 ]
