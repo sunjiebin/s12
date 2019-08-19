@@ -94,8 +94,24 @@ def get_comments(request,article_id):
 #     # comment_tree=comment_tree.encoding='utf-8'
 #     return HttpResponse(comment_tree)
 
+ #登录的url可以在settings里面直接指定全局的，也可以在这里指定特定的url.比如login_url='/bbs/login'将会自动跳转到/bbs/login.如果不指定，那么就用settings里面设置的LOGIN_URL地址
+@login_required(login_url='/login')
 def new_article(request):
     from bbs.form import ArticleModelForm
     if request.method=='GET':
-        obj=ArticleModelForm()
-        return render(request,'bbs/new_article.html',{'obj':obj})
+        article_form=ArticleModelForm()
+    elif request.method=='POST':
+        # 注意：如果是上传图片，必须用request.FILES，用POST是没法收到图片的。然后from里面必须写上"multipart/form-data"。两个条件必须满足才能上次成功。
+        # 想要后台能够收到图片，就得在ArticleModelForm(request.POST,request.FILES)
+        article_form=ArticleModelForm(request.POST,request.FILES)
+        #注意cleaned_data出现的位置，必须在is_valid()后面
+        print(article_form.is_valid(),article_form.cleaned_data,article_form.errors)
+        print(request.FILES)
+        if article_form.is_valid():
+            data=article_form.cleaned_data
+            data['author_id']=request.user.userprofile.id
+            article_obj=models.Article(**data)
+            article_obj.save()
+            # article_form.save()
+            return HttpResponseRedirect('/bbs')
+    return render(request,'bbs/new_article.html',{'article_form':article_form})

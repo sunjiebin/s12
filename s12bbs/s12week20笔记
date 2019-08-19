@@ -105,6 +105,12 @@ django 认证
         可以修改settings.py,添加下面的参数，让认证不通过时跳转到我们指定的/login/页面，而不是默认的/accounts/login/。
         LOGIN_URL = '/login/'
 
+        登录的url可以在settings里面直接指定全局的，也可以在这里指定特定的url.
+        比如login_url='/bbs/login'将会自动跳转到/bbs/login.
+        如果不指定，那么就用settings里面设置的LOGIN_URL地址
+        @login_required(login_url='/bbs/login')
+        def new_article(request):
+            xxx
 
 前端页面设计
     在bootstrap上下载一个模板
@@ -376,6 +382,16 @@ jquery在指定元素前面插入数据
     CKEditor 国外的
     CKEditor 使用，下载完整版 https://download.cksource.com/CKEditor/CKEditor/CKEditor%204.12.1/ckeditor_4.12.1_full.zip
     在项目的static目录下建一个plugin,复制进去
+
+ModelForm
+    cleaned_data 就是读取表单返回的值，返回类型为字典dict型
+    email=cleaned_data['email']  读取name为 ‘email’的表单提交值，并赋予 email变量
+
+    article_form=ArticleModelForm(request.POST,request.FILES)
+    article_form.cleaned_data  将会以字典的形式返回form表单里面提交的所有数据，key为列名，value为输入的值。
+
+    注意：cleaned_data一定要在is_valid()后面出现，如果写在前面，那么就会报下面错，说没有这个属性
+    AttributeError: 'ArticleModelForm' object has no attribute 'cleaned_data'
 
 
 一个困扰很久的错误解决

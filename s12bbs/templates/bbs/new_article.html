@@ -3,7 +3,11 @@
 {% load custom %}
 {% block page-container %}
     <div class="wrap-left">
-        {{ obj.as_ul }}
+        <form method="post" enctype="multipart/form-data">       <!--以当前页面提交就不用写action="/bbs/new_article/"-->
+            {% csrf_token %}
+            {{ article_form.as_ul }}
+            <input type="submit" class="btn btn-sm btn-primary pull-right " value="提交"/>
+        </form>
     </div>
     <div class="wrap-right">
         right
@@ -11,4 +15,12 @@
     <div class="clear-both"></div>
     {#    上面的div用于清除浮动，设置了clear后，下面的footer标签就会保持在底部，而不会飘到上面去了#}
     <div class="footer">footer</div>
+{% endblock %}
+{% block script-container %}
+    <script src="/static/plugin/ckeditor/ckeditor.js"></script>
+    <script>
+        // Replace the <textarea id="editor1"> with a CKEditor
+        // instance, using default configuration.
+        CKEDITOR.replace('id_content');
+    </script>
 {% endblock %}
