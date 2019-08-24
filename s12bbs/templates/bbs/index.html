@@ -3,13 +3,15 @@
 {% load custom %}
 {% block page-container %}
     <div class="wrap-left">
+    <a href="{{ request.path }}" class="new-article-notify hidden">有<span></span>条新文章</a>  {# request.path获取当前路径，相当于刷新页面 #}
         <hr>
-        {% for article in article_list %}
+
+        {% for article in article_list reversed %}  {# reversed可以实现倒序排序 #}
             <!--
             bootstrip它自带了row样式，用于将多个div放到一行里面显示，下面的子div用col-md-4来调用就行了。总长度是12，所以我们用了
             col-md-4,col-md-8两个y样式，刚好充满一行。
             -->
-            <div class="article-box row">
+            <div class="article-box row" id="{{ article.id }}">
                 <div class="article-head-img col-md-4">
                     {#                <img src="/static/{% truncate_url article.head_img.url %}"/>   {# simple_tag写法 #}
                     {#                <img src="/static/{{ article.head_img.url|truncate_url2 }}"/>       {# filter写法 #}
@@ -44,4 +46,33 @@
     <div class="clear-both"></div>
     {#    上面的div用于清除浮动，设置了clear后，下面的footer标签就会保持在底部，而不会飘到上面去了#}
     <div class="footer">footer</div>
+{% endblock %}
+{% block script-container %}
+    <script>
+    //定时执行函数，获取是否有新文章发布，如果有，则出现提示框，提示有多少篇新文章
+    $(document).ready(function () {
+        var new_article_refresh=setInterval(function () {
+            //获取到wrap-left标签下的所有子节点article-box，并拿到第一个节点article-box的id属性的值
+            var latest_article_id = $('.wrap-left').children('.article-box').first().attr('id');
+            console.log(latest_article_id);
+            $.getJSON(
+                "{% url 'get_latest_article_count' %}",
+                {latest_article_id:latest_article_id},
+                function (callback) {
+                    console.log(callback.new_article_count);
+                    {#console.log(typeof(callback.new_article_count));#}
+                    if(callback.new_article_count>0){
+                        {#console.log('larger 0');#}
+                        $('.new-article-notify span').html(callback.new_article_count);
+                        if($('.new-article-notify').hasClass('hidden')){
+                            {#console.log('has hidden');#}
+                            $('.new-article-notify').removeClass('hidden');
+                        }
+                    } //end callback.new_article_count>0
+                } //end function
+
+            ) // end getJSON
+        },10000) //每10s定时执行一次
+    })
+    </script>
 {% endblock %}

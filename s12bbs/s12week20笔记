@@ -283,7 +283,9 @@ views
             return HttpResponseRedirect(backurl or'/bbs')
 
     注意：当我返回的是一个html时，是不需要json.dumps的。多此一举。如果用了json.dumps传给前端，那么前端必须要用JSON.parse()来解析出来。
-    否则，当我们传递给前端的html中有中文时，前端中文显示就会变成 \u5f53\u7136OK\u4e86\uff01
+    否则，当我们传递给前端的html中有中文时，前端中文显示就会变成 \u5f53\u7136OK\u4e86\uff01。
+    因为json.dumps默认对中文用的ascii码，所以中文显示出来会是十六进制的ASCII码。可以用json.dumps(comment_tree,ensure_ascii=False)来让
+    中文正确显示。
     错误示例：
     views函数
              return HttpResponse(json.dumps(comment_tree))
@@ -306,6 +308,11 @@ views
     或者
         views
             return HttpResponse(comment_tree)
+        js
+            $('.comment-list').html(callback));
+    或者
+        views
+            return HttpResponse(json.dumps(comment_tree,ensure_ascii=False))
         js
             $('.comment-list').html(callback));
 
@@ -382,6 +389,21 @@ jquery在指定元素前面插入数据
     CKEditor 国外的
     CKEditor 使用，下载完整版 https://download.cksource.com/CKEditor/CKEditor/CKEditor%204.12.1/ckeditor_4.12.1_full.zip
     在项目的static目录下建一个plugin,复制进去
+    使用CKEditor：
+    先建立一个form表单，里面生成一个textarea文本框，我这里的文本框用modelform自动生成了。可以在浏览器f12查看自动生成的textarea的id是什么。
+        <form method="post" enctype="multipart/form-data">       <!--以当前页面提交就不用写action="/bbs/new_article/"-->
+            {% csrf_token %}
+            {{ article_form.as_ul }}
+            <input type="submit" class="btn btn-sm btn-primary pull-right " value="提交"/>
+        </form>
+    加载ckeditor.js脚本
+    <script src="/static/plugin/ckeditor/ckeditor.js"></script>
+    使用CKEDITOR.replace替换id为id_content的文本框，就自动生成ckeditor的富文本框了。
+    <script>
+        // Replace the <textarea id="editor1"> with a CKEditor
+        // instance, using default configuration.
+        CKEDITOR.replace('id_content');
+    </script>
 
 ModelForm
     cleaned_data 就是读取表单返回的值，返回类型为字典dict型
@@ -393,6 +415,119 @@ ModelForm
     注意：cleaned_data一定要在is_valid()后面出现，如果写在前面，那么就会报下面错，说没有这个属性
     AttributeError: 'ArticleModelForm' object has no attribute 'cleaned_data'
 
+   对ModelForm生成的页面添加样式
+   class ArticleModelForm(forms.ModelForm):
+    class Meta:
+        xxx
+
+        def __init__(self,*args,**kwargs):
+        super(ArticleModelForm,self).__init__(*args,**kwargs)
+        # 如果只需要给某个字段单独加样式，可以用下面的写法
+        # self.fields['title'].widget.attrs['class']='form-control'
+        # 给所有字段统一加样式
+        for filed_name in self.base_fields:
+            filed = self.base_fields[filed_name]
+            filed.widget.attrs.update({'class':'form-control'})
+
+上传图片注意事项
+    1. 如果是上传图片，必须用request.FILES接收，用request.POST是没法收到图片的。
+        article_form=ArticleModelForm(request.POST,request.FILES)
+    2. 然后from里面必须写上enctype="multipart/form-data"。
+    3. 必须用POST提交才能上传，不能用GET。
+        <form method="post" enctype="multipart/form-data" action="{% url 'file_upload' %}">
+    4. 前端input框里面必须定义好name属性，这个后端拿到时会作为字典的Key。
+        <input type="file" name="filename"/>
+        file_obj=request.FILES.get('filename')
+    以上四个条件必须同时满足才能上传成功。
+
+       普通的上传
+           views里面get的名称要与前端定义的name的名称一致
+           html
+             <input type="file" name="filename"/>
+           views
+             file_obj=request.FILES.get('filename')
+             with open(f'uploads/{file_obj.name}','wb+') as destination:
+                for chunk in file_obj.chunks():
+                    destination.write(chunk)
+             return render(request,'bbs/new_article.html')
+
+       ModelForm上传
+           如果是在ModelForm里面，那么用{{ article_form.as_ul }}会自动生成input页面，可以f12查看上传的input表单。
+           如果在models的函数里面定义了ImageField这种字段，那么ModelForm会自动生成上传图片的表单。
+            models:
+                head_img=models.ImageField('文章图片',upload_to='uploads')
+            ModelForm生成的html:
+                <input type="file" name="head_img" accept="image/*" class="form-control" required="" id="id_head_img">
+            views:
+                article_form=ArticleModelForm(request.POST,request.FILES)
+                if article_form.is_valid():
+                    article_form.save()
+                或者：
+                if article_form.is_valid():
+                    data=article_form.cleaned_data      #利用cleaned_data将其变成字典形式
+                    print(type(data))
+                    data['author_id']=request.user.userprofile.id
+                    article_obj=models.Article(**data)
+                    article_obj.save()
+    注意：
+    file_obj=request.FILES.get('filename') 得到的是一个对象，print出来虽然时文件名，但实际类型为一个对象。
+    如果要获取名称，就需要file_obj.name才能获取名称
+
+    https://docs.djangoproject.com/en/2.1/
+    https://docs.djangoproject.com/en/2.1/topics/http/file-uploads/
+
+登录验证
+    登录的url可以在settings里面直接指定全局的，也可以在这里指定特定的url.
+    比如login_url='/bbs/login'将会自动跳转到/bbs/login.如果不指定，那么就用settings里面设置的LOGIN_URL地址
+    方式1
+        @login_required(login_url='/login')
+    方式2
+        settings里面
+        LOGIN_URL = '/login/'
+
+让后端传过来的html标签生效，不显示标签
+    从后端传过来的元素默认都会当成字符串，导致html标签不生效。需要调用内置函数safe，让前端解析html标签，而不是当做字符串显示出来
+    {{ article_obj.content|safe }}
+
+前端for循环元素倒序
+    我们想让最后发的帖子放在第一位，所以就需要对帖子for循环时倒序显示，让后面的帖子显示在前面,reversed用于反转
+    注意 reversed 不要写错了，否则就报错 'for' statements should use the format 'for x in y': for article in article_list reverse
+    {% for article in article_list reversed %}
+
+JSON.dumps用法解析
+    print(data)
+    [{'c': 'C', 'b': (1, 6), 'a': 'A'}]
+
+    sort_keys根据key排序输出
+    print(json.dumps(data, sort_keys=True))
+    [{"a": "A", "b": [1, 6], "c": "C"}]
+
+    indent=4换行输出
+    json.dumps(data,sort_keys=True,indent=4)
+    '[\n    {\n        "a": "A",\n        "b": [\n            1,\n            6\n        ],\n        "c": "C"\n    }\n]'
+
+    separators去掉,:后面的空格，精简输出
+    print(json.dumps(data,sort_keys=True,separators=(',',':')))
+    [{"a":"A","b":[1,6],"c":"C"}]
+
+    ensure_ascii 是否以ascii码显示
+    print(json.dumps('中国'))
+    "\u4e2d\u56fd"
+    print(json.dumps('中国',ensure_ascii=False))
+    "中国"
+
+注意前端获取到的值
+    通过[0]获取到的是一个标签，对于标签我们是不能attr()的，因为attr()是jquery对象的功能，标签是没有这个功能的。
+    只不过我们可以用$()来将标签转换为jquery对象，再就可以attr了
+    错误写法
+        $('.wrap-left').children('.article-box')[1].attr('id')
+    正确写法
+        $($('.wrap-left').children('.article-box')[0]).attr('id')
+    或者直接用first()，得到的也是一个jquery对象
+         $('.wrap-left').children('.article-box').first().attr('id')
+    但是first()只能拿到子节点第一个对象，如果我们要拿第二个，第三个等就不行了。这时候还是的用上面的方法。
+    拿第二个子节点对象里面的id属性
+        $($('.wrap-left').children('.article-box')[1]).attr('id')
 
 一个困扰很久的错误解决
 这个问题告诉我们，匹配标签的时候一定不要出错，否则后果很严重！

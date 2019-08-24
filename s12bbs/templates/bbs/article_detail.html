@@ -18,7 +18,7 @@
         <div class="article-content">
             {% truncate_url article_obj.head_img.url as imgpath %}
             <img class="article-detail-head-img" src="{% static imgpath %}"/>
-            {{ article_obj.content }}
+            {{ article_obj.content|safe }}      {# 从后端传过来的元素默认都会当成字符串，导致html标签不生效。需要safe来解析下 #}
         </div>
         <!-- 评论框 -->
         <div class="comment-box">

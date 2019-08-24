@@ -11,4 +11,6 @@ urlpatterns = [
     path('comment/',views.comment,name='post_comment'),
     re_path('get_comments/(\d+)',views.get_comments,name='get_comments'),
     path('new_article/',views.new_article,name='new_article'),
+    path('file_upload/',views.file_upload,name='file_upload'),
+    path('latest_article_count/',views.get_latest_article_count,name='get_latest_article_count'),
 ]

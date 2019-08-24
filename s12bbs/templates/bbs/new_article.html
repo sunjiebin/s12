@@ -8,6 +8,11 @@
             {{ article_form.as_ul }}
             <input type="submit" class="btn btn-sm btn-primary pull-right " value="提交"/>
         </form>
+        <form method="post" enctype="multipart/form-data" action="{% url 'file_upload' %}">
+            {% csrf_token %}
+            <input type="file" name="filename"/>
+            <input type="submit" value="上传"/>
+        </form>
     </div>
     <div class="wrap-right">
         right

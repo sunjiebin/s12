@@ -101,17 +101,37 @@ def new_article(request):
     if request.method=='GET':
         article_form=ArticleModelForm()
     elif request.method=='POST':
-        # 注意：如果是上传图片，必须用request.FILES，用POST是没法收到图片的。然后from里面必须写上"multipart/form-data"。两个条件必须满足才能上次成功。
+        # 注意：如果是上传图片，必须用request.FILES，用POST是没法收到图片的。然后from里面必须写上"multipart/form-data"。两个条件必须满足才能上传成功。
         # 想要后台能够收到图片，就得在ArticleModelForm(request.POST,request.FILES)
         article_form=ArticleModelForm(request.POST,request.FILES)
-        #注意cleaned_data出现的位置，必须在is_valid()后面
+        #注意cleaned_data出现的位置，必须在is_valid()后面，否则会报错
         print(article_form.is_valid(),article_form.cleaned_data,article_form.errors)
         print(request.FILES)
         if article_form.is_valid():
-            data=article_form.cleaned_data
+            data=article_form.cleaned_data      #利用cleaned_data将其变成字典形式
+            print(type(data))
             data['author_id']=request.user.userprofile.id
             article_obj=models.Article(**data)
             article_obj.save()
-            # article_form.save()
+            # article_form.save()       #由于对article_form添了加内容，所以不能直接用ModelForm的save了。
             return HttpResponseRedirect('/bbs')
     return render(request,'bbs/new_article.html',{'article_form':article_form})
+
+def file_upload(request):
+    print(request.FILES)
+    file_obj=request.FILES.get('filename')  #这里的filename是前端定义的name='filename'，file_obj是一个对象，不是文件名称
+    with open(f'uploads/{file_obj.name}','wb+') as destination:
+        for chunk in file_obj.chunks():
+            destination.write(chunk)
+    return render(request,'bbs/new_article.html')
+
+def get_latest_article_count(request):
+
+    id=request.GET.get('latest_article_id')
+    print(type(id))
+    # 这里的id虽然是字符串，但是不必转成整数，因为models在读取时会自动给你转换成整数
+    # id=int(id)
+    count=models.Article.objects.filter(id__gt=id).count()  #获取大于id的所有数据的总条数
+    print(count)
+    return HttpResponse(json.dumps({'new_article_count':count}))    #这里的字典要json.dumps一下，这样前端接收到的才是对象
+
