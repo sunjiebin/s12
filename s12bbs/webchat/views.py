@@ -1,5 +1,6 @@
 from django.shortcuts import render,HttpResponse
 from django.contrib.auth.decorators import login_required
+from webchat import models
 import json
 import time, queue
 # Create your views here.
@@ -24,6 +25,14 @@ def send_msg(request):
             if not global_msg_queues.get(user_id):
                 global_msg_queues[user_id]=queue.Queue()
             global_msg_queues[user_id].put(msg_data)
+        else:
+            group_obj=models.WebGroup.objects.get(id=msg_data['to'])
+            for member in group_obj.members.select_related():
+                if not global_msg_queues.get(member.id):    #如果字典里不存在这个用户的队列，则创建一个队列
+                    global_msg_queues[member.id]=queue.Queue()
+                if member.id != request.user.userprofile.id:    #用户id不等于自己时，才向队列发数据，避免把消息发给自己
+                    global_msg_queues[member.id].put(msg_data)
+
     print('队列字典',global_msg_queues)
     # print('队列内容',global_msg_queues[user_id].get())
     return HttpResponse(msg_data)

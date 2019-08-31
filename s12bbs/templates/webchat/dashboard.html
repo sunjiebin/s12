@@ -5,7 +5,7 @@
         <div class="left-contact-panel">
             <ul class="nav nav-pills">
                 <li role="presentation" class="active"><a href="#contact-tab" data-toggle="tab">好友</a></li>
-                <li role="presentation"><a href="#group-tab" data-toggle="tab">群主</a></li>
+                <li role="presentation"><a href="#group-tab" data-toggle="tab">群组</a></li>
             </ul>
             <div class="tab-content">
                 <div role="tabpanel" class="tab-pane active" id="contact-tab">
@@ -13,13 +13,23 @@
                         {% for friend in request.user.userprofile.friends.select_related %}
                             <li contact-type="single" contact-id='{{ friend.id }}' onclick="OpenChatWindow(this)"
                                 class="list-group-item">
-                                <span class="badge">14</span>
+                                <span class="badge hide">14</span>
                                 <span class="contact-name">{{ friend.name }}</span>
                             </li>
                         {% endfor %}
                     </ul>
                 </div>
-                <div role="tabpanel" class="tab-pane" id="group-tab">group</div>
+                <div role="tabpanel" class="tab-pane" id="group-tab">
+                    <ul class="list-group">
+                        {% for group in request.user.userprofile.group_members.select_related %}
+                            <li contact-type="group" contact-id='{{ group.id }}' onclick="OpenChatWindow(this)"
+                                class="list-group-item">
+                                <span class="badge hide">14</span>
+                                <span class="contact-name">{{ group.name }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
 
         </div>
@@ -27,8 +37,11 @@
             <div class="chat-box-title" contact-type="" contact-id="">
                 title
             </div>
-            <div class="chat-box-window"></div>
-            <div class="chat-box-emoj"></div>
+            <div class="chat-box-window">window</div>
+            <div class="chat-box-emoj">
+{#                <span class="glyphicon glyphicon-picture"></span>#}
+                <input type="file" class="glyphicon-upload glyphicon" style="width: 15px;height: 15px;margin: 4px;">
+            </div>
             <div class="chat-box-msg-box">
                 <textarea id="msg">输入框</textarea>
                 <button class="btn btn-success">发送</button>
@@ -97,12 +110,12 @@
 
         $('button').click(function () {
             var msg_text = $('textarea').val();
-                if ($.trim(msg_text).length > 0) {
-                    {#console.log(msg_text);#}
-                    SendMsg(msg_text);
-                }
-                AddSentMsgIntoBox(msg_text);
-                $('textarea').val('');
+            if ($.trim(msg_text).length > 0) {
+                {#console.log(msg_text);#}
+                SendMsg(msg_text);
+            }
+            AddSentMsgIntoBox(msg_text);
+            $('textarea').val('');
         });
 
         function SendMsg(msg_text) {
@@ -111,6 +124,7 @@
             if (content_id && content_type) {
                 var msg_item = {
                     'from': '{{ request.user.userprofile.id }}',
+                    'from_name':'{{ request.user.userprofile.name }}',
                     'to': content_id,
                     'type': content_type,
                     'msg': msg_text,
@@ -129,30 +143,79 @@
             }
 
         }
-        
+
         function GetNewMsgs() {
             $.getJSON(
                 "{% url 'get_new_msg' %}",
                 function (callback) {
                     console.log(callback);
+                    ParseNewMsgs(callback);
                     GetNewMsgs();       //异步回调函数，这个和python不一样，python会有最大层数限制，这个不会
                 }
             )
-            
+
         }
+
         GetNewMsgs();
-/***
-        var Msgupdate=setInterval(function () {
+
+        //解析新消息
+        function ParseNewMsgs(callback) {
+            var current_session_id = $('.chat-box-title').attr('contact-id');
+            var current_session_type = $('.chat-box-title').attr('contact-type');
+            for (var index in callback) {
+                console.log(index);
+                console.log(callback[index].from);
+                if(callback[index].type=='group'){
+                    msg_from_contact_id=callback[index].to
+                }else {
+                    msg_from_contact_id=callback[index].from
+                }
+                    msg_from_contact_name=callback[index].from_name
+                if (msg_from_contact_id == current_session_id && callback[index].type == current_session_type) {   //发送的消息是给当前用户的
+                    var msg_item_ele = "<div class='msg-item'>" +
+                        "<span>" + msg_from_contact_name + "</span>" +
+                        "<span>" + callback[index].timestamp + "</span>" +
+                        "<div class='msg-text'>" + callback[index].msg + "</div>" +
+                        "</div>"
+                    $('.chat-box-window').append(msg_item_ele);
+                } else {
+                    /*
+                    //此消息未打开聊天框，消息暂存内存
+                    //var GLOBAL_CHAT_RECORD_DIC={};
+                    if (GLOBAL_CHAT_RECORD_DIC[callback[index].type][msg_from_contact_id]){
+                        GLOBAL_CHAT_RECORD_DIC[callback[index].type][msg_from_contact_id]+=msg_item_ele
+                    }else {
+                        GLOBAL_CHAT_RECORD_DIC[callback[index].type][msg_from_contact_id]=msg_item_ele
+                    }
+                    console.log(GLOBAL_CHAT_RECORD_DIC);
+
+                     */
+
+                    //var contact_ele=$(".list-group li[contact-type='single']").filter("[contact-id='4']").children(".badge").text();
+                    //$(".list-group li[contact-type='"+ [callback[index].type] +"']").filter("[contact-id='"+ [msg_from_contact_id] +"']").children(".badge").text();
+                    //获取到当前选定标签下的span标签
+                    var find_msg_num_span = $(".list-group li[contact-type='" + [callback[index].type] + "']").filter("[contact-id='" + [msg_from_contact_id] + "']").children(".badge");
+                    var current_new_msg_num = find_msg_num_span.text();
+                    find_msg_num_span.removeClass('hide');
+                    find_msg_num_span.text(parseInt(current_new_msg_num) + 1);
+                }
+
+            }
+
+        }
+
+        /***
+         var Msgupdate=setInterval(function () {
             GetNewMsgs();
         },3000);
-***/
+         ***/
         function AddSentMsgIntoBox(msg_text) {
 
             var new_msg_ele = "<div class='msg-item'>" +
                 "<span>" + "{{ request.user.userprofile.name }}" + "</span>" +
                 "<span>" + new Date().toLocaleTimeString() + "</span>" +
                 "<div class='msg-text'>" + msg_text + "</div>" +
-                "</div>"
+                "</div>";
             $(".chat-box-window").append(new_msg_ele);
             //获取窗口的高度，并自动滚动到最下方
             // scrollTop 设置偏移值,定位到坐标位置，scrollHeight获取高度，animate改变div元素的高度，可用于制作动画
@@ -174,6 +237,9 @@
             $('.chat-box-title').html(chat_box_title_content);
             $('.chat-box-title').attr('contact-id', contact_id);
             $('.chat-box-title').attr('contact-type', contact_type);
+            //点击后隐藏并清空消息计数
+            $(ele).children('.badge').addClass('hide');
+            $(ele).children('.badge').text(0);
         } //end OpenChatWindow
     </script>
 {% endblock %}

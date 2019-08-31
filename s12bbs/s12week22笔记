@@ -1,0 +1,32 @@
+前端相关
+    注意用jquery取对象时，双引号和单引号有区别
+    在前端取对象时，应该用$(“”)，不要用’’
+    比如如下HTML：
+        <ul class="list-group">
+
+                <li contact-type="single" contact-id="4" onclick="OpenChatWindow(this)" class="list-group-item">
+                    <span class="badge">14</span>
+                    <span class="contact-name">猫咪</span>
+                </li>
+
+                <li contact-type="single" contact-id="5" onclick="OpenChatWindow(this)" class="list-group-item">
+                    <span class="badge">14</span>
+                    <span class="contact-name">狗</span>
+                </li>
+
+                <li contact-type="single" contact-id="6" onclick="OpenChatWindow(this)" class="list-group-item">
+                    <span class="badge">14</span>
+                    <span class="contact-name">小罗</span>
+                </li>
+
+        </ul>
+    双引号可取到值
+        $(".list-group li[contact-type='single']")
+    单引号取不到值
+        $('.list-group li[contact-typ="single"]')
+
+    filter可以实现过滤筛选功能
+        找到class=list-group下的li下的contact-type='single'的标签，并过滤出contact-id=4的标签，再找到下面的class='badge'的子标签，获取标签中件的内容。
+        $(".list-group li[contact-type='single']").filter("[contact-id='4']").children(".badge").text()
+
+
