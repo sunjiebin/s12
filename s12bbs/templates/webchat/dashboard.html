@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block page-container %}
+    <div class="chat-container">
+        <div class="left-contact-panel">
+            <ul class="nav nav-pills">
+                <li role="presentation" class="active"><a href="#contact-tab" data-toggle="tab">好友</a></li>
+                <li role="presentation"><a href="#group-tab" data-toggle="tab">群主</a></li>
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="contact-tab">
+                    <ul class="list-group">
+                        {% for friend in request.user.userprofile.friends.select_related %}
+                            <li contact-type="single" contact-id='{{ friend.id }}' onclick="OpenChatWindow(this)"
+                                class="list-group-item">
+                                <span class="badge">14</span>
+                                <span class="contact-name">{{ friend.name }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="group-tab">group</div>
+            </div>
+
+        </div>
+        <div class="right-chat-panel">
+            <div class="chat-box-title" contact-type="" contact-id="">
+                title
+            </div>
+            <div class="chat-box-window"></div>
+            <div class="chat-box-emoj"></div>
+            <div class="chat-box-msg-box">
+                <textarea id="msg">输入框</textarea>
+                <button class="btn btn-success">发送</button>
+            </div>
+        </div>
+        {# clear-both用于将外边框撑起来，否则最外层的dev就无法撑起来了#}
+        <div class="clear-both"></div>
+    </div>
+{% endblock %}
+
+{% block script-container %}
+    <script>
+        // start csrf
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        var csrftoken = getCookie('csrftoken');
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+        //end csrf
+
+        $(document).ready(function () {
+            //设置导航条聊天室高亮
+            $('#navbar .nav li a[href="{{ request.path }}"]').parent().addClass('active')
+        });
+
+        //send message
+        //delegate定义
+        $('body').delegate('textarea', 'keydown', function (e) {
+            //console.log(e.which);
+            if (e.which == 13) {
+                var msg_text = $('textarea').val();
+                if ($.trim(msg_text).length > 0) {
+                    {#console.log(msg_text);#}
+                    SendMsg(msg_text);
+                }
+                AddSentMsgIntoBox(msg_text);
+                $('textarea').val('');
+            }
+
+        });
+
+        $('button').click(function () {
+            var msg_text = $('textarea').val();
+                if ($.trim(msg_text).length > 0) {
+                    {#console.log(msg_text);#}
+                    SendMsg(msg_text);
+                }
+                AddSentMsgIntoBox(msg_text);
+                $('textarea').val('');
+        });
+
+        function SendMsg(msg_text) {
+            var content_type = $('.chat-box-title').attr('contact-type');
+            var content_id = $('.chat-box-title').attr('contact-id');
+            if (content_id && content_type) {
+                var msg_item = {
+                    'from': '{{ request.user.userprofile.id }}',
+                    'to': content_id,
+                    'type': content_type,
+                    'msg': msg_text,
+                };
+                $.post(
+                    "{% url 'send_msg' %}",
+                    {data: JSON.stringify(msg_item)},   //注意这里要JSON.stringfy序列化成字符串，不然后端取不到数据。
+                    //下面的data:msg_item，传到后端取不到数据的，返回None
+                    {#{data: msg_item},#}
+                    function (callback) {
+                        console.log(callback)
+                    }
+                ) //end port
+            } else {
+                console.log('请选择聊天对象');
+            }
+
+        }
+        
+        function GetNewMsgs() {
+            $.getJSON(
+                "{% url 'get_new_msg' %}",
+                function (callback) {
+                    console.log(callback);
+                    GetNewMsgs();       //异步回调函数，这个和python不一样，python会有最大层数限制，这个不会
+                }
+            )
+            
+        }
+        GetNewMsgs();
+/***
+        var Msgupdate=setInterval(function () {
+            GetNewMsgs();
+        },3000);
+***/
+        function AddSentMsgIntoBox(msg_text) {
+
+            var new_msg_ele = "<div class='msg-item'>" +
+                "<span>" + "{{ request.user.userprofile.name }}" + "</span>" +
+                "<span>" + new Date().toLocaleTimeString() + "</span>" +
+                "<div class='msg-text'>" + msg_text + "</div>" +
+                "</div>"
+            $(".chat-box-window").append(new_msg_ele);
+            //获取窗口的高度，并自动滚动到最下方
+            // scrollTop 设置偏移值,定位到坐标位置，scrollHeight获取高度，animate改变div元素的高度，可用于制作动画
+            $('.chat-box-window').animate({
+                scrollTop: $('.chat-box-window')[0].scrollHeight
+            }, 500)
+        };
+
+        //选择聊天对象后高亮，并修改聊天框标题里面的人名
+        function OpenChatWindow(ele) {
+            console.log($(ele).children('.contact-name').html());
+            $(ele).addClass('active');
+            $(ele).siblings().removeClass('active');
+            var contact_type = $(ele).attr('contact-type');
+            var contact_id = $(ele).attr('contact-id');
+            var contact_name = $(ele).children('.contact-name').text();
+            var chat_box_title_content = '正在跟 ' + contact_name + ' 聊天';
+            console.log(contact_id, contact_type, contact_name);
+            $('.chat-box-title').html(chat_box_title_content);
+            $('.chat-box-title').attr('contact-id', contact_id);
+            $('.chat-box-title').attr('contact-type', contact_type);
+        } //end OpenChatWindow
+    </script>
+{% endblock %}

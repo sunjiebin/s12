@@ -22,4 +22,5 @@ urlpatterns = [
     path('bbs/',include('bbs.urls')),
     path('login/',views.acc_login,name='login'),
     path('logout/',views.acc_logout,name='logout'),
+    path('webchat/',include('webchat.urls')),
 ]

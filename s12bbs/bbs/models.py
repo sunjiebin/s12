@@ -44,7 +44,7 @@ class Article(models.Model):
             self.pub_date = datetime.date.today()
 
 class Comment(models.Model):
-    article=models.ForeignKey(Article,on_delete=models.CASCADE,verbose_name='所属文章')
+    article=models.ForeignKey(Article,on_delete=models.CASCADE,verbose_name='所属文章',related_name='my_comment')
     #回复评论，外键关联自己，表示和这一列里面的其它行数据关联。related_name代表让这一行可以通过my_children来反查下级关联。
     parent_comment=models.ForeignKey('self',on_delete=models.CASCADE,related_name='my_children',blank=True,null=True,verbose_name='父级评论')
     comment_choice=(
@@ -89,6 +89,6 @@ class UserProfile(models.Model):
     name=models.CharField(max_length=32)
     signature=models.CharField(max_length=255,blank=True,null=True) #blank=True表示用户可以不填写这个字段，null=True表示允许数据库存储空字段。
     head_img=models.ImageField(height_field=150,width_field=150,blank=True,null=True)
-
+    friends=models.ManyToManyField('self',related_name='my_friends',blank=True,null=True)
     def __str__(self):
         return self.name

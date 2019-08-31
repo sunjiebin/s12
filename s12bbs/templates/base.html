@@ -60,6 +60,7 @@
                             <li><a href="/bbs/category/{{ category.id }}">{{ category.name }}</a></li>
                         {% endif %}
                     {% endfor %}
+                    <li><a href="/webchat/">聊天室</a> </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     {% if request.user.is_authenticated %}

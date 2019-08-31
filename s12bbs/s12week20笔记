@@ -62,10 +62,10 @@ __str__函数用于设置这个类的返回值，默认返回的是这个对象�
         return self.name
 
 
-clean方法用于在后台django校验，当写了这个方法后，插入表数据时会先执行这个方法来校验。
+clean方法用于在后台django校验，当写了这个方法后，插入表数据时会先执行这个方法来校验。校验通过后，才能插入数据。
 下面的方法要求我们在帖子评论为空时，在admin后台会返回一个“评论不能为空”的错误。
     def clean(self):
-         #这里用 self.comment == is None是错误的，当我们没有写评论时的值应该时''，而不是None。所以要用len来判断长度才对
+         #这里用 self.comment == is None是错误的，当我们没有写评论时提交到后台的值应该是''，而不是None。所以要用len来判断长度才对
         if self.comment_type==1 and len(self.comment)==0:
             raise ValidationError('评论不能为空')
 django 认证
@@ -79,14 +79,15 @@ django 认证
         login(request,user)
     logout用于退出登录
         logout(request)
-    is_authenticated() 判断是否认证成功
-    在views视图验证
-        def my_view(request):
-            if not request.user.is_authenticated():
-            return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
 
-    在前端html里面验证
-        {% if request.user.is_authenticated %}
+    is_authenticated() 判断是否认证成功
+        在views视图验证
+            def my_view(request):
+                if not request.user.is_authenticated():
+                return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
+        在前端html里面验证
+            {% if request.user.is_authenticated %}
+
     在前端通过django自带的user表关联查询到userprofile表里面的name字段
     如果要通过user反查到userprofile表，首先在models里面定义userprofile表时，要添加OneToOneField字段，将user表与之一对一的关联。
     models.py
@@ -131,6 +132,15 @@ django 认证
         comment表外键关联了article表。所以article表可以通过“关联表名_set"的方式反查关联表。
         select_related.count 反查与article该篇文章相关联的所有评论的总数（这里点赞也算在了里面）
         {{ article.comment_set.select_related.count }}
+        如果我们建表时用的是OneToOneField,那么就不需要用__set，就像查询本表一样直接查询就行了。
+        models
+            class UserProfile(models.Model):
+                user = models.OneToOneField(User,on_delete=models.CASCADE)
+                friends=models.ManyToManyField('self',related_name='my_friends',blank=True,null=True)
+        html
+            注意这里的request.user不是UserProfile里面的user字段，而是django后台的user表。
+            {% for friend in request.user.userprofile.friends.select_related %}
+
         html里面没法用filter去过滤输出,下面的写法在html里面是错误的！
         {{ article.comment_set.select_related.filter(comment_type=1).count }}       <--HTML模板并不支持这个写法
 
@@ -143,6 +153,18 @@ django 认证
           article_obj=models.Article.objects.get(id=article_id)
          comment_set中的comment代表comment表，_set代表对这个表反查。select_related()代表查询出于article_obj相关的comment表的数据
          article_obj.comment_set.select_related()
+         注意：
+            当定义的外键关联字段里面有related_name时，comment_set就会失效，取而代之的是里面的值my_comment
+         例如：
+         Models:
+             class Comment(models.Model):
+                article=models.ForeignKey(Article,on_delete=models.CASCADE,verbose_name='所属文章',related_name='my_comment')
+         views:
+            def get_comments(request,article_id):
+                article_obj=models.Article.objects.filter(id=article_id)[0]
+                comment_related=list(article_obj.my_comment.select_related())
+         如果还是用article_obj.comment_set.select_related(),则会报错如下：
+         AttributeError: 'Article' object has no attribute 'comment_set'
 
     filter过滤输出
         通过上面的方法可以查到所有与该篇文章相关联的评论总数，但是没法区分点赞和评论。可以用下面函数过滤的方法来实现。
@@ -167,7 +189,7 @@ django 认证
         支持多行文本的表单控件。可根据需要改变 rows 属性。（全局css样式-->表单-->被支持的控件-->文本域)
         <textarea class="form-control" rows="3"></textarea>
 
-    csrc_tocken
+csrc_tocken
         前端通过这个函数会生成一个input标签。{% csrf_token %}
         <input type="hidden" name="csrfmiddlewaretoken" value="ZZfqgmDjdIhHQw6iONzGcuYu5tsHVRfPeuEpICUdFZDeoiBOncqbakD0EGmZUamY">
         可以通过jquery获得这个input标签里面的value
@@ -178,7 +200,54 @@ django 认证
         执行getcsrf()将返回csrftoken的值。
         在post中，转递这个csrf键值对给服务器即可通过验证。
         注意name名称csrfmiddlewaretoken不能错。
-         csrfmiddlewaretoken:getcsrf(),
+                      $.post(
+                        "{% url 'post_comment' %}",
+                        {
+                            comment_type: 1,
+                            article_id: '{{ article_obj.id }}',
+                            parent_comment_id: parent_comment_id,
+                            comment: comment_text.trim(),
+                            csrfmiddlewaretoken: getcsrf(),
+                        },
+                        funciton(callback){
+                        })
+
+        上面的方法要在页面里面每一个post里面都加上csrfmiddlewaretoken: getcsrf()代码，如果post太多了很不方便。
+        下面的方法是官方提供的自动给页面所有的ajax提交添加csrf认证的方法，这样页面里面的post就不用再加自动。
+        因为在ajax调用时之前就已经加上了csrf验证了。
+        参考：https://docs.djangoproject.com/en/2.1/ref/csrf/
+        // start csrf
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            var csrftoken = getCookie('csrftoken');
+
+            function csrfSafeMethod(method) {
+                // these HTTP methods do not require CSRF protection
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
+
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+        //end csrf
 
     跳转带上参数路径
         {{ request.path_info }} 获取当前页面的url路径
@@ -227,12 +296,76 @@ django 认证
             re_path('get_comments/(\d+)',views.get_comments,name='get_comments'),
             {% url 'get_comments' article_obj.id %}
 
-        static静态路径也可以这么写
+        static静态路径也可以这么写  static的路径是在settings.py里面定义好了的路径。
             在html中：
             {% load  custom static %}
             {% truncate_url article_obj.head_img.url as imgpath %}
             <img class="article-detail-head-img" src="{% static imgpath %}"/>
+    样式相关
+        当我们定义了float，让div飘起来后，需要在其后定义一个clear来清除浮动，否则其后的标签都会跑到上面去，因为前面的标签浮起来了。
+        同时，div最外层的样式也才能撑起来，否则外面的div无法撑开。
+        <div class="clear-both"></div>
 
+        role标签是用来给阅读障碍的人用的，提供给辅助阅读工具来识别标签。
+             <div role="checkbox" aria-checked="checked"></div>
+            辅助工具就会知道，这个div实际上是个checkbox的角色，为选中状态。
+
+        标签页，点击不同标签，下面列表页跳到不同的div
+        data-toggle="tab" 加上这个属性后，就能实现将相关联的标签切换了。
+            <ul class="nav nav-pills">
+                <li role="presentation" class="active"><a href="#contact-tab" data-toggle="tab">好友</a></li>
+                <li role="presentation"><a href="#group-tab" data-toggle="tab">群主</a></li>
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="contact-tab">contact</div>
+                <div role="tabpanel" class="tab-pane" id="group-tab">group</div>
+            </div>
+
+    注意.val()和.text()的区别
+        val()是获取标签对象里面的内容.如果标签里面有value='aaa'，则可以获取到aaa.如果时textarea文本框，可以获取到文本框输入的内容。
+        text()是获取标签之间的文本内容，而不是对象里面的内容。比如<a>xxx</a>将获取到xxx。。
+        所以当我们在下面的文本框输入内容时，内容是写在textarea对象里面的，而不是写在<textarea></textarea>两个标签之间的，所以text是获取不到的。
+         <textarea class="form-control" rows="4"></textarea>
+        $('.form-control').val()   这个是获取文本里面输入的内容
+        $('.form-control').text()  这是获取不到的
+        对于下面的span标签,text才能获取到“小罗”，val()获取不到值
+        <span class="contact-name">小罗</span>
+    几个js方法的用法
+        delegate()
+        delegate() 方法为指定的元素（属于被选元素的子元素）添加一个或多个事件处理程序，并规定当这些事件发生时运行的函数
+        如下代码为body页面里面的textarea文本框添加事件处理程序。附加到textarea元素的事件为keydown，当keydown事件发生时，执行function函数。
+        $('body').delegate('textarea', 'keydown', function (e) {xxx}
+        keydown/keyup
+        keydown 当键盘被按下的时候，就会触发keydown事件。keyup 当按键松开的时候，就会触发Keyup事件
+        keydown一般和which一起使用
+        which
+        which 属性指示按了哪个键或按钮。和keydown一起，就能够做到按下指定的键就触发事件。
+        每个按键都有一个编号，用which就能够获得对应的按键的编号。比如Enter键的编号就是13.
+
+        看下面的示例：
+        在body里面对textarea绑定keydown按键事件，当按下enter(3.which==13)键时，触发下面的函数。
+        $('body').delegate('textarea', 'keydown', function (e) {
+            //console.log(e.which);
+            if (e.which == 13) {
+                var msg_text = $('textarea').val();
+                if ($.trim(msg_text).length > 0) {
+                    console.log(msg_text);
+
+                }
+                AddSentMsgIntoBox(msg_text);
+                $('textarea').val('');
+            }
+        });
+
+        animate用于动态改变元素，让元素动起来。可用于制作动画
+        scrollTop 设置偏移值,定位到坐标位置
+        scrollHeight获取高度
+        看示例：
+        下面的示例找到chat-box-window的元素，然后通过scorllHeight获取到元素的高度。获取到高度后，通过scrollTop定位到获取的高度。
+        再通过animate将这个过程变成动画，实时的定位到最新的高度。实现页面上实时显示聊天框最下面的新消息
+            $('.chat-box-window').animate({
+                scrollTop: $('.chat-box-window')[0].scrollHeight
+            }, 500)
 
 django静态页面STATIC_URL
     定义URL映射
@@ -249,7 +382,8 @@ django静态页面STATIC_URL
     那现在的问题是如何让django知道你把一些静态文件放到app以外的公共文件夹中呢，那就需要配置STATICFILES_DIRS了
 
     在static标签中引用文件时有两个查找路径：1、app下的static。2、工程下的commen_static（STATICFILES_DIRS） 。
-    STATICFILES_DIRS告诉django,首先到STATICFILES_DIRS里面寻找静态文件,其次再到各个app的static文件夹里面找(注意，django查找静态文件是惰性查找，查找到第一个，就停止查找了)
+    STATICFILES_DIRS告诉django,首先到STATICFILES_DIRS里面寻找静态文件,其次再到各个app的static文件夹里面找
+    注意，django查找静态文件是惰性查找，查找到第一个，就停止查找了,所以，如果在STATICFILES_DIRS里面和app的static里面有同名文件，那么会取STATICFILES_DIRS下的文件。
 
     可以同时定义多个目录，如果有同名文件，依照惰性查找规则，找到第一个就不管后面是否还有同名的文件了
     STATICFILES_DIRS=(
@@ -282,7 +416,9 @@ views
             backurl=request.GET.get('next')
             return HttpResponseRedirect(backurl or'/bbs')
 
-    注意：当我返回的是一个html时，是不需要json.dumps的。多此一举。如果用了json.dumps传给前端，那么前端必须要用JSON.parse()来解析出来。
+    注意：当我返回的本身就是一个html时，是不需要json.dumps的，因为html本来就是前端语言，能被前端解析，用json.dumps一般用在将python格式的
+    字典等数据传给前端时，前端不认python格式的数据，这时候才用到json.dumps将其转换为字符串。
+    如果用了json.dumps传给前端，那么前端必须要用JSON.parse()来解析出来，将其转换为前端的html对象。
     否则，当我们传递给前端的html中有中文时，前端中文显示就会变成 \u5f53\u7136OK\u4e86\uff01。
     因为json.dumps默认对中文用的ascii码，所以中文显示出来会是十六进制的ASCII码。可以用json.dumps(comment_tree,ensure_ascii=False)来让
     中文正确显示。
@@ -342,7 +478,7 @@ views
                     $('.click-comment').click(function () {
                         var id = $(this).attr('comment-id');
                         console.log(id);
-                    })
+                    })；
                 }
             )
         }
@@ -476,7 +612,7 @@ ModelForm
     https://docs.djangoproject.com/en/2.1/
     https://docs.djangoproject.com/en/2.1/topics/http/file-uploads/
 
-登录验证
+登录验证url跳转地址
     登录的url可以在settings里面直接指定全局的，也可以在这里指定特定的url.
     比如login_url='/bbs/login'将会自动跳转到/bbs/login.如果不指定，那么就用settings里面设置的LOGIN_URL地址
     方式1
@@ -494,7 +630,12 @@ ModelForm
     注意 reversed 不要写错了，否则就报错 'for' statements should use the format 'for x in y': for article in article_list reverse
     {% for article in article_list reversed %}
 
-JSON.dumps用法解析
+json.dumps() json.loads()是python里面的写法。
+json.dumps() 将字典形式的数据转换为字符串，即序列化。一般跨平台跨语言的数据传递，用json.dumps()将其转换为大家公认的json格式。
+            使用场景：views函数生成的字典传递给前端接收需要json.dumps，以实现python到js跨语言的数据传递。
+json.loads() 将字符串格式的字典转换为字典，即反序列化。从别的语言或接口获取到的数据，一般用json.loads()将其转换为python识别的格式。
+            使用场景：获取aliyun api接口的数据后，就需要json.loads来将传过来的数据转换为字典。前端js传递的数据被stringify为字符串也需要转换为字典。
+json.dump() 和 json.load() 来编码和解码JSON数据,用于处理文件。而不是处理字符串。json.dump()用于将数据以json格式写入文件。json.load()用于读取json文件。
     print(data)
     [{'c': 'C', 'b': (1, 6), 'a': 'A'}]
 
@@ -516,11 +657,18 @@ JSON.dumps用法解析
     print(json.dumps('中国',ensure_ascii=False))
     "中国"
 
+JSON.stringify() JSON.parse()是js语言的写法。作用和前面的json.dumps,json.loads类似
+JSON.stringify(msg_item)
+    JSON.stringify() 方法是将一个JavaScript值(对象或者数组)转换为一个 JSON字符串，
+    如果指定了replacer是一个函数，则可以选择性的替换值，或者如果指定了replacer是一个数组，可选择性的仅包含数组指定的属性。
+JSON.parse()
+    将字符串解析为js格式的数据。
+
 注意前端获取到的值
     通过[0]获取到的是一个标签，对于标签我们是不能attr()的，因为attr()是jquery对象的功能，标签是没有这个功能的。
     只不过我们可以用$()来将标签转换为jquery对象，再就可以attr了
     错误写法
-        $('.wrap-left').children('.article-box')[1].attr('id')
+        $('.wrap-left').children('.article-box')[0].attr('id')
     正确写法
         $($('.wrap-left').children('.article-box')[0]).attr('id')
     或者直接用first()，得到的也是一个jquery对象
@@ -528,6 +676,53 @@ JSON.dumps用法解析
     但是first()只能拿到子节点第一个对象，如果我们要拿第二个，第三个等就不行了。这时候还是的用上面的方法。
     拿第二个子节点对象里面的id属性
         $($('.wrap-left').children('.article-box')[1]).attr('id')
+
+
+    注意前端要通过JSON.stringify将html对象转换为了字符串，这样才能传给后端，否则后端收不到
+
+    html:
+        $.post(
+        "{% url 'send_msg' %}",
+        {data: JSON.stringify(msg_item)},   //注意这里要JSON.stringfy序列化成字符串，不然后端取不到数据。
+        //下面的data:msg_item，传到后端取不到数据的，返回None
+        {#{data: msg_item},#}
+        function (callback) {
+            console.log(callback)
+        }
+    后端收到后，需要json.loads将传过来的字符串再解析成字典。
+    前端传过来的都是字符串形式的值，msg_data['to']得到的是字符串格式的id，数据库拿到的又是整数的id，所以需要Int转换成一致
+    views:
+        msg_data=request.POST.get('data')
+        msg_data=json.loads(msg_data)       #json.loads将字符串转换为字典，但字典里面的id已经是字符串。
+        user_id=int(msg_data['to'])         #这里要把字典里面的id转换成整数，这样才能和数据库里面拿到的id相等
+        request.user.userprofile.id         #这里拿到的Id是数据库返回的，是整数
+
+    异步回调函数
+        通过自己调用自己，来实现不停的无限循环。
+        这个和python的递归不一样，递归是一直进入，直到最里层再一步步从内而外的退出。这个最多999层。
+        js里面这种回调不会这样，当进入到新的函数时，上一个函数会自动退出，所以函数始终还是一个，不会越来越多层导致卡死。
+    html:
+        function GetNewMsgs() {
+            $.getJSON(
+                "{% url 'get_new_msg' %}",
+                function (callback) {
+                    console.log(callback);
+                    GetNewMsgs();       //异步回调函数，这个和python不一样，python会有最大层数限制，这个不会
+                }
+            )
+        }
+    下面的views配合上面的回调函数。当没有消息时，队列挂起，等待60s，直到超时。有消息就立刻插入到msg_list里面，并返回函数。
+    当函数返回后，前端的GetNewMsgs()的funcation就会得到返回值，从而执行function(callback){}函数，进入下一次的循环。
+    如果没有消息，那么就会等待60s，这60s内，前端function由于没有得到返回值，所以function(callback)函数也就不会执行。GetNewMsgs挂起状态。
+    60s过后，que_obj.get抛出超时异常，函数继续向下执行retrun返回。这时function(callback)获取到返回数据，打印console.log后，执行GetNewMsgs()进入下一轮循环。
+    所以，这个html和views结合的效果就是，如果queue队列有消息，立马console.log打印消息，如果没有消息，每60s执行一次console.log打印消息.
+    views:
+        try:
+            # 设置超时60s，60s内如果有内容进来就append，没有就挂起等待60s直到抛出超时异常。
+            msg_list.append(que_obj.get(timeout=60))
+        except queue.Empty:
+            print('等待超时了')
+        return HttpResponse(json.dumps(msg_list))
 
 一个困扰很久的错误解决
 这个问题告诉我们，匹配标签的时候一定不要出错，否则后果很严重！
@@ -551,20 +746,6 @@ JSON.dumps用法解析
                     console.log(comment_text);
 
     错误示例：
-    下面的示例会导致无法获取到comment_text数据，console.log(comment-text)返回undefinde，而console.log(comment_text.trim())则会直接报错，
-    因为comment_text没有值，不能直接trim().
-    trim()报错如下：
-        Uncaught TypeError: Cannot read property 'trim' of undefined
-            at HTMLButtonElement.<anonymous> (3:177)
-            at HTMLButtonElement.dispatch (jquery-2.1.4.js:4435)
-            at HTMLButtonElement.elemData.handle (jquery-2.1.4.js:4121)
-
-    原因：
-        clone的是comment-area区域，而下面获取标签绑定的是comment-box下面的button，且获取的val也是comment-box下的button
-        而我们clone时，并没有把comment-box复制过来，而只是复制了comment-box下面的comment-area标签，就导致了标签没有comment-box，
-        从而无法触发comment-box下的button触发的事件，也无法获取到comment-area下的textarea的值。
-        但是comment-area下的button还是可以点击的，因为这是一个button固有的属性。但是无法触发事件。
-
         clone上面的标签
                 var comment_div=$(".comment-area").clone(true);
                 $('.comment-area').remove();
@@ -573,3 +754,17 @@ JSON.dumps用法解析
             $('.comment-box button').click(function () {
                     var comment_text = $('.comment-box textarea').val();
                     console.log(comment_text.trim());
+
+    上面的示例会导致无法获取到comment_text数据，console.log(comment-text)返回undefinde，而console.log(comment_text.trim())则会直接报错，
+    因为comment_text没有值，不能直接trim().
+    trim()报错如下：
+        Uncaught TypeError: Cannot read property 'trim' of undefined
+            at HTMLButtonElement.<anonymous> (3:177)
+            at HTMLButtonElement.dispatch (jquery-2.1.4.js:4435)
+
+    原因：
+        clone的是comment-area区域，而下面获取标签绑定的是comment-box下面的button，且获取的val也是comment-box下的button
+        而我们clone时，并没有把comment-box复制过来，而只是复制了comment-box下面的comment-area标签，就导致了标签没有comment-box，
+        从而无法触发comment-box下的button触发的事件，也无法获取到comment-area下的textarea的值。
+        但是comment-area下的button还是可以点击的，因为这是一个button固有的属性。但是无法触发事件。
+
