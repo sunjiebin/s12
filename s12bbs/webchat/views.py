@@ -1,8 +1,8 @@
 from django.shortcuts import render,HttpResponse
 from django.contrib.auth.decorators import login_required
 from webchat import models
-import json
-import time, queue
+import json,time,queue,os
+from django.core.cache import cache
 # Create your views here.
 
 @login_required()
@@ -60,3 +60,63 @@ def get_new_msg(request):
         except queue.Empty:
             print('等待超时了')
     return HttpResponse(json.dumps(msg_list))   #返回时需要json.dumps将其转换为字符串
+
+
+
+def file_upload(request):
+    print(request.POST,request.FILES)
+    recv_size=0
+    file_obj=request.FILES.get('file')  #这里的file是前端fromData.append里面定义的file，file_obj是一个对象，不是文件名称
+    user_home_dir=f'uploads/{request.user.userprofile.id}'
+    if not os.path.isdir(user_home_dir):
+        os.mkdir(user_home_dir)
+
+    new_file_name='%s/%s'%(user_home_dir,file_obj.name)
+    print('文件路径为：',new_file_name)
+    with open(f'{new_file_name}','wb+') as destination:
+        for chunk in file_obj.chunks():
+            destination.write(chunk)
+            recv_size+=len(chunk)
+            cache.set(file_obj.name,recv_size)
+
+    return HttpResponse('文件上传成功')
+
+# 课上该段视频缺失，没有跑通改用其他方法实现
+
+# def delete_cache_key(request):
+#     cache_key=request.GET.get('key_name')
+#     cache.delete(cache_key)
+#     return HttpResponse(f'缓存{cache_key}被删除')
+
+# def file_upload_progress(request):
+#     print(request.GET.get('filename'))
+#     filename=request.GET.get('filename')
+#     recv_size=cache.get(filename)
+#     print('文件大小为',recv_size)
+#     dict={}
+#     dict['recv_size']=recv_size
+#     dict['filename']=filename
+#     return HttpResponse(json.dumps(dict))
+
+'''
+下面时上传显示进度条的方法
+from django.views.generic import View
+class UploadPage(View):
+    def get(self, request):
+        return render(request,'webchat/upload.html')
+
+
+class Upload(View):
+    def post(self, request):
+        file = request.FILES['file']
+        self.handle_uploaded_file(file)
+        return HttpResponse('文件上传成功')
+
+    def handle_uploaded_file(self, f):
+        print(f.name)
+        with open(f'uploads/{f.name}', 'wb+') as destination:
+            for chunk in f.chunks():
+                destination.write(chunk)
+'''
+
+

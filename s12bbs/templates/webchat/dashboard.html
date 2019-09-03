@@ -36,14 +36,32 @@
         <div class="right-chat-panel">
             <div class="chat-box-title" contact-type="" contact-id="">
                 title
+
             </div>
-            <div class="chat-box-window">window</div>
+
+
+            <div class="chat-box-window">
+                <div id='1' class="progress-bar hide" style="height:20px;width:100%;float: left;">
+                    <div id='2' class="progress-bar-success" style="height:100%;width:0px;float:left;"></div>
+                    <span style="float:right;" id='3'>0%</span>
+                </div>
+                <div id='4' class="progress-bar-success" style="height:20px;width:100%;float:left;text-align: center;display: none">上传成功</div>
+            </div>
+
             <div class="chat-box-emoj">
-{#                <span class="glyphicon glyphicon-picture"></span>#}
-                <input type="file" class="glyphicon-upload glyphicon" style="width: 15px;height: 15px;margin: 4px;">
+                {#                <span class="glyphicon glyphicon-picture"></span>#}
+                <div class="col-md-3" style="width: 10px">
+                    <input type="file" id='file_test' class="glyphicon-upload glyphicon"
+                           style="width: 15px;height: 15px;margin: 4px;">
+                    {#                    <input type="file" id='file_test' class="file-upload" >#}
+                </div>
+                <div class="col-md-3">
+                    <span onclick="UploadFile();">上传</span>
+                </div>
+
             </div>
             <div class="chat-box-msg-box">
-                <textarea id="msg">输入框</textarea>
+                <textarea id="msg"></textarea>
                 <button class="btn btn-success">发送</button>
             </div>
         </div>
@@ -102,7 +120,7 @@
                     {#console.log(msg_text);#}
                     SendMsg(msg_text);
                 }
-                AddSentMsgIntoBox(msg_text);
+                AddSentMsgIntoBox(msg_text, 'text');
                 $('textarea').val('');
             }
 
@@ -114,7 +132,7 @@
                 {#console.log(msg_text);#}
                 SendMsg(msg_text);
             }
-            AddSentMsgIntoBox(msg_text);
+            AddSentMsgIntoBox(msg_text, 'text');
             $('textarea').val('');
         });
 
@@ -124,7 +142,7 @@
             if (content_id && content_type) {
                 var msg_item = {
                     'from': '{{ request.user.userprofile.id }}',
-                    'from_name':'{{ request.user.userprofile.name }}',
+                    'from_name': '{{ request.user.userprofile.name }}',
                     'to': content_id,
                     'type': content_type,
                     'msg': msg_text,
@@ -165,12 +183,12 @@
             for (var index in callback) {
                 console.log(index);
                 console.log(callback[index].from);
-                if(callback[index].type=='group'){
-                    msg_from_contact_id=callback[index].to
-                }else {
-                    msg_from_contact_id=callback[index].from
+                if (callback[index].type == 'group') {
+                    msg_from_contact_id = callback[index].to
+                } else {
+                    msg_from_contact_id = callback[index].from
                 }
-                    msg_from_contact_name=callback[index].from_name
+                msg_from_contact_name = callback[index].from_name;
                 if (msg_from_contact_id == current_session_id && callback[index].type == current_session_type) {   //发送的消息是给当前用户的
                     var msg_item_ele = "<div class='msg-item'>" +
                         "<span>" + msg_from_contact_name + "</span>" +
@@ -209,20 +227,35 @@
             GetNewMsgs();
         },3000);
          ***/
-        function AddSentMsgIntoBox(msg_text) {
 
-            var new_msg_ele = "<div class='msg-item'>" +
-                "<span>" + "{{ request.user.userprofile.name }}" + "</span>" +
-                "<span>" + new Date().toLocaleTimeString() + "</span>" +
-                "<div class='msg-text'>" + msg_text + "</div>" +
-                "</div>";
+        //将消息添加进聊天框
+        function AddSentMsgIntoBox(msg_text, msg_type) {
+            if (msg_type == 'text') {
+                var new_msg_ele = "<div class='msg-item'>" +
+                    "<span>" + "{{ request.user.userprofile.name }}" + "</span>" +
+                    "<span>" + new Date().toLocaleTimeString() + "</span>" +
+                    "<div class='msg-text'>" + msg_text + "</div>" +
+                    "</div>";
+            } else if (msg_type.startsWith('image')) {
+                var new_msg_ele = "<div class='msg-item'>" +
+                    "<span>" + "{{ request.user.userprofile.name }}" + "</span>" +
+                    "<span>" + new Date().toLocaleTimeString() + "</span>" +
+                    "<div class='msg-text'><img style='width:200px' src='/static/" + "{{ request.user.userprofile.id }}" + "/" + msg_text + "'/></div>" +
+                    "</div>";
+            } else {
+                var new_msg_ele = "<div class='msg-item'>" +
+                    "<span>" + "{{ request.user.userprofile.name }}" + "</span>" +
+                    "<span>" + new Date().toLocaleTimeString() + "</span>" +
+                    "<div class='msg-text'><a href='/static/" + "{{ request.user.userprofile.id }}" + "/" + msg_text + "' target='_blank'>"+ msg_text +"点击下载 </a></div>" +
+                    "</div>";
+            }
             $(".chat-box-window").append(new_msg_ele);
             //获取窗口的高度，并自动滚动到最下方
             // scrollTop 设置偏移值,定位到坐标位置，scrollHeight获取高度，animate改变div元素的高度，可用于制作动画
             $('.chat-box-window').animate({
                 scrollTop: $('.chat-box-window')[0].scrollHeight
-            }, 500)
-        };
+            }, 500);
+        }; //end AddSentMsgIntoBox
 
         //选择聊天对象后高亮，并修改聊天框标题里面的人名
         function OpenChatWindow(ele) {
@@ -241,5 +274,97 @@
             $(ele).children('.badge').addClass('hide');
             $(ele).children('.badge').text(0);
         } //end OpenChatWindow
+
+        //上传文件
+        function UploadFile() {
+            var formData = new FormData();        //创建一个FormData的函数，用于接收上传的文件
+            var file_obj=$('#file_test')[0].files[0];
+            console.log('上传的对象',file_obj);
+            formData.append('file', file_obj);    //获取上传的图片对象并追加到FormData，name名称file，
+            console.log('FormData对象',formData);     //拿不到值
+            $.ajax({
+                url: '{% url 'file_upload_webchat' %}',
+                type: 'POST',
+                data: formData,
+                processData: false,     //告诉jquery不要对数据进行处理
+                contentType: false,
+                xhr:function(){
+                    var xhr = new XMLHttpRequest();
+                    /*
+                    xhr对象含有一个upload对象，它有一个progress事件，在文件上传过程中会被不断触发，我们为这个事件对应一个处理函数on_progress，
+                    每当事件触发就会调用这个函数，于是便可利用这个函数来修改当前进度
+                    addEventListener 用于添加绑定的监听函数，当事件触发时，触发里面的函数
+                     */
+                    xhr.upload.addEventListener('progress', on_progress, false);
+                    return xhr;
+                },
+                success: function (data) {
+                    console.log(data);
+                    //当上传成功后的显示上传成功的提示，然后提示逐渐消失
+                    $('#1').addClass('hide');    //上传成功后，隐藏100%的进度条
+                    $('#4').css('display','block');     //展示“上传成功”提示的进度条
+                    $('#4').fadeOut(3000);      //让“上传成功”进度条3s内逐渐消失。注意这里的css样式要用display none，不要用hide，否则会出现第二次无法渐变消失的bug.
+                    AddSentMsgIntoBox(file_obj.name,file_obj.type);
+                }
+            });//end ajax
+            //upload(file_obj);
+        } //end UploadFile
+
+ /***
+ 这段没有跑通，改为用下面的upload()方法来实现了
+
+        function GetFileUploadProgress(file_obj) {
+            var UploadProgressRefresh = setInterval(function () {
+                $.getJSON(
+                   {#"{% url 'file_upload_progress' %}",#}
+                    {filename: file_obj.name},
+                    function (callback) {
+                        console.log('upload progress:' + callback.recv_size);
+                        if (file_obj.size >= callback.recv_size) {
+                            clearInterval(UploadProgressRefresh);
+                            $.get(
+                                {#"{% url 'delete_cache_key' %}",#}
+                                {key_name: file_obj.name},
+                                function (callback) {
+                                    console.log(callback);
+
+                                }
+                            ); //end get
+                            AddSentMsgIntoBox(callback.filename, file_obj.type);
+                            //console.log('文件类型',file_obj.type)
+                        } //end if
+                        var current_percent = (callback.recv_size / file_obj.size) * 100 + '%';
+                        $('.progress-bar').css('width', current_percent);
+                        $('.progress-bar').text(current_percent);
+
+                    }   //end function
+                ) //end getJSON
+            })  // end setInterval
+        } //end GetFileUploadProgress
+***/
+        //上传文件的过程中触发的函数,用于实时更新进度条
+        function on_progress(evt) {       //看这个函数之前先看UploadFile函数。这个函数可以接收一个evt(event)对象(细节自行查询progress)，他有3个属性lengthComputable，loaded，total，第一个属性是个bool类型的，代表是否支持，第二个代表当前上传的大小，第三个为总的大小，由此便可以计算出实时上传的百分比
+            if (evt.lengthComputable) {
+                $('#1').removeClass('hide');
+                var ele = document.getElementById('2');
+                var percent = Math.round((evt.loaded) * 100 / evt.total);
+                ele.style.width = percent + '%';
+                document.getElementById('3').innerHTML = percent + '%';
+            }
+        }
+
+        //上传文件函数
+        {#function upload(file_obj) {#}
+        {#    var xhr = new XMLHttpRequest();#}
+        {#    var file = file_obj;  //取得文件数据，而.file对象只是文件信息#}
+        {#    console.log(file);#}
+        {#    var form = new FormData();   //FormData是HTML5为实现序列化表单而提供的类，更多细节可自行查询#}
+        {#    form.append('file', file);   //这里为序列化表单对象form添加一个元素，即file#}
+        {#    xhr.upload.addEventListener('progress', on_progress, false);     //xhr对象含有一个upload对象，它有一个progress事件，在文件上传过程中会被不断触发，我们为这个事件对应一个处理函数，每当事件触发就会调用这个函数，于是便可利用这个函数来修改当前进度，更多细节可自行查询#}
+        {#    xhr.open('POST', '{% url 'file_upload_webchat' %}', true);  //请将url改成上传url#}
+        {#    xhr.setRequestHeader('X-CSRFTOKEN', '{{ request.COOKIES.csrftoken }}');   //此处为Django要求，可无视，或者换成相应后台所要求的CSRF防护，不是django用户请去掉#}
+        {#    xhr.send(form);   //发送表单#}
+        {# } #}
+
     </script>
 {% endblock %}

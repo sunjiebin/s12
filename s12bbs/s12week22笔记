@@ -29,4 +29,92 @@
         找到class=list-group下的li下的contact-type='single'的标签，并过滤出contact-id=4的标签，再找到下面的class='badge'的子标签，获取标签中件的内容。
         $(".list-group li[contact-type='single']").filter("[contact-id='4']").children(".badge").text()
 
+文件上传
+    可以直接用FormData()的方式来上传文件
+            function UploadFile() {
+                var formData = new FormData();        //创建一个FormData的函数，用于接收上传的文件
+                console.log($('#file_test')[0].files[0]);
+                formData.append('file', $('#file_test')[0].files[0]);    //获取上传的图片对象并追加到FormData，name名称file，
+                console.log(formData);
+                $.ajax({
+                    url: '{% url 'file_upload_webchat' %}',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,     //告诉jquery不要对数据进行处理
+                    contentType: false,
+                    success: function (data) {
+                        console.log(data);
+                    }
+                })
+            }
+    上传的文件如果比较小，小于2.5M，就会直接缓存在内存里面InMemoryUploadedFile
+        <MultiValueDict: {'file': [<InMemoryUploadedFile: IMG_0211.AAE (application/octet-stream)>]}>
+    如果比较大，就会先放在临时文件里面TemporaryUploadedFile
+        <MultiValueDict: {'file': [<TemporaryUploadedFile: Huawei Share一碰传.mp4 (video/mp4)>]}>
+    这个大小以及临时文件存放位置都可以通过settings.py里面指定。
 
+    文件上传进度条展示
+        在ajax中，定义一个xhr，绑定函数function()，里面调用了xhr.upload.addEventListener('progress', on_progress, false);
+        xhr对象含有一个upload对象，它有一个progress事件，在文件上传过程中会被不断触发，我们为这个事件对应一个处理函数on_progress，
+        每当事件触发就会调用这个函数，于是便可利用这个函数来修改当前进度
+        addEventListener 用于添加绑定的监听函数，当事件触发时，触发里面的函数
+            xhr:function(){
+                var xhr = new XMLHttpRequest();
+                xhr.upload.addEventListener('progress', on_progress, false);
+                return xhr;
+            }
+
+        示例代码如下：
+        div前端标签
+                <div id='1' class="progress-bar hide" style="height:20px;width:100%;float: left;">
+                    <div id='2' class="progress-bar-success" style="height:100%;width:0px;float:left;"></div>
+                    <span style="float:right;" id='3'>0%</span>
+                </div>
+                <div id='4' class="progress-bar-success" style="height:20px;width:100%;float:left;text-align: center;display: none">上传成功</div>
+
+        script函数
+        //上传文件
+        function UploadFile() {
+            var formData = new FormData();        //创建一个FormData的函数，用于接收上传的文件
+            var file_obj=$('#file_test')[0].files[0];
+            console.log('上传的对象',file_obj);
+            formData.append('file', file_obj);    //获取上传的图片对象并追加到FormData，name名称file，
+            console.log('FormData对象',formData);     //拿不到值
+            $.ajax({
+                url: '{% url 'file_upload_webchat' %}',
+                type: 'POST',
+                data: formData,
+                processData: false,     //告诉jquery不要对数据进行处理
+                contentType: false,
+                xhr:function(){
+                    var xhr = new XMLHttpRequest();
+                    /*
+                    xhr对象含有一个upload对象，它有一个progress事件，在文件上传过程中会被不断触发，我们为这个事件对应一个处理函数on_progress，
+                    每当事件触发就会调用这个函数，于是便可利用这个函数来修改当前进度
+                    addEventListener 用于添加绑定的监听函数，当事件触发时，触发里面的函数
+                     */
+                    xhr.upload.addEventListener('progress', on_progress, false);
+                    return xhr;
+                },
+                success: function (data) {
+                    console.log(data);
+                    //当上传成功后的显示上传成功的提示，然后提示逐渐消失
+                    $('#1').addClass('hide');    //上传成功后，隐藏100%的进度条
+                    $('#4').css('display','block');     //展示“上传成功”提示的进度条
+                    $('#4').fadeOut(3000);      //让“上传成功”进度条3s内逐渐消失。注意这里的css样式要用display none，不要用hide，否则会出现第二次无法渐变消失的bug.
+                    AddSentMsgIntoBox(file_obj.name,file_obj.type);
+                }
+            });//end ajax
+            //upload(file_obj);
+        } //end UploadFile
+
+        //上传文件的过程中触发的函数,用于实时更新进度条
+        function on_progress(evt) {       //看这个函数之前先看UploadFile函数。这个函数可以接收一个evt(event)对象(细节自行查询progress)，他有3个属性lengthComputable，loaded，total，第一个属性是个bool类型的，代表是否支持，第二个代表当前上传的大小，第三个为总的大小，由此便可以计算出实时上传的百分比
+            if (evt.lengthComputable) {
+                $('#1').removeClass('hide');
+                var ele = document.getElementById('2');
+                var percent = Math.round((evt.loaded) * 100 / evt.total);
+                ele.style.width = percent + '%';
+                document.getElementById('3').innerHTML = percent + '%';
+            }
+        }
