@@ -138,6 +138,7 @@
             $('textarea').val('');
         });
 
+        //将消息提交给后端
         function SendMsg(msg_text) {
             var content_type = $('.chat-box-title').attr('contact-type');
             var content_id = $('.chat-box-title').attr('contact-id');
@@ -178,7 +179,18 @@
 
         GetNewMsgs();
 
-        //解析新消息
+        function formatDate(now) {
+            var year = now.getFullYear();  //取得4位数的年份
+            var month = now.getMonth() + 1;  //取得日期中的月份，其中0表示1月，11表示12月
+            var date = now.getDate();      //返回日期月份中的天数（1到31）
+            var hour = now.getHours();     //返回日期中的小时数（0到23）
+            var minute = now.getMinutes(); //返回日期中的分钟数（0到59）
+            var second = now.getSeconds(); //返回日期中的秒数（0到59）
+            return hour + ":" + minute + ":" + second;
+        }
+
+
+        //解析新消息，并将获取到的新消息插入到对应的聊天框中
         function ParseNewMsgs(callback) {
             var current_session_id = $('.chat-box-title').attr('contact-id');
             var current_session_type = $('.chat-box-title').attr('contact-type');
@@ -191,13 +203,19 @@
                     msg_from_contact_id = callback[index].from
                 }
                 msg_from_contact_name = callback[index].from_name;
+                console.log(callback[index].timestamp);
+                //data_time=new Date(parseInt(callback[index].timestamp) * 1000).toLocaleString().replace(/:\d{1,2}$/,' ');
+                //src_data=new Date(parseInt(callback[index].timestamp) * 1000);
+                src_data = new Date(callback[index].timestamp);
+                //data_time= new formatDate(src_data);
+                data_time = formatDate(src_data);
                 if (msg_from_contact_id == current_session_id && callback[index].type == current_session_type) {   //发送的消息是给当前用户的
                     var msg_item_ele = "<div class='msg-item'>" +
                         "<span>" + msg_from_contact_name + "</span>" +
-                        "<span>" + callback[index].timestamp + "</span>" +
+                        "<span>" + data_time + "</span>" +
                         "<div class='msg-text'>" + callback[index].msg + "</div>" +
                         "</div>"
-                    $('.chat-box-window').children('[contact-id=' + current_session_id + '][content-type='+current_session_type+']').append(msg_item_ele);
+                    $('.chat-box-window').children('[contact-id=' + current_session_id + '][content-type=' + current_session_type + ']').append(msg_item_ele);
                 } else {
                     /*
                     //此消息未打开聊天框，消息暂存内存
@@ -253,9 +271,9 @@
             }
             ;
             var chat_id = $('.chat-box-title').attr('contact-id');
-            var chat_group=$('.chat-box-title').attr('contact-type');
-            console.log('Addsend',chat_id,chat_group);
-            $('.chat-box-window').children('[contact-id=' + chat_id + '][content-type='+chat_group+']').append(new_msg_ele);
+            var chat_group = $('.chat-box-title').attr('contact-type');
+            console.log('Addsend', chat_id, chat_group);
+            $('.chat-box-window').children('[contact-id=' + chat_id + '][content-type=' + chat_group + ']').append(new_msg_ele);
             //获取窗口的高度，并自动滚动到最下方
             // scrollTop 设置偏移值,定位到坐标位置，scrollHeight获取高度，animate改变div元素的高度，可用于制作动画
             $('.chat-box-window').animate({
@@ -279,36 +297,39 @@
             //点击后隐藏并清空消息计数
             $(ele).children('.badge').addClass('hide');
             $(ele).children('.badge').text(0);
-            CreateUserWindow(contact_id,contact_type);
+            CreateUserWindow(contact_id, contact_type);
             //给聊天框添加聊天对象id
         } //end OpenChatWindow
 
+        //初始化窗口，为每个好友生成一个聊天框
         function InitWindows() {
-            var user_chat_list=$('.tab-content').find('li');
-            for (i=0;i<user_chat_list.length;i++){
-                var id=user_chat_list[i].getAttribute('contact-id');
-                var group=user_chat_list[i].getAttribute('contact-type');
-                var user_div = "<div contact-id=" + id + " content-type="+group+"></div>";
+            var user_chat_list = $('.tab-content').find('li');
+            for (i = 0; i < user_chat_list.length; i++) {
+                var id = user_chat_list[i].getAttribute('contact-id');
+                var group = user_chat_list[i].getAttribute('contact-type');
+                var user_div = "<div contact-id=" + id + " content-type=" + group + "></div>";
                 $('.chat-box-window').append(user_div);
                 //console.log(id);
             }
         }
+
         InitWindows();
 
-        function CreateUserWindow(id,group) {
+        //将当前用户聊天框显示出来，隐藏其他用户的聊天框
+        function CreateUserWindow(id, group) {
             {#var user_div = "<div contact-id=" + id + "></div>";#}
-            var current_div= $('.chat-box-window').children('[contact-id=' + id + '][content-type='+group+']');
-            console.log('id and group',id,group);
-            console.log('current_div',current_div);
+            var current_div = $('.chat-box-window').children('[contact-id=' + id + '][content-type=' + group + ']');
+            console.log('id and group', id, group);
+            console.log('current_div', current_div);
 
             {#if (!current_div.length) {#}
             {#    console.log('in if');#}
             {#    $('.chat-box-window').append(user_div);#}
             {#    };#}
-            var hide_div = $('.chat-box-window').children('[contact-id=' + id + '][content-type='+group+']').siblings('[contact-id]');
+            var hide_div = $('.chat-box-window').children('[contact-id=' + id + '][content-type=' + group + ']').siblings('[contact-id]');
             console.log('otherdiv', hide_div.length);
             current_div.removeClass('hide');
-            for (i=0;i<hide_div.length;i++){
+            for (i = 0; i < hide_div.length; i++) {
                 console.log(hide_div[i]);
                 $(hide_div[i]).addClass('hide');
             }
@@ -346,6 +367,13 @@
                     $('#4').css('display', 'block');     //展示“上传成功”提示的进度条
                     $('#4').fadeOut(3000);      //让“上传成功”进度条3s内逐渐消失。注意这里的css样式要用display none，不要用hide，否则会出现第二次无法渐变消失的bug.
                     AddSentMsgIntoBox(file_obj.name, file_obj.type);
+                    if (file_obj.type.startsWith('image')) {
+                        var new_msg = "<div class='msg-text'><img style='width:200px' src='/static/" + "{{ request.user.userprofile.id }}" + "/" + file_obj.name + "'/></div>";
+                    } else {
+                        var new_msg = "<div class='msg-text'><a href='/static/" + "{{ request.user.userprofile.id }}" + "/" + file_obj.name + "' target='_blank'>" + file_obj.name + "点击下载 </a></div>"
+
+                    }
+                    SendMsg(new_msg);
                 }
             });//end ajax
             //upload(file_obj);

@@ -11,7 +11,7 @@ def dashboard(request):
 
 global_msg_queues={}
 def send_msg(request):
-
+    '''该函数用于放入消息到队列'''
     msg_data=request.POST.get('data')
     print(msg_data)
     if msg_data:
@@ -56,7 +56,7 @@ def get_new_msg(request):
         print('目前没有消息',request.user.userprofile.name)
         try:
             # 设置超时60s，60s内如果有内容进来就append，没有就挂起等待60s直到抛出超时异常。
-            msg_list.append(que_obj.get(timeout=60))
+            msg_list.append(que_obj.get())
         except queue.Empty:
             print('等待超时了')
     return HttpResponse(json.dumps(msg_list))   #返回时需要json.dumps将其转换为字符串
@@ -67,6 +67,8 @@ def file_upload(request):
     print(request.POST,request.FILES)
     recv_size=0
     file_obj=request.FILES.get('file')  #这里的file是前端fromData.append里面定义的file，file_obj是一个对象，不是文件名称
+    #file_data=json.loads(file_obj)
+    print(file_obj,type(file_obj))
     user_home_dir=f'uploads/{request.user.userprofile.id}'
     if not os.path.isdir(user_home_dir):
         os.mkdir(user_home_dir)
