@@ -179,6 +179,7 @@
 
         GetNewMsgs();
 
+        //格式化日期输出
         function formatDate(now) {
             var year = now.getFullYear();  //取得4位数的年份
             var month = now.getMonth() + 1;  //取得日期中的月份，其中0表示1月，11表示12月
@@ -186,16 +187,17 @@
             var hour = now.getHours();     //返回日期中的小时数（0到23）
             var minute = now.getMinutes(); //返回日期中的分钟数（0到59）
             var second = now.getSeconds(); //返回日期中的秒数（0到59）
-            return hour + ":" + minute + ":" + second;
+            return month + "月" + date + "日 " + hour + ":" + minute;
         }
 
+        var GLOBAL_CHAT_RECORD_DIC = {group: {}, single: {}};
 
         //解析新消息，并将获取到的新消息插入到对应的聊天框中
         function ParseNewMsgs(callback) {
             var current_session_id = $('.chat-box-title').attr('contact-id');
             var current_session_type = $('.chat-box-title').attr('contact-type');
-            for (var index in callback) {
-                console.log(index);
+            for (var index in callback) {       //callback是一个传过来的列表，里面是一条条Queue。注意：js里面列表循环得到的是下标编号，不是列表里面的元素。这个和python循环不一样。
+                console.log('callback', index);
                 console.log(callback[index].from);
                 if (callback[index].type == 'group') {
                     msg_from_contact_id = callback[index].to
@@ -206,28 +208,43 @@
                 console.log(callback[index].timestamp);
                 //data_time=new Date(parseInt(callback[index].timestamp) * 1000).toLocaleString().replace(/:\d{1,2}$/,' ');
                 //src_data=new Date(parseInt(callback[index].timestamp) * 1000);
-                src_data = new Date(callback[index].timestamp);
+                src_data = new Date(callback[index].timestamp * 1000);
                 //data_time= new formatDate(src_data);
                 data_time = formatDate(src_data);
                 if (msg_from_contact_id == current_session_id && callback[index].type == current_session_type) {   //发送的消息是给当前用户的
                     var msg_item_ele = "<div class='msg-item'>" +
-                        "<span>" + msg_from_contact_name + "</span>" +
+                        "<span>" + msg_from_contact_name + " </span>" +
                         "<span>" + data_time + "</span>" +
                         "<div class='msg-text'>" + callback[index].msg + "</div>" +
-                        "</div>"
+                        "</div>";
+
                     $('.chat-box-window').children('[contact-id=' + current_session_id + '][content-type=' + current_session_type + ']').append(msg_item_ele);
+                    $('.chat-box-window').animate({
+                        scrollTop: $('.chat-box-window')[0].scrollHeight
+                    }, 500);
                 } else {
-                    /*
+                    var msg_item_ele = "<div class='msg-item'>" +
+                        "<span>" + msg_from_contact_name + " </span>" +
+                        "<span>" + data_time + "</span>" +
+                        "<div class='msg-text'>" + callback[index].msg + "</div>" +
+                        "</div>";
                     //此消息未打开聊天框，消息暂存内存
-                    //var GLOBAL_CHAT_RECORD_DIC={};
-                    if (GLOBAL_CHAT_RECORD_DIC[callback[index].type][msg_from_contact_id]){
-                        GLOBAL_CHAT_RECORD_DIC[callback[index].type][msg_from_contact_id]+=msg_item_ele
-                    }else {
-                        GLOBAL_CHAT_RECORD_DIC[callback[index].type][msg_from_contact_id]=msg_item_ele
+
+                    user_group = callback[index].type;
+                    console.log('type and id', user_group, msg_from_contact_id);
+                    if (GLOBAL_CHAT_RECORD_DIC[user_group][msg_from_contact_id]) {
+                        console.log('exist');
+                        GLOBAL_CHAT_RECORD_DIC[user_group][msg_from_contact_id] += msg_item_ele
+                    } else {
+                        console.log('not exist');
+                        console.log('get user_group', GLOBAL_CHAT_RECORD_DIC[user_group]);
+                        console.log(msg_item_ele);
+                        console.log('get id message', GLOBAL_CHAT_RECORD_DIC[user_group][msg_from_contact_id]);
+                        GLOBAL_CHAT_RECORD_DIC[user_group][msg_from_contact_id] = msg_item_ele;
+                        console.log('try again get id message', GLOBAL_CHAT_RECORD_DIC[user_group][msg_from_contact_id]);
                     }
                     console.log(GLOBAL_CHAT_RECORD_DIC);
 
-                     */
 
                     //var contact_ele=$(".list-group li[contact-type='single']").filter("[contact-id='4']").children(".badge").text();
                     //$(".list-group li[contact-type='"+ [callback[index].type] +"']").filter("[contact-id='"+ [msg_from_contact_id] +"']").children(".badge").text();
@@ -250,22 +267,24 @@
 
         //将消息添加进聊天框
         function AddSentMsgIntoBox(msg_text, msg_type) {
+            data_local = formatDate(new Date());
+            console.log(data_local);
             if (msg_type == 'text') {
                 var new_msg_ele = "<div class='msg-item'>" +
-                    "<span>" + "{{ request.user.userprofile.name }}" + "</span>" +
-                    "<span>" + new Date().toLocaleTimeString() + "</span>" +
+                    "<span>" + "{{ request.user.userprofile.name }} " + "</span>" +
+                    "<span>" + data_local + "</span>" +
                     "<div class='msg-text'>" + msg_text + "</div>" +
                     "</div>";
             } else if (msg_type.startsWith('image')) {
                 var new_msg_ele = "<div class='msg-item'>" +
-                    "<span>" + "{{ request.user.userprofile.name }}" + "</span>" +
-                    "<span>" + new Date().toLocaleTimeString() + "</span>" +
+                    "<span>" + "{{ request.user.userprofile.name }} " + "</span>" +
+                    "<span>" + data_local + "</span>" +
                     "<div class='msg-text'><img style='width:200px' src='/static/" + "{{ request.user.userprofile.id }}" + "/" + msg_text + "'/></div>" +
                     "</div>";
             } else {
                 var new_msg_ele = "<div class='msg-item'>" +
-                    "<span>" + "{{ request.user.userprofile.name }}" + "</span>" +
-                    "<span>" + new Date().toLocaleTimeString() + "</span>" +
+                    "<span>" + "{{ request.user.userprofile.name }} " + "</span>" +
+                    "<span>" + data_local + "</span>" +
                     "<div class='msg-text'><a href='/static/" + "{{ request.user.userprofile.id }}" + "/" + msg_text + "' target='_blank'>" + msg_text + "点击下载 </a></div>" +
                     "</div>";
             }
@@ -333,7 +352,11 @@
                 console.log(hide_div[i]);
                 $(hide_div[i]).addClass('hide');
             }
-
+            var mem_msg = GLOBAL_CHAT_RECORD_DIC[group][id];
+            $('.chat-box-window').children('[contact-id=' + id + '][content-type=' + group + ']').append(mem_msg);
+            $('.chat-box-window').animate({
+                scrollTop: $('.chat-box-window')[0].scrollHeight
+            }, 500);
             //$('.chat-box-window').attr('contact-id',contact_id);
         }
 

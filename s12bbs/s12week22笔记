@@ -118,3 +118,70 @@
                 document.getElementById('3').innerHTML = percent + '%';
             }
         }
+
+格式化日期输出
+    将后端生成的时间戳格式化成指定的格式
+
+    后端函数用time生成时间戳
+    views:
+        msg_data['timestamp']=time.time()
+
+    前端
+    JS:
+         //格式化日期输出
+        function formatDate(now) {
+            var year = now.getFullYear();  //取得4位数的年份
+            var month = now.getMonth() + 1;  //取得日期中的月份，其中0表示1月，11表示12月
+            var date = now.getDate();      //返回日期月份中的天数（1到31）
+            var hour = now.getHours();     //返回日期中的小时数（0到23）
+            var minute = now.getMinutes(); //返回日期中的分钟数（0到59）
+            var second = now.getSeconds(); //返回日期中的秒数（0到59）
+            return month + "月" + date + "日 " + hour + ":" + minute;     //指定输出的格式 9月7日 10：52
+        }
+
+     后端传过来的是时间戳，不是时间对象，是不能处理的。所以我们要用new Data()将其转换为js对象。
+     由于后端传过来的是以秒为单位的时间戳，而前端处理是以ms为单位的时间戳，所以我们需要*1000将其转换为毫秒ms的时间戳，在进行格式化。
+        src_data = new Date(callback[index].timestamp * 1000);
+        data_time = formatDate(src_data);
+
+js对字典操作
+    js中如果查找的key不存在，会返回undefined。而不是报错。
+    对于如下字典
+    var GLOBAL_CHAT_RECORD_DIC = {group: {}, single: {}};
+    GLOBAL_CHAT_RECORD_DIC[group][6] 得到undefined
+    但是如果是如下字典
+    var GLOBAL_CHAT_RECORD_DIC = {};
+    GLOBAL_CHAT_RECORD_DIC[group][6] 会报错，提示undefind没有属性6.
+    因为GLOBAL_CHAT_RECORD_DIC[group]得到了undefined，就变成了undefined[6]了，就报错了。
+    所以在元素不存在的情况下不能多级获取。
+
+    对字典里面的元素追加，可以用+=的方式
+    GLOBAL_CHAT_RECORD_DIC[group][6]='a'
+    GLOBAL_CHAT_RECORD_DIC[group][6]+='b'
+    最终得到 {group: {6:'ab'}, single: {}}
+    GLOBAL_CHAT_RECORD_DIC[group][6]=1
+    GLOBAL_CHAT_RECORD_DIC[group][6]+=2
+    最终得到{group: {6:3}, single: {}}
+
+    先创建一个嵌套字典
+    var GLOBAL_CHAT_RECORD_DIC = {group: {}, single: {}};
+
+    if (GLOBAL_CHAT_RECORD_DIC[user_group][msg_from_contact_id]) {
+        console.log('字典不为空');
+        GLOBAL_CHAT_RECORD_DIC[user_group][msg_from_contact_id] += msg_item_ele
+    } else {
+        console.log('字典是空的');
+        console.log('get id message', GLOBAL_CHAT_RECORD_DIC[user_group][msg_from_contact_id]);
+        GLOBAL_CHAT_RECORD_DIC[user_group][msg_from_contact_id] = msg_item_ele;
+        console.log('try again get id message', GLOBAL_CHAT_RECORD_DIC[user_group][msg_from_contact_id]);
+    }
+
+    假设user_group=group, msg_from_contact_id=6，msg_item_ele='test'
+    第一次运行时
+    if (GLOBAL_CHAT_RECORD_DIC[group][6]) 会得到undefined，触发else条件，因为group:{}下面没有6.
+    执行 GLOBAL_CHAT_RECORD_DIC[group][6]='test'
+    执行完后，GLOBAL_CHAT_RECORD_DIC = {group: {6:'test'}, single: {}};
+    第二次运行时
+    if (GLOBAL_CHAT_RECORD_DIC[group][6]) 会得到test，触发if条件
+    执行 GLOBAL_CHAT_RECORD_DIC[group][6]+='test'
+    得到 GLOBAL_CHAT_RECORD_DIC = {group: {6:'testtest'}, single: {}};
