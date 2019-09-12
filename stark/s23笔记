@@ -1,0 +1,93 @@
+
+导入模块时先将项目顶级目录加入到环境变量中
+    # 将stark加入到运行的环境变量中,如果不加，会导致无法通过from Arya导入模块，因为Arya的上级stark没有在环境变量中,所以直接写Arya会找不到这个目录
+    # 提示错误：ModuleNotFoundError: No module named 'Arya'
+    下面BASE_DIR=Arya，然后将BASE_DIR追加到sys.path环境变量中去。后面就可以导入Arya下面的模块了。
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.append(BASE_DIR)
+    # print(sys.path)
+    from Arya.backends.utils import ArgvManagement
+
+确保-h参数后面有值
+    host_str_index=self.sys_argvs.index('-h')+1
+    # 定义参数长度必须大于索引长度，也就是说，如果-h后面不能为空，如果没有参数，那么就是等于，就提示必须接参数。
+    if len(self.sys_argvs) <= host_str_index:
+        print('-h后面必须接参数')
+    else:
+        host_str=self.sys_argvs[host_str_index]
+
+ManyToManyField查找关联表的数据
+    比如查找group表里面对应某个group里面的关联主机
+    先找到对应的group行对象，然后group.hosts找到关联的hosts，再用select_related()找到关联的对象
+        # name__in相当于 where name in xxx 。去数据库把匹配的主机查询出来
+        group_list=self.db_modules.HostGroup.objects.filter(name__in=group_str_list)
+        # 将查找到的组列表循环，获取里面的主机，并和前面的主机合并
+        for group in group_list:
+            host_list+=group.hosts.select_related()
+
+将两个列表拼接成一个列表
+    如将从主机列表里面得到的主机列表，和组列表里面得到的主机列表拼接成一个列表，可以用+=的方式，而不是用append的方式
+    host_list=[]
+    host_list+=self.db_modules.Host.objects.filter(hostname__in=host_str_list)
+    group_list=self.db_modules.HostGroup.objects.filter(name__in=group_str_list)
+    示例：
+    a=[1,2]  b=['a','b']
+    a+=b  --->得到 a=[1, 2, 'a', 'b']
+
+为了让任何一个django project中的*.py文件都能够正常的使用项目中的数据模型操作，就必须定义os.environ.setdefault以及django.setup()。
+    执行os.environ将打印当前的系统的环境变量。
+    os.environ.setdefault('aa','bb')  将添加一条'AA':'bb'的键值对到环境变量中
+    所以os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stark.settings')其实就是添加一条环境变量'DJANGO_SETTINGS_MODULE':'stark.settings'
+    想要一个单独的python脚本想要能够引用django里面的template,models等功能时，就需要定义下面的几行。
+    import os,django
+    import sys
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stark.settings')
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.append(BASE_DIR)
+    django.setup()
+
+注意单双引号是由区别的
+    当用单引号的时候，得到的是'mailgroup'，这时候数据库是匹配不到数据的
+    group_list=self.db_models.HostGroup.objects.filter(name__in=group_str_list)  得不到数据
+    salt.py cmd.CMD -g 'mailgroup'
+    得到：
+        'mailgroup' ["'mailgroup'"]
+        host list: []
+    用双引号，得到的是mailgroup，这个就可以被数据库查到数据
+    salt.py cmd.CMD -g "mailgroup"
+    得到：
+        mailgroup ['mailgroup']
+        host list: [<Host: ubuntu test>, <Host: windows test>]
+
+
+报错
+    salt.py里面必须加上下面这句
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stark.settings')
+    否则后面会报错
+        django.core.exceptions.ImproperlyConfigured: Requested setting INSTALLED_APPS, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing
+        settings.
+    上面加上后，还要这句
+    django.setup()
+    否则报下面的错
+        django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
+    上面这句前面要加上这俩句
+     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+     sys.path.append(BASE_DIR)
+     否则报错
+        ModuleNotFoundError: No module named 'stark'
+
+定义项目配置文件时，我们可以在settings.py里面定义号项目配置文件的默认路径的变量SALT_CONFIG_FILES_DIR。
+然后代码里面通过self.settings.SALT_CONFIG_FILES_DIR的方式来引用。
+    settings.py
+        SALT_CONFIG_FILES_DIR=f'{BASE_DIR}/Arya/salt_config'
+    state.py
+        #在settings.py里面定义一个配置文件，用于指定配置文件的路径
+        state_file_path = "%s/%s" %(self.settings.SALT_CONFIG_FILES_DIR,state_filename)
+
+将一个字符串形式的文件名作为模块导入
+    可以使用__import__，先会把他加载到__init__.py里面，然后用getattr来执行导入
+    注意:在plugins目录下要写成f'plugins.{base_mmode_name}',不能写成f'Arya.plugins.{base_mmode_name}'，否则会提示AttributeError: module 'Arya' has no attribute 'user'
+    base_mod_name=mod_name.split('.')[0]
+    module_mem=__import__(f'plugins.{base_mod_name}')   #加载到内存，这里并没有将模块真正的import进来
+    print(module_mem)   #打印<module 'plugins' from 'D:\\学习相关\\python\\s12\\stark\\Arya\\plugins\\__init__.py'>
+    module_file=getattr(module_mem,base_mod_name)        #这里才是真的导入模块
