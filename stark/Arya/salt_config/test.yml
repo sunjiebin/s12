@@ -10,12 +10,14 @@ apache:
     - gid: 87
     - home: /var/www/html
     - shell: /bin/nologin
+    - password: goodidea
     - require:
       - group: apache
-  group.present:
-    - gid: 87
-    - require:
-      - pkg: apache
+      - pkg: httpd
+#  group.present:
+#    - gid: 87
+#    - require:
+#      - pkg: apache
 
 #/etc/httpd/conf/httpd.conf:
 #  file.managed:

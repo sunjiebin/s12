@@ -13,6 +13,15 @@ class Group(BaseSaltModule):
         pass
     def home(self,*args,**kwargs):
         pass
+    def require(self,*args,**kwargs):
+        pass
+    def present(self,*args,**kwargs):
+        pass
+    def is_required(self,*args,**kwargs):
+        print('is required',args,kwargs)
+        cmd=f"id {args[1]};echo $?"
+        return cmd
+
 
 class UbuntuGroup(Group):
     def home(self,*args,**kwargs):

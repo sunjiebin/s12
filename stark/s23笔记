@@ -85,9 +85,37 @@ ManyToManyField查找关联表的数据
         state_file_path = "%s/%s" %(self.settings.SALT_CONFIG_FILES_DIR,state_filename)
 
 将一个字符串形式的文件名作为模块导入
-    可以使用__import__，先会把他加载到__init__.py里面，然后用getattr来执行导入
-    注意:在plugins目录下要写成f'plugins.{base_mmode_name}',不能写成f'Arya.plugins.{base_mmode_name}'，否则会提示AttributeError: module 'Arya' has no attribute 'user'
+    可以使用__import__，先会把他加载到__init__.py里面，然后用getattr来执行导入。
+    注意:在plugins目录下要写成f'plugins.{base_mmode_name}',不能写成f'Arya.plugins.{base_mmode_name}'，否则会提示AttributeError: module 'Arya' has no attribute 'user'，
     base_mod_name=mod_name.split('.')[0]
     module_mem=__import__(f'plugins.{base_mod_name}')   #加载到内存，这里并没有将模块真正的import进来
     print(module_mem)   #打印<module 'plugins' from 'D:\\学习相关\\python\\s12\\stark\\Arya\\plugins\\__init__.py'>
     module_file=getattr(module_mem,base_mod_name)        #这里才是真的导入模块
+
+类的继承
+    当我们很多函数需要用到相同的方法时，用类的继承最适合不过了。
+    比如每一个模块函数都需要获取到主机的操作系统信息，都需要进行语法校验，这些就可以都写在基类里面，其他的类都继承它。
+    再比如，user模块里面要根据不同的操作系统生成不同的执行命令，但是uid,gid等参数所有操作系统的函数都需要接收这个参数，
+    那么可以写成一个User(BaseSaltModule)类，然后其他的不同操作系统的类继承这个类UbuntuUser(User)。
+
+for循环的else用法
+    当循环结束后，才会触发else，如果循环过程中被break了，则不会触发else条件。所以for...else...一般和break配合使用。
+    比如下方语句，循环数组，当数组里面没有i=3条件时，就打印数组里面没有3，如果有i=3的时候，break退出循环不打印.
+    for i in range(5):
+        print(i)
+        if i==3:
+            break
+    else:
+        print('数组里面没有3')
+
+列表操作复习
+    insert用于向列表指定位置插入元素
+    self.raw_cmds.insert(0,f'user add {username}')  #在生成的命令列表最前面添加user add username
+    extend用于两个列表元素的合并，append用于将元素追加到列表里面。如果元素是一个列表，那么追加的就会添加一个列表进去。
+    如下:
+    a=['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin']
+    b=['echo "apache:goodidea"|chpasswd ']
+    a.extend(b)的结果：
+    ['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin', 'echo "apache:goodidea"|chpasswd ']
+    a.append(b)的结果：
+    ['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin', ['echo "apache:goodidea"|chpasswd ']]
