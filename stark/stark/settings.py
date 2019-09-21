@@ -123,3 +123,9 @@ STATIC_URL = '/static/'
 
 SALT_CONFIG_FILES_DIR=f'{BASE_DIR}/Arya/salt_config/'
 SALT_PLUGINS_DIR=f'{BASE_DIR}/Arya/plugins/'
+
+MQ_CONN={
+    'host':'localhost',
+    'port': 5672,
+    'password':''
+}

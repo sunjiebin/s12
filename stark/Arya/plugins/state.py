@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Auther: sunjb
 from Arya.backends.base_module import BaseSaltModule
+from Arya.backends.task import TaskHandle
 import os
 
 
@@ -59,6 +60,9 @@ class State(BaseSaltModule):
                             module_parse_result = module_obj.syntax_parser(section_name, mod_name, mod_data,os_type)
                             self.config_data_dic[os_type].append(module_parse_result)
                 print(self.config_data_dic)
+                #生成新任务 self就是State实例自己
+                new_task_obj=TaskHandle(self.db_models,self.config_data_dic,self.settings,self)
+                new_task_obj.dispatch_task()
                     # print(" ", mod_name, mod_data)
                     # for state_item in mod_data:
                     #     print("\t", state_item)

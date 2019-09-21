@@ -13,6 +13,8 @@ class BaseSaltModule(object):
         self.settings = settings
         self.sys_argvs = sys_argvs
         self.db_models = db_models
+        self.require_list=[]
+
 
     def get_selected_os_type(self):
         # self.fetch_hosts()
@@ -94,11 +96,14 @@ class BaseSaltModule(object):
                 base_mod_name, mod_action = mod_name.split('.')
                 if hasattr(self, mod_action):  # 获取到"."后面的参数,得到同名的方法。 比如 user模块下的present方法
                     mod_action_func = getattr(self, mod_action)
-                    cmd_list = mod_action_func(val,section=section_name,os_type=os_type)   #执行user下面的present()方法
+                    #cmd_list = mod_action_func(val,section=section_name,os_type=os_type)   #执行user下面的present()方法
+                    cmd_list = mod_action_func(section=section_name,mod_data=mod_data)   #执行user下面的present()方法
                     data = {
                         'cmd_list':cmd_list,
                         'require_list':self.require_list
                     }
+                    if type(cmd_list) is dict:  # 文件模块file.managed返回的cmd_list是字典形式，如果是字典格式，就代表这是文件模块
+                        data['file_module']=True
                     return data
                     #上面代表一个section里面具体的一个module已经解析完毕
                 else:
@@ -111,7 +116,6 @@ class BaseSaltModule(object):
             exit('%s值的格式不正确' % name)
 
     def require(self,*args,**kwargs):
-        self.require_list=[]
         print('in require')
         print(args,kwargs)
         for item in args[0]:

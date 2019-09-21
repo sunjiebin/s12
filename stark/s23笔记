@@ -119,3 +119,29 @@ for循环的else用法
     ['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin', 'echo "apache:goodidea"|chpasswd ']
     a.append(b)的结果：
     ['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin', ['echo "apache:goodidea"|chpasswd ']]
+
+rabbitmq
+    pika模块用于链接rabbitmq的模块。
+    pika链接rabbitmq的用法
+        在settings.py里面定义好rabbitmq链接信息
+                MQ_CONN={
+                'host':'localhost',
+                'port': 5672,
+                'password':''
+            }
+        创建链接
+            # self.settings.MQ_CONN['host']时settings里面定义的
+            self.mq_conn=pika.BlockingConnection(pika.ConnectionParameters(self.settings.MQ_CONN['host']))
+            self.mq_channel=self.mq_conn.channel()
+        发送消息
+            #声明一个queue队列
+            self.mq_channel.queue_declare(queue=queue_name)
+            # 发送queue，routing_key代表将消息发送到那个队列，这里代表发送到上面声明的那个队列里面，body代表发送的内容
+            self.mq_channel.basic_publish(exchange='',routing_key=queue_name,body=json.dumps(task_data))
+        消费消息
+            #声明一个队列
+            self.mq_channel.queue_declare(self.callback_queue_name)
+            # 定义消费消息的参数，self.task_callback代表接收到消息后的回调函数，self.callback_queue_name代表从这个queue里面接收消息，False不发送ack确认给服务端
+            self.mq_channel.basic_consume(self.callback_queue_name,self.task_callback,False)
+            # 开始监听消息，如果没有消息则挂起，有则执行上面定义的操作
+            self.mq_channel.start_consuming()
