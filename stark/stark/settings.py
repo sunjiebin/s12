@@ -127,5 +127,7 @@ SALT_PLUGINS_DIR=f'{BASE_DIR}/Arya/plugins/'
 MQ_CONN={
     'host':'localhost',
     'port': 5672,
-    'password':''
+    'user':'admin',
+    'pass':'sunjiebin',
+    'vhost':'stark'
 }

@@ -14,3 +14,9 @@ class Pkg(BaseSaltModule):
 
     # def process(self):
     #     print('cmd process')
+
+class WindowsPkg(BaseSaltModule):
+    def is_required(self,*args,**kwargs):
+        print('WindowsPkg is required',args,kwargs)
+        cmd=f'netstat -tnao |findstr 5672'
+        return cmd

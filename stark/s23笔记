@@ -145,3 +145,146 @@ rabbitmq
             self.mq_channel.basic_consume(self.callback_queue_name,self.task_callback,False)
             # 开始监听消息，如果没有消息则挂起，有则执行上面定义的操作
             self.mq_channel.start_consuming()
+
+shutil复制文件
+
+
+判断self到底是谁？
+    哪个实例化的实例调用的了这个方法，那么self就是那个实例。
+    比如我要分析base_module.py里面的 getattr(self, key)的self到底是谁
+    1.那么首先看是谁调用了process()方法。pycharm中，可以用alt+f7追踪到谁调用了这个方法，
+    2.我们查询到是main.py里面的file_handle方法的file_module_obj实例调用了base_module.py里面的process方法
+    3.file_module_obj是files.FileModule(self)实例化的对象，所以，这里的self就是files.FileModule实例
+    4.files.FileModule(self)实例是files.py文件里面的FileModule类
+    5.所以getattr(self,key)就是获取files.py里面的FileModule类里面的key方法。
+    示例代码：
+    base_module.py
+        class BaseSaltModule(object):
+        def process(self,module_data,*args,**kwargs):
+                   if hasattr(self, key):  # 这里就是判断files.py里面FileModule类下面是否有对应Key的方法 self=files.FileModule对象
+                        state_func = getattr(self, key)  # 获取到对应的方法User下面的uid方法
+                        state_func(val,section=section_name,os_type=os_type)  # 执行uid(val),require()等方法
+    main.py
+        from modules import files
+        def file_handle(self,section_data):
+            file_module_obj= files.FileModule(self)
+            file_module_obj.process(section_data)
+    files.py
+        from Arya.Needle.modules.base_module import BaseSaltModule
+        class FileModule(BaseSaltModule):
+
+Needle类下面的
+  Needle类下面的函数实例化了TaskHandle(self,task_body)类，实例化时传递了self,task_body进去。这里的self就是指Needle实例。
+    class Needle(object):
+        def start_thread(self,task_body):
+            print('启动线程')
+            task=TaskHandle(self,task_body) #这里的self就是Needle类实例化后的实例
+            task.processing()
+  在TaskHandle中，__init__(self,main_obj,task_body)接收了两个参数，main_obj对应上面实例化时的self，task_body对应上面的task_body。
+  由于上面的self就是Needle实例本身，所以，下面的self.main_obj实际上就是Needle实例。所以，执行self.main_obj实际上就是执行实例化了的Needle
+    class TaskHandle(object):
+        def __init__(self,main_obj,task_body):
+            # 这里的main_obj就是Needle object，因为是Needle类里面的start_thread调用的TaskHandle(self,task_body)，这里的self就是指Needle实例本身
+            # 在消息收到后，要返回数据给队列，利用Needle里面建立好的队列再返回消息
+            self.main_obj=main_obj
+            # python3的所有socket传输都是以byte字节流的方式发送了，而json只能解析字符串，是不能解析二进制的字节流的，所以要decode先转成字符串
+            self.task_body=json.loads(task_body.decode())
+
+其他知识点
+    split取最后一个元素，可以用-1来取
+    file_name=file_path.split('/')[-1]
+
+    http_server=self.task_obj.main_obj.configs.FILE_SERVER['http']
+
+    pycharm左边的structure可以查看当前模块所拥有的类/方法/变量
+
+urllib
+    用于爬网页，从网站上下载文件
+    f = urllib.request.urlopen(url)
+    data=f.read()
+
+os.system os.popen subprocess.run的区别
+    os.system 该函数只返回命令执行结果的返回值，成功就是0，失败就是1
+    os.popen  该函数用于打开一个管道，将结果输出到管道中去，可以通过管道文件获取到返回的值。
+        p=os.popen('dir')
+        p.read()
+    subprocess 该函数是上面两个函数的增强体，python3.5以上才会有。可替换os.system、os.spawn、os.popen、popen2命令。
+    推荐使用subprocess函数来执行系统命令。
+
+  run返回命令以及执行结果状态码
+        >>> subprocess.run('ls',shell=True)
+        aa	aliyun		 ansible     back			  cmdb	       docker	       git	 iptables.save	     sign
+        CompletedProcess(args='ls', returncode=0)
+    还可以将结果输出到管道，将正确的输出到stdout,错误输出到stderr
+       >>> condition='pwd'
+       >>> cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    注意返回的是byte格式的数据
+        >>> cmd_res.stdout
+        b'/root\n'
+    转换为str
+        >>> cmd_res.stdout.decode()
+        '/root\n'
+    当执行一个错误的命令时，错误会输出到stderr
+        >>> condition='pwds'
+        >>> cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        >>> cmd_res
+        CompletedProcess(args='pwds', returncode=127, stdout=b'', stderr=b'/bin/sh: pwds: command not found\n')
+        >>> cmd_res.stdout
+        b''
+        >>> cmd_res.stderr
+        b'/bin/sh: pwds: command not found\n'
+    还可以通过returncode获取返回结果
+        >>> condition='ls sdf'
+        >>> cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        >>> cmd_res
+        CompletedProcess(args='ls sdf', returncode=2, stdout=b'', stderr=b'ls: cannot access sdf: No such file or directory\n')
+        >>> cmd_res.returncode
+        2
+  call返回执行结果状态码，成功0，失败则抛出异常信息，同时返回linux终端的错误返回码。和echo $?结果一致。
+        >>> subprocess.call('gag',shell=True)
+        /bin/sh: gag: command not found
+        127
+        >>> subprocess.call('ls aa',shell=True)
+        aa
+        0
+        >>> subprocess.call('ls aab',shell=True)
+        ls: cannot access aab: No such file or directory
+        2
+windows下byte类型数据decode解码出错
+    执行下面的代码，在linux下不会报错，在windows下就报错了
+    condition='dir && echo 0 || echo 1'
+    cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    cmd_res.stdout.decode()
+    Traceback (most recent call last):
+      File "<input>", line 1, in <module>
+    UnicodeDecodeError: 'utf-8' codec can't decode byte 0xc7 in position 1: invalid continuation byte
+    如果不decode，结果得到的时16进制的文件，无法阅览
+    cmd_res.stdout
+    b' \xc7\xfd\xb6\xaf\xc6\xf7 D \xd6\xd0\xb5\xc4\xbe\xed\xca\xc7 Data\r\n \xbe\xed\xb5\xc4\xd0\xf2\xc1\xd0\xba\xc5\xca\xc7
+    正确的做法时，在windows下要decode成gbk模式，这样就不会报错了。
+    cmd_res.stdout.decode('gbk')
+    ' 驱动器 D 中的卷是 Data\r\n 卷的序列号是 706D-EE5E\r\n\r\n D:\\学习相关\\python\\s12\\stark 的目录\r\n\r\n2019/
+
+直接执行实例
+    我们以往的写法都是先实例化类，然后再用实例化的类去执行里面的方法。
+    下面的CommandManagment类在init里面就执行了调用self.argv_handle()，实现实例化的时候就执行了argv_handle()方法，
+    而argv_handle()方法会判断是否存在输入的参数argvs[0]，也就是脚本后面的值是否和CommandManangement里面的方法名称相同，
+    如果相同则直接执行这里面的方法，如果不同，这提示“不存在此方法”
+    needle.py
+        from core import main
+        main.CommandManagement(sys.argv)
+
+    main.py
+        class CommandManagement(object):
+            def __init__(self,argvs):
+                self.argvs=argvs[1:]
+                self.argv_handle()
+
+            def argv_handle(self):
+                if len(self.argvs) ==0:
+                    exit('启动或停止:start/stop')
+                if hasattr(self,self.argvs[0]):
+                    func=getattr(self,self.argvs[0])
+                    func()
+                else:
+                    exit('CommandManagement不存在此方法')

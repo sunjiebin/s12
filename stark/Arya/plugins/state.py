@@ -55,8 +55,11 @@ class State(BaseSaltModule):
                         for mod_name, mod_data in section_data.items():
                             base_mod_name = mod_name.split('.')[0]  # 截取前面的部分，也就是模块文件名user
                             # 通过上面得到的文件名，获取到对应的具体的模块user.py文件的绝对路径
+                            # 由于get_module_instance返回的是一个通过getattr反射的对象，比如当base_mod_name=user时，返回的时User实例化的对象
+                            # 所以module_obj就是一个User对象
                             module_obj = self.get_module_instance(base_mod_name=base_mod_name, os_type=os_type)
                             # 调用基类里面的语法检测函数，传入apache,user.present,以及user.present下面的数据。
+                            # 这里实际执行的时User.syntaxx_parser，因为User继承了基类BaseSaltModule,所以拥有了基类里面的syntax_parser方法
                             module_parse_result = module_obj.syntax_parser(section_name, mod_name, mod_data,os_type)
                             self.config_data_dic[os_type].append(module_parse_result)
                 print(self.config_data_dic)

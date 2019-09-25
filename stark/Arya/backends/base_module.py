@@ -140,7 +140,7 @@ class BaseSaltModule(object):
             # 导入user.py模块文件
             module_file = getattr(module_mem, base_mod_name)  # 这里才是真的导入模块
             specical_os_module_name = f'{os_type.capitalize()}{base_mod_name.capitalize()}'  # capitalize()将首字母大写
-            # print(specical_os_module_name)
+            print('special_os_module_name',specical_os_module_name)
             # 判断模块下是否存在specical_os_module_name方法
             if hasattr(module_file, specical_os_module_name):  # 如果存在UbuntuUser方法
                 module_instance = getattr(module_file, specical_os_module_name)  # 获取到user.py的UbuntuUser()方法

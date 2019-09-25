@@ -37,6 +37,7 @@ class TaskHandle(object):
                 'callback_queue':self.callback_queue_name,
                 'token':None
             }
+            print('data:',self.task_data)
             # 给每一个匹配到的主机发送消息
             for host in self.modulle_obj.host_list:
                 self.publish(data,host)
@@ -46,7 +47,14 @@ class TaskHandle(object):
     def make_connection(self):
         '''创建mq链接'''
         # 将mq的链接参数配置在setting.py里面了
-        self.mq_conn=pika.BlockingConnection(pika.ConnectionParameters(self.settings.MQ_CONN['host']))
+        # self.mq_conn=pika.BlockingConnection(pika.ConnectionParameters(self.settings.MQ_CONN['host']))
+        # self.mq_channel=self.mq_conn.channel()
+
+        credentails=pika.PlainCredentials(self.settings.MQ_CONN['user'],self.settings.MQ_CONN['pass'])
+        self.mq_conn=pika.BlockingConnection(pika.ConnectionParameters(
+            self.settings.MQ_CONN['host'],
+            self.settings.MQ_CONN['port'],self.settings.MQ_CONN['vhost'],credentails
+        ))
         self.mq_channel=self.mq_conn.channel()
 
     def publish(self,task_data,host):

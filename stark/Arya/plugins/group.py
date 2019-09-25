@@ -26,3 +26,9 @@ class Group(BaseSaltModule):
 class UbuntuGroup(Group):
     def home(self,*args,**kwargs):
         print('in ubnutn home ')
+
+class WindowsGroup(Group):
+    def is_required(self,*args,**kwargs):
+        print('WindowsGroup is required',args,kwargs)
+        cmd='''echo "required windowsgroup"'''
+        return cmd
