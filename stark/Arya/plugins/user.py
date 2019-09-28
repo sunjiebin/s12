@@ -45,7 +45,7 @@ class User(BaseSaltModule):
         # print(self.raw_cmds)
         # print(self.single_line_cmds)
         username=kwargs.get('section')  #获取section_name，即用户名
-        self.raw_cmds.insert(0,f'user add {username}')  #在生成的命令列表最前面添加user add username
+        self.raw_cmds.insert(0,f'useradd {username}')  #在生成的命令列表最前面添加user add username
         cmd_list=[]
         raw_cmd=' '.join(self.raw_cmds) #将列表里面的所有字符串形式的元素拼接成一条字符串，以空格隔开
         cmd_list.append(raw_cmd)
@@ -54,7 +54,7 @@ class User(BaseSaltModule):
         return cmd_list
     def is_required(self,*args,**kwargs):
         print('is required',args,kwargs)
-        cmd=f"id {args[1]};echo $?"
+        cmd=f"id {args[1]}"
         return cmd
 
 

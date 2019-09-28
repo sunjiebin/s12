@@ -15,8 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
-from Arya import urls
+from Arya import views
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('salt/',include('Arya.urls')),
+    path('file_center/', views.file_download),
 ]

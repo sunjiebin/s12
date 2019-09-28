@@ -104,6 +104,7 @@ class BaseSaltModule(object):
                     }
                     if type(cmd_list) is dict:  # 文件模块file.managed返回的cmd_list是字典形式，如果是字典格式，就代表这是文件模块
                         data['file_module']=True
+                        data['sub_action']=cmd_list.get('sub_action')
                     return data
                     #上面代表一个section里面具体的一个module已经解析完毕
                 else:
@@ -116,30 +117,48 @@ class BaseSaltModule(object):
             exit('%s值的格式不正确' % name)
 
     def require(self,*args,**kwargs):
-        print('in require')
+        '''
+        syntax_parser里面利用hasattr动态调用了该方法
+        调用对应模块里面的is_required方法，生成依赖条件检测命令，追加到require_list列表里面
+        require方法是使用getattr动态调用的，所以pycharm用alt+f7无法追踪到是谁调用了这个方法。
+        '''
+        print('in require'.center(60,'#'))
         print(args,kwargs)
-        for item in args[0]:
-            for mod_name,mod_val in item.items():
+        for item in args[0]:   # args[0] = ([{'group': 'apache'}, {'pkg': 'httpd'}],)
+            for mod_name,mod_val in item.items():   # mod_name=group mod_val=apache
                 module_obj=self.get_module_instance(base_mod_name=mod_name,os_type=kwargs.get('os_type'))
                 require_condition=module_obj.is_required(mod_name,mod_val)
+                print('require_condition',require_condition)
                 self.require_list.append(require_condition)
                 #print(module_obj)
         print('require_list',self.require_list)
+        print('out require'.center(60,'#'))
 
     def is_required(self,*args,**kwargs):
         exit(f'{args[0]}模块is_required是必须的')
 
 
     def get_module_instance(self,*args,**kwargs):
+        '''
+        被require()调用
+        根据yaml里面的语法，找打对应的模块文件，获取到对应的类里面的方法，执行该方法，并获取返回结果
+        比如：
+        get_module_instance(base_mod_name=group,os_type='linux')
+        将找到group.py模块里面的RedhatGroup()方法，并执行该方法，获取到该方法的返回值，并返回
+        :param args:
+        :param kwargs:
+        :return:
+        '''
         base_mod_name=kwargs.get('base_mod_name')
         os_type=kwargs.get('os_type')
-        plugin_file_path = f'{self.settings.SALT_PLUGINS_DIR}{base_mod_name}.py'
+        plugin_file_path = f'{self.settings.SALT_PLUGINS_DIR}{base_mod_name}.py'    #找打对应的模块文件
         if os.path.isfile(plugin_file_path):  # 如果存在该模块文件user.py
             module_mem = __import__(f'plugins.{base_mod_name}')  # 加载到内存，这里并没有将模块真正的import进来
             print(module_mem)
             # 导入user.py模块文件
             module_file = getattr(module_mem, base_mod_name)  # 这里才是真的导入模块
-            specical_os_module_name = f'{os_type.capitalize()}{base_mod_name.capitalize()}'  # capitalize()将首字母大写
+            # 得到模块里面的方法名，方法名为操作系统+模块名，比如RedhatGroup，capitalize()将首字母大写
+            specical_os_module_name = f'{os_type.capitalize()}{base_mod_name.capitalize()}'
             print('special_os_module_name',specical_os_module_name)
             # 判断模块下是否存在specical_os_module_name方法
             if hasattr(module_file, specical_os_module_name):  # 如果存在UbuntuUser方法

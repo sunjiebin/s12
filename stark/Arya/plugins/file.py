@@ -14,11 +14,13 @@ class File(BaseSaltModule):
     def mode(self,*args,**kwargs):
         pass
     def managed(self,*args,**kwargs):
-        print('managed',args,kwargs)
+        print('File managed',args,kwargs)
+        kwargs['sub_action']='managed'
+       #self.data['file_source']=True
         return kwargs
     def is_required(self,*args,**kwargs):
         print('is required',args,kwargs)
-        cmd=f'rpm -qa |grep {args[1]};echo $?'
+        cmd=f'rpm -qa |grep {args[1]}'
         return cmd
 
 class WindowsFile(BaseSaltModule):

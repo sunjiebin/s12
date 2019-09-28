@@ -31,18 +31,16 @@ class CommandManagement(object):
         pass
 
 class Needle(object):
+    '''初始化线程并监听任务'''
     def __init__(self):
         #self.configs=configs
         self.makeconnections()
         self.client_id=self.get_needle_id()
         self.task_queue_name=f'TASK_Q_{self.client_id}'
-
+        self.configs=configs
     def get_needle_id(self):
         '''去服务器端取自己的Id'''
         return configs.NEEDLE_CLIENT_ID
-    def listen(self):
-        '''开始监听服务'''
-        self.msg_consume()
 
     def makeconnections(self):
         '''创建连接'''
@@ -53,25 +51,44 @@ class Needle(object):
         ))
         self.mq_channel = self.mq_conn.channel()
 
-
-
-    def msg_callback(self,ch,method,properties,body):
-        '''每一个任务单独启动一个线程'''
-        print('msg_callback接收消息')
-        #启动一个线程，并把body作为参数传递进去
-        thread=threading.Thread(target=self.start_thread,args=(body,))
-        thread.start()
-    def start_thread(self,task_body):
-        print('启动线程')
-        task=TaskHandle(self,task_body) #这里的self就是Needle类实例化后的实例
-        task.processing()
+    def listen(self):
+        '''开始监听服务'''
+        self.msg_consume()
 
     def msg_consume(self):
         '''开始监听消息，有消息过来则接收消息，没有就挂起'''
         print('msg_consume task_queue_name:',self.task_queue_name)
         self.mq_channel.queue_declare(queue=self.task_queue_name)
+        #有消息就消费消息，并且触发回调函数msg_callback
         self.mq_channel.basic_consume(self.task_queue_name,self.msg_callback,False)
         self.mq_channel.start_consuming()
+
+    def msg_publish(self,*args,**kwargs):
+        '''执行成功后返回消息给服务端'''
+        queue_name=kwargs.get('queue')
+        queue_data=kwargs.get('data')
+        #创建queue
+        self.mq_channel.queue_declare(queue=queue_name)
+        print('返回消息内容',json.dumps(queue_data).encode())
+        # 发送queue，routing_key代表将消息发送到那个队列，body代表发送的内容
+        self.mq_channel.basic_publish(exchange='',routing_key=queue_name,body=json.dumps(queue_data))
+        print(f'返回消息到queue：{queue_name}')
+
+    def msg_callback(self,ch,method,properties,body):
+        '''每一个任务单独启动一个线程'''
+        print('msg_callback接收消息')
+        # 创建一个线程，执行start_thread方法，并把body作为参数传递进去
+        # target后面接需要执行的方法名，args代表执行方法需要接的参数，即start_thread的参数
+        # 注意body,这个逗号不能省略，必须写
+        thread=threading.Thread(target=self.start_thread,args=(body,))
+        #启动线程
+        thread.start()
+    def start_thread(self,task_body):   #task_body就是上面传过来的body
+        print('启动线程')
+        task=TaskHandle(self,task_body) #这里的self就是Needle类实例化后的实例
+        task.processing()
+
+
 
 class TaskHandle(object):
     def __init__(self,main_obj,task_body):
@@ -91,9 +108,10 @@ class TaskHandle(object):
     def check_data_validation(self):
         '''
         确保服务端发过来的任务在本地是可以执行的
-
         '''
         # platform用来获取本地操作系统类型,在linux上，下面的命令将返回操作发行版本，如centos,unbuntu
+        print('in main.py check_data_validation')
+        print('task_body',self.task_body)
         os_version=platform.version().lower()
         for os_type,data in  self.task_body['data'].items():    #os_type=redhat  data=[{cmd_list...}]
             print(os_version,os_type)
@@ -131,7 +149,7 @@ class TaskHandle(object):
         while True:
             for section in data:    #对data=[{cmd_list...},{cmd_list...}]，所以section就是一个个{cmd_list:xxx}的字典
                 if section.get('called_flag'):  #代表已经执行过，如果执行过一次，就给这个字典添加这个key，这样后面就不会在重复循环了，这样每次循环就能缩小范围
-                    print('已经执行过了')
+                    print('已经执行过了',section)
                 else:
                     apply_status,result=self.apply_section(section) # apply_status=True/False result=res
                     print('apply_status,result:',apply_status,result)
@@ -139,9 +157,9 @@ class TaskHandle(object):
                         applied_list.append(section)    #如果成功，那么就将section添加到列表里面，所以applied_list列表都是执行成功的section
                         applied_result+=result  #收集结果，并累加，成功的result会是0
                         if result == [0]:
-                            print('这是一条执行成功的命令',section)
+                            print('命令执行成功：',section)
                         else:
-                            print('这条命令失败了:',section)
+                            print('命令失败了:',section)
 
             '''
             如果长度没有变化，那么证明apply_statue不等于True，或者全部都有section.get('called_flag')=True的标记,
@@ -158,17 +176,29 @@ class TaskHandle(object):
         print('将结果发送给服务器')
         self.task_callback(self.task_body['callback_queue'],applied_result)
 
+    def task_callback(self,callback_queue,callback_data):
+        '''返回结果到指定的queue里面
+            TASK_CALLBACK_28
+        '''
+        # print('callback_queue',callback_queue)
+        send_obj=Needle()
+        send=send_obj.msg_publish(queue=callback_queue,data=callback_data)
+
+
+
     def apply_section(self,section_data):
         '''执行指定的task section
         被parse_task_data方法调用
         '''
-        print('应用section_data',section_data['require_list'])
+        print('\033[45;1m 应用section_data:\033[0m',section_data)
         #首先判断执行的section是否有依赖
 
         if section_data['require_list'] != []:    #判断是否有依赖
+            print('存在依赖条件：',section_data['require_list'])
             #将require_list依赖的命令传给check_pre_requisites方法，如果返回0，代表依赖条件全部满足
             if self.check_pre_requisites(section_data['require_list']) ==0:     #依赖满足
-                if section_data.get('file_source')==True:   #如果有文件，就交给文件处理函数file_handle处理
+                print('依赖条件检测通过')
+                if section_data.get('file_module')==True:   #如果有文件，就交给文件处理函数file_handle处理
                     res=self.file_handle(section_data)  #{cmdline:xx}
                 else:
                     res=self.run_cmd(section_data['cmd_list'])
@@ -178,30 +208,41 @@ class TaskHandle(object):
                 print('依赖条件不满足')
                 return [False,None]
         else:
-            print('依赖条件不存在')
-            return [False,None]
+            print('依赖条件不存在，直接解析命令')
+            if section_data.get('file_module') == True:  # 如果有文件，就交给文件处理函数file_handle处理
+                res = self.file_handle(section_data)  # {cmdline:xx}
+            else:
+                res = self.run_cmd(section_data['cmd_list'])
+            section_data['called_flag'] = True  # 执行完成后，加上一个标记，说明已经执行过,parse_task_data里面会通过这个标记判断是否已执行
+            return [True, res]  # 返回True,以及命令执行的结果res
 
     def run_cmd(self,cmd_list):
         '''执行传过来的命令
         被apply_section函数调用
         '''
         cmd_result=[]
+        print('进入run_cmd模块'.center(60,'+'))
         for cmd in cmd_list:
             print('run_cmd',cmd)
             cmd_res=subprocess.run(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             if platform.system() == 'Windows':
                 cmd_result.append(cmd_res.returncode)
             else:
-                cmd_result.append(int(cmd_res.stdout.decode().strip()))
+                cmd_result.append(int(cmd_res.returncode))
             #cmd_result.append(int(cmd_res.stdout.decode().strip()))
             print('cmd_result:',cmd_result)
+            print('run_cmd模块处理完毕'.center(60,'+'))
             return cmd_result
     def file_handle(self,section_data):     #section_data就是{cmd_list:...}
         '''对文件进行操作'''
-
+        print('进入file_handle模块'.center(60,'='))
+        #print('file mod:'.center(60, '='))
+        #cmd_result=[]
         file_module_obj= files.FileModule(self)
-        file_module_obj.process(section_data)
-        return []
+        cmd_result=file_module_obj.process(section_data,os_type=self.current_os_type)
+        print('cmd_res',cmd_result)
+        print('file_handle处理完毕'.center(60,'='))
+        return cmd_result
 
 
 
@@ -225,8 +266,7 @@ class TaskHandle(object):
             if platform.system() == 'Windows':
                 conditions_result.append(cmd_res.returncode)
             else:
-                conditions_result.append(int(cmd_res.stdout.decode().strip()))
+                conditions_result.append(int(cmd_res.returncode))
             print('conditions_result:',conditions_result)
             return sum(conditions_result)   #对结果进行求和，如果全是0，那么return的结果也就是0
-    def task_callback(self,callback_queue,callback_data):
-        pass
+

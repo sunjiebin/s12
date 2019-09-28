@@ -131,8 +131,16 @@ rabbitmq
             }
         创建链接
             # self.settings.MQ_CONN['host']时settings里面定义的
+            如果是连接本机localhost，那么不需要用户名和密码就可以连接。如果端口也是默认的化，就只需要指定host就行了。
             self.mq_conn=pika.BlockingConnection(pika.ConnectionParameters(self.settings.MQ_CONN['host']))
             self.mq_channel=self.mq_conn.channel()
+            如果要连接别的rabbitmq，那么就需要配置host/port/vhost/user/password。
+            credentails=pika.PlainCredentials(configs.MQ_CONN['user'],configs.MQ_CONN['pass'])
+            self.mq_conn=pika.BlockingConnection(pika.ConnectionParameters(
+                configs.MQ_CONN['host'],
+                configs.MQ_CONN['port'],configs.MQ_CONN['vhost'],credentails
+            ))
+            self.mq_channel = self.mq_conn.channel()
         发送消息
             #声明一个queue队列
             self.mq_channel.queue_declare(queue=queue_name)
@@ -146,8 +154,8 @@ rabbitmq
             # 开始监听消息，如果没有消息则挂起，有则执行上面定义的操作
             self.mq_channel.start_consuming()
 
-shutil复制文件
-
+shutil模块
+    用户拷贝文件/文件夹/复制文件属性/复制文件权限/移动文件/删除文件/打包文件等
 
 判断self到底是谁？
     哪个实例化的实例调用的了这个方法，那么self就是那个实例。
@@ -199,9 +207,11 @@ Needle类下面的
     pycharm左边的structure可以查看当前模块所拥有的类/方法/变量
 
 urllib
-    用于爬网页，从网站上下载文件
+    用于爬网页，从网站上下载文件，先将数据read到内存里面，赋值给data，再打开一个文件，然后将data写到文件里面去。
     f = urllib.request.urlopen(url)
     data=f.read()
+    with open(f'{file_save_path}/{file_name}','w') as e:
+        e.write(data)
 
 os.system os.popen subprocess.run的区别
     os.system 该函数只返回命令执行结果的返回值，成功就是0，失败就是1
@@ -288,3 +298,76 @@ windows下byte类型数据decode解码出错
                     func()
                 else:
                     exit('CommandManagement不存在此方法')
+
+将项目放在Linux系统上发布
+
+    一、编写一个requirements.txt文件，里面写上该项目需要依赖的包以及版本号。如果不指定版本号，则取最新的。
+        vim requirements.txt
+        PyYAML
+        pika
+        PyMySQL
+
+    二、用pip3安装里面的依赖包
+        pip3 install -r requirements.txt
+
+    三、修改settings.py，添加本机ip，表示允许用这个ip访问。
+        vim stark/settings.py
+        ALLOWED_HOSTS = ['172.16.0.41']
+        添加mysql的配置，注意需要安装PyMySQL模块才能访问mysql
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql', # 数据库引擎
+                'NAME': 'Arya', # 数据库名
+                'USER': 'arya', # 账号
+                'PASSWORD': 'sunjiebin', # 密码
+                'HOST': '172.16.0.41', # HOST
+                'POST': 3306, # 端口
+
+            }
+        }
+        修改rabbitmq的配置，注意需要pika模块来连接rabbit
+        MQ_CONN={
+            'host':'localhost',
+            'port': 5672,
+            'user':'admin',
+            'pass':'sunjiebin',
+            'vhost':'stark'
+        }
+
+    五.初始化django数据库
+        python3 manage.py makemigrations
+        python3 manage.py  migrate
+
+    六.创建admin用户（如果有用到admin后台的话）
+        python3 manage.py createsuperuser
+
+    七.添加后启动项目
+        python3 manage.py runserver 0.0.0.0:8001
+
+    八.启动成功后就可以直接访问djang项目了，或者访问django后台，用前面创建的admin用户登录即可。
+
+shutil用于拷贝文件
+    shutil.copyfile(self.source_file,target_filepath)
+
+创建和启动线程
+    def msg_callback(self,ch,method,properties,body):
+        '''每一个任务单独启动一个线程'''
+        print('msg_callback接收消息')
+        # 创建一个线程，执行start_thread方法，并把body作为参数传递进去
+        # target后面接需要执行的方法名，args代表执行方法需要接的参数，即start_thread的参数
+        # 注意body,这个逗号不能省略，必须写
+        thread=threading.Thread(target=self.start_thread,args=(body,))
+        #启动线程
+        thread.start()
+    def start_thread(self,task_body):   #task_body就是上面传过来的body
+        print('启动线程')
+        task=TaskHandle(self,task_body) #这里的self就是Needle类实例化后的实例
+        task.processing()
+
+问题注意：
+    一定要注意，再类的继承过程中，子类继承了父类，那么子类里面的方法就能够覆盖父类里面定义的方法，有时候会发现定义的方法
+    始终不生效，其实就是因为子类里面定义了相同的方法把父类里面的覆盖了。
+    比如这个项目里面，在test.yml里面定义了user和group都有require依赖，user模块里面的require能够正常生成，而group里面的require始终是None，
+    最后发下，原来是group里面多定义了一个require把基类的覆盖了
+        def require(self,*args,**kwargs):
+        pass

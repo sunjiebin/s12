@@ -12,7 +12,7 @@ FILE_SERVER={
     'salt':SALT_MASTER,
 }
 
-FILE_SERVER_BASE_PATH='/salt/file_center'
+FILE_SERVER_BASE_PATH='/salt/file_center/'
 #数据下载下来后存放目录
 FILE_STORE_PATH=f'{BASE_DIR}/var/dowonloads/'
 #客户端的id 这个id与self.callback_queue_name="TASK_CALLBACK_%s"%self.task_id要相同，代表客户端到相同的队列里面拿消息
