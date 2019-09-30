@@ -153,10 +153,11 @@ class BaseSaltModule(object):
         os_type=kwargs.get('os_type')
         plugin_file_path = f'{self.settings.SALT_PLUGINS_DIR}{base_mod_name}.py'    #找打对应的模块文件
         if os.path.isfile(plugin_file_path):  # 如果存在该模块文件user.py
-            module_mem = __import__(f'plugins.{base_mod_name}')  # 加载到内存，这里并没有将模块真正的import进来
-            print(module_mem)
-            # 导入user.py模块文件
-            module_file = getattr(module_mem, base_mod_name)  # 这里才是真的导入模块
+            # module_mem = __import__(f'plugins.{base_mod_name}')  # 这里的module_mem实际上是plugins包
+            # print(module_mem)
+            # # 导入user.py模块文件
+            # module_file = getattr(module_mem, base_mod_name)  #这里是获取到plugins下面的base_mod_name模块
+            module_file = __import__(f'plugins.{base_mod_name}',fromlist = (f'{base_mod_name}',))
             # 得到模块里面的方法名，方法名为操作系统+模块名，比如RedhatGroup，capitalize()将首字母大写
             specical_os_module_name = f'{os_type.capitalize()}{base_mod_name.capitalize()}'
             print('special_os_module_name',specical_os_module_name)

@@ -1,303 +1,337 @@
-
-导入模块时先将项目顶级目录加入到环境变量中
-    # 将stark加入到运行的环境变量中,如果不加，会导致无法通过from Arya导入模块，因为Arya的上级stark没有在环境变量中,所以直接写Arya会找不到这个目录
-    # 提示错误：ModuleNotFoundError: No module named 'Arya'
-    下面BASE_DIR=Arya，然后将BASE_DIR追加到sys.path环境变量中去。后面就可以导入Arya下面的模块了。
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    sys.path.append(BASE_DIR)
-    # print(sys.path)
-    from Arya.backends.utils import ArgvManagement
-
-确保-h参数后面有值
-    host_str_index=self.sys_argvs.index('-h')+1
-    # 定义参数长度必须大于索引长度，也就是说，如果-h后面不能为空，如果没有参数，那么就是等于，就提示必须接参数。
-    if len(self.sys_argvs) <= host_str_index:
-        print('-h后面必须接参数')
-    else:
-        host_str=self.sys_argvs[host_str_index]
-
-ManyToManyField查找关联表的数据
-    比如查找group表里面对应某个group里面的关联主机
-    先找到对应的group行对象，然后group.hosts找到关联的hosts，再用select_related()找到关联的对象
-        # name__in相当于 where name in xxx 。去数据库把匹配的主机查询出来
+python基础用法
+    导入模块时先将项目顶级目录加入到环境变量中
+        # 将stark加入到运行的环境变量中,如果不加，会导致无法通过from Arya导入模块，因为Arya的上级stark没有在环境变量中,所以直接写Arya会找不到这个目录
+        # 提示错误：ModuleNotFoundError: No module named 'Arya'
+        下面BASE_DIR=stark，然后将BASE_DIR追加到sys.path环境变量中去。后面就可以导入stark下的子模块Arya了。
+        salt.py
+            BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            sys.path.append(BASE_DIR)
+            # print(sys.path)
+            from Arya.backends.utils import ArgvManagement
+    将两个列表拼接成一个列表
+        如将从主机列表里面得到的主机列表，和组列表里面得到的主机列表拼接成一个列表，可以用+=的方式，而不是用append的方式
+        host_list=[]
+        host_list+=self.db_modules.Host.objects.filter(hostname__in=host_str_list)
         group_list=self.db_modules.HostGroup.objects.filter(name__in=group_str_list)
-        # 将查找到的组列表循环，获取里面的主机，并和前面的主机合并
-        for group in group_list:
-            host_list+=group.hosts.select_related()
+        示例：
+        a=[1,2]  b=['a','b']
+        a+=b  --->得到 a=[1, 2, 'a', 'b']
 
-将两个列表拼接成一个列表
-    如将从主机列表里面得到的主机列表，和组列表里面得到的主机列表拼接成一个列表，可以用+=的方式，而不是用append的方式
-    host_list=[]
-    host_list+=self.db_modules.Host.objects.filter(hostname__in=host_str_list)
-    group_list=self.db_modules.HostGroup.objects.filter(name__in=group_str_list)
-    示例：
-    a=[1,2]  b=['a','b']
-    a+=b  --->得到 a=[1, 2, 'a', 'b']
+    定义项目配置文件时，我们可以在settings.py里面定义号项目配置文件的默认路径的变量SALT_CONFIG_FILES_DIR。
+    然后代码里面通过self.settings.SALT_CONFIG_FILES_DIR的方式来引用。
+            settings.py
+                SALT_CONFIG_FILES_DIR=f'{BASE_DIR}/Arya/salt_config'
+            state.py
+                #在settings.py里面定义一个配置文件，用于指定配置文件的路径，这个脚本里面的settings是从utils.py里面传递过来的
+                state_file_path = "%s/%s" %(self.settings.SALT_CONFIG_FILES_DIR,state_filename)
+            utils.py
+                from stark import settings
+                module_obj = module_instance(self.argvs, models,settings)
+    将一个字符串形式的文件名作为模块导入，动态导入模块
+        可以使用__import__，先会把他加载到__init__.py里面，然后用getattr来执行导入。
+        注意:在plugins目录下要写成f'plugins.{base_mmode_name}',不能写成f'Arya.plugins.{base_mmode_name}'，
+            否则会提示AttributeError: module 'Arya' has no attribute 'user'，只写一级，不要写多层级。
+        base_module.py
+            base_mod_name=mod_name.split('.')[0]
+            module_mem=__import__(f'plugins.{base_mod_name}')   #这里的module_mem实际上是plugins包
+            print(module_mem)   #打印<module 'plugins' from 'D:\\学习相关\\python\\s12\\stark\\Arya\\plugins\\__init__.py'>
+            module_file=getattr(module_mem,base_mod_name)        #这里是获取到plugins下面的base_mod_name模块
+        上面的写法也可以写成如下格式，利用fromlist实现.加上fromlist后，module_file实际上就是base_mod_name模块了。
+            module_file=__import__(f'plugins.{base_mod_name}'，fromlist = (f'{base_mod_name}',))
+        有fromlist和没有fromlist的区别：
+            __import__(f'plugins.{base_mod_name}') 得到的是plugins对象
+            __import__(f'plugins.{base_mod_name}'，fromlist = (f'{base_mod_name}',))     得到的是plugins下面的base_mod_name对象
+    for循环的else用法
+        当循环结束后，才会触发else，如果循环过程中被break了，则不会触发else条件。所以for...else...一般和break配合使用。
+        比如下方语句，循环数组，当数组里面没有i=3条件时，就打印数组里面没有3，如果有i=3的时候，break退出循环不打印.
+        也就是当for循环全部执行完成，就会执行else，当循环过程中报错了或者退出了，就不会触发else条件。
+        for i in range(5):
+            print(i)
+            if i==3:
+                break
+        else:
+            print('数组里面没有3')
 
-为了让任何一个django project中的*.py文件都能够正常的使用项目中的数据模型操作，就必须定义os.environ.setdefault以及django.setup()。
-    执行os.environ将打印当前的系统的环境变量。
-    os.environ.setdefault('aa','bb')  将添加一条'AA':'bb'的键值对到环境变量中
-    所以os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stark.settings')其实就是添加一条环境变量'DJANGO_SETTINGS_MODULE':'stark.settings'
-    想要一个单独的python脚本想要能够引用django里面的template,models等功能时，就需要定义下面的几行。
-    import os,django
-    import sys
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stark.settings')
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    sys.path.append(BASE_DIR)
-    django.setup()
+    列表操作复习
+        insert用于向列表指定位置插入元素
+        self.raw_cmds.insert(0,f'user add {username}')  #在生成的命令列表最前面添加user add username
+        extend用于两个列表元素的合并，append用于将元素追加到列表里面。如果元素是一个列表，那么追加的就会添加一个列表进去。
+        如下:
+        a=['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin']
+        b=['echo "apache:goodidea"|chpasswd ']
+        a.extend(b)的结果：
+        ['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin', 'echo "apache:goodidea"|chpasswd ']
+        a.append(b)的结果：
+        ['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin', ['echo "apache:goodidea"|chpasswd ']]
+    shutil模块
+        用户拷贝文件/文件夹/复制文件属性/复制文件权限/移动文件/删除文件/打包文件等
+        拷贝文件
+        shutil.copyfile(self.source_file,target_filepath)
+    其他知识点
+        split取最后一个元素，可以用-1来取
+        file_name=file_path.split('/')[-1]
+        pycharm左边的structure可以查看当前模块所拥有的类/方法/变量的目录结构，这样就不用在脚本里面不停的移动鼠标去查找某个方法或变量了。
 
-注意单双引号是由区别的
-    当用单引号的时候，得到的是'mailgroup'，这时候数据库是匹配不到数据的
-    group_list=self.db_models.HostGroup.objects.filter(name__in=group_str_list)  得不到数据
-    salt.py cmd.CMD -g 'mailgroup'
-    得到：
-        'mailgroup' ["'mailgroup'"]
-        host list: []
-    用双引号，得到的是mailgroup，这个就可以被数据库查到数据
-    salt.py cmd.CMD -g "mailgroup"
-    得到：
-        mailgroup ['mailgroup']
-        host list: [<Host: ubuntu test>, <Host: windows test>]
+思路及方法
+    确保-h参数后面有值
+        host_str_index=self.sys_argvs.index('-h')+1
+        # 定义参数长度必须大于索引长度，也就是说，如果-h后面不能为空，如果没有参数，那么就是等于，就提示必须接参数。
+        if len(self.sys_argvs) <= host_str_index:
+            print('-h后面必须接参数')
+        else:
+            host_str=self.sys_argvs[host_str_index]
 
-
-报错
-    salt.py里面必须加上下面这句
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stark.settings')
-    否则后面会报错
-        django.core.exceptions.ImproperlyConfigured: Requested setting INSTALLED_APPS, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing
-        settings.
-    上面加上后，还要这句
-    django.setup()
-    否则报下面的错
-        django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
-    上面这句前面要加上这俩句
-     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-     sys.path.append(BASE_DIR)
-     否则报错
-        ModuleNotFoundError: No module named 'stark'
-
-定义项目配置文件时，我们可以在settings.py里面定义号项目配置文件的默认路径的变量SALT_CONFIG_FILES_DIR。
-然后代码里面通过self.settings.SALT_CONFIG_FILES_DIR的方式来引用。
-    settings.py
-        SALT_CONFIG_FILES_DIR=f'{BASE_DIR}/Arya/salt_config'
-    state.py
-        #在settings.py里面定义一个配置文件，用于指定配置文件的路径
-        state_file_path = "%s/%s" %(self.settings.SALT_CONFIG_FILES_DIR,state_filename)
-
-将一个字符串形式的文件名作为模块导入
-    可以使用__import__，先会把他加载到__init__.py里面，然后用getattr来执行导入。
-    注意:在plugins目录下要写成f'plugins.{base_mmode_name}',不能写成f'Arya.plugins.{base_mmode_name}'，否则会提示AttributeError: module 'Arya' has no attribute 'user'，
-    base_mod_name=mod_name.split('.')[0]
-    module_mem=__import__(f'plugins.{base_mod_name}')   #加载到内存，这里并没有将模块真正的import进来
-    print(module_mem)   #打印<module 'plugins' from 'D:\\学习相关\\python\\s12\\stark\\Arya\\plugins\\__init__.py'>
-    module_file=getattr(module_mem,base_mod_name)        #这里才是真的导入模块
-
-类的继承
+    类的继承
     当我们很多函数需要用到相同的方法时，用类的继承最适合不过了。
     比如每一个模块函数都需要获取到主机的操作系统信息，都需要进行语法校验，这些就可以都写在基类里面，其他的类都继承它。
     再比如，user模块里面要根据不同的操作系统生成不同的执行命令，但是uid,gid等参数所有操作系统的函数都需要接收这个参数，
     那么可以写成一个User(BaseSaltModule)类，然后其他的不同操作系统的类继承这个类UbuntuUser(User)。
 
-for循环的else用法
-    当循环结束后，才会触发else，如果循环过程中被break了，则不会触发else条件。所以for...else...一般和break配合使用。
-    比如下方语句，循环数组，当数组里面没有i=3条件时，就打印数组里面没有3，如果有i=3的时候，break退出循环不打印.
-    for i in range(5):
-        print(i)
-        if i==3:
-            break
-    else:
-        print('数组里面没有3')
+    判断self到底是谁？
+        哪个实例化的实例调用的了这个方法，那么self就是那个实例。
+        比如我要分析base_module.py里面的 getattr(self, key)的self到底是谁
+        1.那么首先看是谁调用了process()方法。pycharm中，可以用alt+f7追踪到谁调用了这个方法，
+        2.我们查询到是main.py里面的file_handle方法的file_module_obj实例调用了base_module.py里面的process方法
+        3.file_module_obj是files.FileModule(self)实例化的对象，所以，这里的self就是files.FileModule实例
+        4.files.FileModule(self)实例是files.py文件里面的FileModule类
+        5.所以getattr(self,key)就是获取files.py里面的FileModule类里面的key方法。
+        示例代码：
+        base_module.py
+            class BaseSaltModule(object):
+            def process(self,module_data,*args,**kwargs):
+                       if hasattr(self, key):  # 这里就是判断files.py里面FileModule类下面是否有对应Key的方法 self=files.FileModule对象
+                            state_func = getattr(self, key)  # 获取到对应的方法User下面的uid方法
+                            state_func(val,section=section_name,os_type=os_type)  # 执行uid(val),require()等方法
+        main.py
+            from modules import files
+            def file_handle(self,section_data):
+                file_module_obj= files.FileModule(self)
+                file_module_obj.process(section_data)
+        files.py
+            from Arya.Needle.modules.base_module import BaseSaltModule
+            class FileModule(BaseSaltModule):
+        示例代码2：
+          Needle类下面的函数实例化了TaskHandle(self,task_body)类，实例化时传递了self,task_body进去。这里的self就是指Needle实例。
+            class Needle(object):
+                def start_thread(self,task_body):
+                    print('启动线程')
+                    task=TaskHandle(self,task_body) #这里的self就是Needle类实例化后的实例
+                    task.processing()
+          在TaskHandle中，__init__(self,main_obj,task_body)接收了两个参数，main_obj对应上面实例化时的self，task_body对应上面的task_body。
+          由于上面的self就是Needle实例本身，所以，下面的self.main_obj实际上就是Needle实例。所以，执行self.main_obj实际上就是执行实例化了的Needle
+            class TaskHandle(object):
+                def __init__(self,main_obj,task_body):
+                    # 这里的main_obj就是Needle object，因为是Needle类里面的start_thread调用的TaskHandle(self,task_body)，这里的self就是指Needle实例本身
+                    # 在消息收到后，要返回数据给队列，利用Needle里面建立好的队列再返回消息
+                    self.main_obj=main_obj
+                    # python3的所有socket传输都是以byte字节流的方式发送了，而json只能解析字符串，是不能解析二进制的字节流的，所以要decode先转成字符串
+                    self.task_body=json.loads(task_body.decode())
 
-列表操作复习
-    insert用于向列表指定位置插入元素
-    self.raw_cmds.insert(0,f'user add {username}')  #在生成的命令列表最前面添加user add username
-    extend用于两个列表元素的合并，append用于将元素追加到列表里面。如果元素是一个列表，那么追加的就会添加一个列表进去。
-    如下:
-    a=['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin']
-    b=['echo "apache:goodidea"|chpasswd ']
-    a.extend(b)的结果：
-    ['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin', 'echo "apache:goodidea"|chpasswd ']
-    a.append(b)的结果：
-    ['user add apache -u 87 -g 87 -d /var/www/html -s /bin/nologin', ['echo "apache:goodidea"|chpasswd ']]
+    直接执行实例
+        我们以往的写法都是先实例化类，然后再用实例化的类去执行里面的方法。
+        下面的CommandManagment类在init里面就执行了调用self.argv_handle()，实现实例化的时候就执行了argv_handle()方法，
+        而argv_handle()方法会判断是否存在输入的参数argvs[0]，也就是脚本后面的值是否和CommandManangement里面的方法名称相同，
+        如果相同则直接执行这里面的方法，如果不同，这提示“不存在此方法”
+        needle.py
+            from core import main
+            main.CommandManagement(sys.argv)
 
-rabbitmq
-    pika模块用于链接rabbitmq的模块。
-    pika链接rabbitmq的用法
-        在settings.py里面定义好rabbitmq链接信息
-                MQ_CONN={
-                'host':'localhost',
-                'port': 5672,
-                'password':''
-            }
-        创建链接
-            # self.settings.MQ_CONN['host']时settings里面定义的
-            如果是连接本机localhost，那么不需要用户名和密码就可以连接。如果端口也是默认的化，就只需要指定host就行了。
-            self.mq_conn=pika.BlockingConnection(pika.ConnectionParameters(self.settings.MQ_CONN['host']))
-            self.mq_channel=self.mq_conn.channel()
-            如果要连接别的rabbitmq，那么就需要配置host/port/vhost/user/password。
-            credentails=pika.PlainCredentials(configs.MQ_CONN['user'],configs.MQ_CONN['pass'])
-            self.mq_conn=pika.BlockingConnection(pika.ConnectionParameters(
-                configs.MQ_CONN['host'],
-                configs.MQ_CONN['port'],configs.MQ_CONN['vhost'],credentails
-            ))
-            self.mq_channel = self.mq_conn.channel()
-        发送消息
-            #声明一个queue队列
-            self.mq_channel.queue_declare(queue=queue_name)
-            # 发送queue，routing_key代表将消息发送到那个队列，这里代表发送到上面声明的那个队列里面，body代表发送的内容
-            self.mq_channel.basic_publish(exchange='',routing_key=queue_name,body=json.dumps(task_data))
-        消费消息
-            #声明一个队列
-            self.mq_channel.queue_declare(self.callback_queue_name)
-            # 定义消费消息的参数，self.task_callback代表接收到消息后的回调函数，self.callback_queue_name代表从这个queue里面接收消息，False不发送ack确认给服务端
-            self.mq_channel.basic_consume(self.callback_queue_name,self.task_callback,False)
-            # 开始监听消息，如果没有消息则挂起，有则执行上面定义的操作
-            self.mq_channel.start_consuming()
+        main.py
+            class CommandManagement(object):
+                def __init__(self,argvs):
+                    self.argvs=argvs[1:]
+                    self.argv_handle()
 
-shutil模块
-    用户拷贝文件/文件夹/复制文件属性/复制文件权限/移动文件/删除文件/打包文件等
+                def argv_handle(self):
+                    if len(self.argvs) ==0:
+                        exit('启动或停止:start/stop')
+                    if hasattr(self,self.argvs[0]):
+                        func=getattr(self,self.argvs[0])
+                        func()
+                    else:
+                        exit('CommandManagement不存在此方法')
 
-判断self到底是谁？
-    哪个实例化的实例调用的了这个方法，那么self就是那个实例。
-    比如我要分析base_module.py里面的 getattr(self, key)的self到底是谁
-    1.那么首先看是谁调用了process()方法。pycharm中，可以用alt+f7追踪到谁调用了这个方法，
-    2.我们查询到是main.py里面的file_handle方法的file_module_obj实例调用了base_module.py里面的process方法
-    3.file_module_obj是files.FileModule(self)实例化的对象，所以，这里的self就是files.FileModule实例
-    4.files.FileModule(self)实例是files.py文件里面的FileModule类
-    5.所以getattr(self,key)就是获取files.py里面的FileModule类里面的key方法。
-    示例代码：
-    base_module.py
-        class BaseSaltModule(object):
-        def process(self,module_data,*args,**kwargs):
-                   if hasattr(self, key):  # 这里就是判断files.py里面FileModule类下面是否有对应Key的方法 self=files.FileModule对象
-                        state_func = getattr(self, key)  # 获取到对应的方法User下面的uid方法
-                        state_func(val,section=section_name,os_type=os_type)  # 执行uid(val),require()等方法
-    main.py
-        from modules import files
-        def file_handle(self,section_data):
-            file_module_obj= files.FileModule(self)
-            file_module_obj.process(section_data)
-    files.py
-        from Arya.Needle.modules.base_module import BaseSaltModule
-        class FileModule(BaseSaltModule):
+    问题注意：
+        一定要注意，再类的继承过程中，子类继承了父类，那么子类里面的方法就能够覆盖父类里面定义的方法，有时候会发现定义的方法
+        始终不生效，其实就是因为子类里面定义了相同的方法把父类里面的覆盖了。
+        比如这个项目里面，在test.yml里面定义了user和group都有require依赖，user模块里面的require能够正常生成，而group里面的require始终是None，
+        最后发下，原来是group里面多定义了一个require把基类的覆盖了
+            def require(self,*args,**kwargs):
+            pass
 
-Needle类下面的
-  Needle类下面的函数实例化了TaskHandle(self,task_body)类，实例化时传递了self,task_body进去。这里的self就是指Needle实例。
-    class Needle(object):
-        def start_thread(self,task_body):
+ORM操作
+    ManyToManyField查找关联表的数据
+        比如查找group表里面对应某个group里面的关联主机
+        先找到对应的group行对象，然后group.hosts找到关联的hosts，再用select_related()找到关联的对象
+            # name__in相当于 where name in xxx 。去数据库把匹配的主机查询出来
+            group_list=self.db_modules.HostGroup.objects.filter(name__in=group_str_list)
+            # 将查找到的组列表循环，获取里面的主机，并和前面的主机合并
+            for group in group_list:
+                host_list+=group.hosts.select_related()
+
+
+django相关
+    让其他py文件引用django里面的数据模型
+        为了让任何一个django project中的*.py文件都能够正常的使用项目中的数据模型操作，就必须定义os.environ.setdefault以及django.setup()。
+        执行os.environ将打印当前的系统的环境变量。
+        os.environ.setdefault('aa','bb')  将添加一条'AA':'bb'的键值对到环境变量中
+        所以os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stark.settings')其实就是添加一条环境变量'DJANGO_SETTINGS_MODULE':'stark.settings'
+        想要一个单独的python脚本想要能够引用django里面的template,models等功能时，就需要定义下面的几行。
+        import os,django
+        import sys
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stark.settings')
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        sys.path.append(BASE_DIR)
+        django.setup()
+
+        如果不写os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stark.settings')这一行，执行django.setup()就会报下面的错误
+        django.core.exceptions.ImproperlyConfigured: Requested setting LOGGING_CONFIG, but settings are not configured. You must either define the environment variable DJANGO_SETTINGS_MODULE or call settings.configure() before accessing
+        settings.
+        如果不写sys.path.append(BASE_DIR)，就会报下面的错误 ModuleNotFoundError: No module named 'Arya'
+
+windows和Linux系统用法区别
+    注意单双引号是有区别的
+        当用单引号的时候，得到的是'mailgroup'，这时候数据库是匹配不到数据的
+        group_list=self.db_models.HostGroup.objects.filter(name__in=group_str_list)  得不到数据
+        salt.py cmd.CMD -g 'mailgroup'
+        得到：
+            'mailgroup' ["'mailgroup'"]
+            host list: []
+        用双引号，得到的是mailgroup，这个就可以被数据库查到数据
+        salt.py cmd.CMD -g "mailgroup"
+        得到：
+            mailgroup ['mailgroup']
+            host list: [<Host: ubuntu test>, <Host: windows test>]
+        要注意的是，在windows下才会有这个区别，在Linux下用单双引号都能得到结果。
+
+    注意py脚本换行符的问题
+        用pycharm写的文件默认是windows的换行符，也就是CRLF格式的。这个在linux下面就会出现一些问题。
+        就比如我们定义的解析器不生效，无法用./salt.py去执行python文件。提示No such file or directory
+        [root@salt-master Arya]# ./salt.py
+        : No such file or directory
+        在vim里面可以用set ff查看文本换行符格式，得到  fileformat=unix，
+        用set ff=unix可以转换为linux格式就可以了。
+
+    windows下byte类型数据decode解码出错
+        执行下面的代码，在linux下不会报错，在windows下就报错了
+        condition='dir && echo 0 || echo 1'
+        cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        cmd_res.stdout.decode()
+        Traceback (most recent call last):
+          File "<input>", line 1, in <module>
+        UnicodeDecodeError: 'utf-8' codec can't decode byte 0xc7 in position 1: invalid continuation byte
+        如果不decode，结果得到的时16进制的文件，无法阅览
+        cmd_res.stdout
+        b' \xc7\xfd\xb6\xaf\xc6\xf7 D \xd6\xd0\xb5\xc4\xbe\xed\xca\xc7 Data\r\n \xbe\xed\xb5\xc4\xd0\xf2\xc1\xd0\xba\xc5\xca\xc7
+        正确的做法时，在windows下要decode成gbk模式，这样就不会报错了。
+        cmd_res.stdout.decode('gbk')
+        ' 驱动器 D 中的卷是 Data\r\n 卷的序列号是 706D-EE5E\r\n\r\n D:\\学习相关\\python\\s12\\stark 的目录\r\n\r\n2019/
+
+第三方模块
+    rabbitmq
+        pika模块用于链接rabbitmq的模块。
+        pika链接rabbitmq的用法
+            在settings.py里面定义好rabbitmq链接信息
+                    MQ_CONN={
+                    'host':'localhost',
+                    'port': 5672,
+                    'password':''
+                }
+            创建链接
+                # self.settings.MQ_CONN['host']时settings里面定义的
+                如果是连接本机localhost，那么不需要用户名和密码就可以连接。如果端口也是默认的化，就只需要指定host就行了。
+                self.mq_conn=pika.BlockingConnection(pika.ConnectionParameters(self.settings.MQ_CONN['host']))
+                self.mq_channel=self.mq_conn.channel()
+                如果要连接别的rabbitmq，那么就需要配置host/port/vhost/user/password。
+                首先要建立一个credentails，然后传入到ConnectionParameters。
+                credentails=pika.PlainCredentials(configs.MQ_CONN['user'],configs.MQ_CONN['pass'])
+                self.mq_conn=pika.BlockingConnection(pika.ConnectionParameters(
+                    configs.MQ_CONN['host'],
+                    configs.MQ_CONN['port'],configs.MQ_CONN['vhost'],credentails
+                ))
+                self.mq_channel = self.mq_conn.channel()
+            发送消息
+                #声明一个queue队列
+                self.mq_channel.queue_declare(queue=queue_name)
+                # 发送queue，routing_key代表将消息发送到哪个队列，这里代表发送到上面声明的那个队列里面，body代表发送的内容
+                self.mq_channel.basic_publish(exchange='',routing_key=queue_name,body=json.dumps(task_data))
+            消费消息
+                #声明一个队列
+                self.mq_channel.queue_declare(self.callback_queue_name)
+                # 定义消费消息的参数，self.callback_queue_name代表从这个queue里面接收消息，self.task_callback代表接收到消息后的回调函数，False自动不发送ack确认给服务端，因为我们在callback里面会发送自定义的消息
+                self.mq_channel.basic_consume(self.callback_queue_name,self.task_callback,False)
+                # 开始监听消息，如果没有消息则挂起，有则执行上面定义的操作
+                self.mq_channel.start_consuming()
+    urllib
+        用于爬网页，从网站上下载文件，先将数据read到内存里面，赋值给data，再打开一个文件，然后将data写到文件里面去。
+        注意写入需要用wb的方式写入
+        f = urllib.request.urlopen(url)
+        data=f.read()
+        with open(f'{file_save_path}/{file_name}','wb') as e:
+            e.write(data)
+
+    os.system os.popen subprocess.run的区别
+        os.system 该函数只返回命令执行结果的返回值，成功就是0，失败就是1
+        os.popen  该函数用于打开一个管道，将结果输出到管道中去，可以通过管道文件获取到返回的值。
+            p=os.popen('dir')
+            p.read()
+        subprocess 该函数是上面两个函数的增强体，python3.5以上才会有。可替换os.system、os.spawn、os.popen、popen2命令。
+        推荐使用subprocess函数来执行系统命令。
+
+      run返回命令以及执行结果状态码
+            >>> subprocess.run('ls',shell=True)
+            aa	aliyun		 ansible     back			  cmdb	       docker	       git	 iptables.save	     sign
+            CompletedProcess(args='ls', returncode=0)
+        还可以将结果输出到管道，将正确的输出到stdout,错误输出到stderr
+           >>> condition='pwd'
+           >>> cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        注意返回的是byte格式的数据
+            >>> cmd_res.stdout
+            b'/root\n'
+        转换为str
+            >>> cmd_res.stdout.decode()
+            '/root\n'
+        当执行一个错误的命令时，错误会输出到stderr
+            >>> condition='pwds'
+            >>> cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            >>> cmd_res
+            CompletedProcess(args='pwds', returncode=127, stdout=b'', stderr=b'/bin/sh: pwds: command not found\n')
+            >>> cmd_res.stdout
+            b''
+            >>> cmd_res.stderr
+            b'/bin/sh: pwds: command not found\n'
+        还可以通过returncode获取返回结果
+            >>> condition='ls sdf'
+            >>> cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            >>> cmd_res
+            CompletedProcess(args='ls sdf', returncode=2, stdout=b'', stderr=b'ls: cannot access sdf: No such file or directory\n')
+            >>> cmd_res.returncode
+            2
+      call返回执行结果状态码，成功0，失败则抛出异常信息，同时返回linux终端的错误返回码。和echo $?结果一致。
+            >>> subprocess.call('gag',shell=True)
+            /bin/sh: gag: command not found
+            127
+            >>> subprocess.call('ls aa',shell=True)
+            aa
+            0
+            >>> subprocess.call('ls aab',shell=True)
+            ls: cannot access aab: No such file or directory
+            2
+
+    创建和启动线程
+        def msg_callback(self,ch,method,properties,body):
+            '''每一个任务单独启动一个线程'''
+            print('msg_callback接收消息')
+            # 创建一个线程，执行start_thread方法，并把body作为参数传递进去
+            # target后面接需要执行的方法名，args代表执行方法需要接的参数，即start_thread的参数
+            # 注意body,这个逗号不能省略，必须写
+            thread=threading.Thread(target=self.start_thread,args=(body,))
+            #启动线程
+            thread.start()
+        def start_thread(self,task_body):   #task_body就是上面传过来的body
             print('启动线程')
             task=TaskHandle(self,task_body) #这里的self就是Needle类实例化后的实例
             task.processing()
-  在TaskHandle中，__init__(self,main_obj,task_body)接收了两个参数，main_obj对应上面实例化时的self，task_body对应上面的task_body。
-  由于上面的self就是Needle实例本身，所以，下面的self.main_obj实际上就是Needle实例。所以，执行self.main_obj实际上就是执行实例化了的Needle
-    class TaskHandle(object):
-        def __init__(self,main_obj,task_body):
-            # 这里的main_obj就是Needle object，因为是Needle类里面的start_thread调用的TaskHandle(self,task_body)，这里的self就是指Needle实例本身
-            # 在消息收到后，要返回数据给队列，利用Needle里面建立好的队列再返回消息
-            self.main_obj=main_obj
-            # python3的所有socket传输都是以byte字节流的方式发送了，而json只能解析字符串，是不能解析二进制的字节流的，所以要decode先转成字符串
-            self.task_body=json.loads(task_body.decode())
-
-其他知识点
-    split取最后一个元素，可以用-1来取
-    file_name=file_path.split('/')[-1]
-
-    http_server=self.task_obj.main_obj.configs.FILE_SERVER['http']
-
-    pycharm左边的structure可以查看当前模块所拥有的类/方法/变量
-
-urllib
-    用于爬网页，从网站上下载文件，先将数据read到内存里面，赋值给data，再打开一个文件，然后将data写到文件里面去。
-    f = urllib.request.urlopen(url)
-    data=f.read()
-    with open(f'{file_save_path}/{file_name}','w') as e:
-        e.write(data)
-
-os.system os.popen subprocess.run的区别
-    os.system 该函数只返回命令执行结果的返回值，成功就是0，失败就是1
-    os.popen  该函数用于打开一个管道，将结果输出到管道中去，可以通过管道文件获取到返回的值。
-        p=os.popen('dir')
-        p.read()
-    subprocess 该函数是上面两个函数的增强体，python3.5以上才会有。可替换os.system、os.spawn、os.popen、popen2命令。
-    推荐使用subprocess函数来执行系统命令。
-
-  run返回命令以及执行结果状态码
-        >>> subprocess.run('ls',shell=True)
-        aa	aliyun		 ansible     back			  cmdb	       docker	       git	 iptables.save	     sign
-        CompletedProcess(args='ls', returncode=0)
-    还可以将结果输出到管道，将正确的输出到stdout,错误输出到stderr
-       >>> condition='pwd'
-       >>> cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    注意返回的是byte格式的数据
-        >>> cmd_res.stdout
-        b'/root\n'
-    转换为str
-        >>> cmd_res.stdout.decode()
-        '/root\n'
-    当执行一个错误的命令时，错误会输出到stderr
-        >>> condition='pwds'
-        >>> cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        >>> cmd_res
-        CompletedProcess(args='pwds', returncode=127, stdout=b'', stderr=b'/bin/sh: pwds: command not found\n')
-        >>> cmd_res.stdout
-        b''
-        >>> cmd_res.stderr
-        b'/bin/sh: pwds: command not found\n'
-    还可以通过returncode获取返回结果
-        >>> condition='ls sdf'
-        >>> cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        >>> cmd_res
-        CompletedProcess(args='ls sdf', returncode=2, stdout=b'', stderr=b'ls: cannot access sdf: No such file or directory\n')
-        >>> cmd_res.returncode
-        2
-  call返回执行结果状态码，成功0，失败则抛出异常信息，同时返回linux终端的错误返回码。和echo $?结果一致。
-        >>> subprocess.call('gag',shell=True)
-        /bin/sh: gag: command not found
-        127
-        >>> subprocess.call('ls aa',shell=True)
-        aa
-        0
-        >>> subprocess.call('ls aab',shell=True)
-        ls: cannot access aab: No such file or directory
-        2
-windows下byte类型数据decode解码出错
-    执行下面的代码，在linux下不会报错，在windows下就报错了
-    condition='dir && echo 0 || echo 1'
-    cmd_res=subprocess.run(condition,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    cmd_res.stdout.decode()
-    Traceback (most recent call last):
-      File "<input>", line 1, in <module>
-    UnicodeDecodeError: 'utf-8' codec can't decode byte 0xc7 in position 1: invalid continuation byte
-    如果不decode，结果得到的时16进制的文件，无法阅览
-    cmd_res.stdout
-    b' \xc7\xfd\xb6\xaf\xc6\xf7 D \xd6\xd0\xb5\xc4\xbe\xed\xca\xc7 Data\r\n \xbe\xed\xb5\xc4\xd0\xf2\xc1\xd0\xba\xc5\xca\xc7
-    正确的做法时，在windows下要decode成gbk模式，这样就不会报错了。
-    cmd_res.stdout.decode('gbk')
-    ' 驱动器 D 中的卷是 Data\r\n 卷的序列号是 706D-EE5E\r\n\r\n D:\\学习相关\\python\\s12\\stark 的目录\r\n\r\n2019/
-
-直接执行实例
-    我们以往的写法都是先实例化类，然后再用实例化的类去执行里面的方法。
-    下面的CommandManagment类在init里面就执行了调用self.argv_handle()，实现实例化的时候就执行了argv_handle()方法，
-    而argv_handle()方法会判断是否存在输入的参数argvs[0]，也就是脚本后面的值是否和CommandManangement里面的方法名称相同，
-    如果相同则直接执行这里面的方法，如果不同，这提示“不存在此方法”
-    needle.py
-        from core import main
-        main.CommandManagement(sys.argv)
-
-    main.py
-        class CommandManagement(object):
-            def __init__(self,argvs):
-                self.argvs=argvs[1:]
-                self.argv_handle()
-
-            def argv_handle(self):
-                if len(self.argvs) ==0:
-                    exit('启动或停止:start/stop')
-                if hasattr(self,self.argvs[0]):
-                    func=getattr(self,self.argvs[0])
-                    func()
-                else:
-                    exit('CommandManagement不存在此方法')
 
 将项目放在Linux系统上发布
 
@@ -310,7 +344,7 @@ windows下byte类型数据decode解码出错
     二、用pip3安装里面的依赖包
         pip3 install -r requirements.txt
 
-    三、修改settings.py，添加本机ip，表示允许用这个ip访问。
+    三、修改settings.py，添加本机ip，表示允许用这个ip访问。默认django只允许localhost的访问。
         vim stark/settings.py
         ALLOWED_HOSTS = ['172.16.0.41']
         添加mysql的配置，注意需要安装PyMySQL模块才能访问mysql
@@ -322,7 +356,6 @@ windows下byte类型数据decode解码出错
                 'PASSWORD': 'sunjiebin', # 密码
                 'HOST': '172.16.0.41', # HOST
                 'POST': 3306, # 端口
-
             }
         }
         修改rabbitmq的配置，注意需要pika模块来连接rabbit
@@ -346,28 +379,6 @@ windows下byte类型数据decode解码出错
 
     八.启动成功后就可以直接访问djang项目了，或者访问django后台，用前面创建的admin用户登录即可。
 
-shutil用于拷贝文件
-    shutil.copyfile(self.source_file,target_filepath)
 
-创建和启动线程
-    def msg_callback(self,ch,method,properties,body):
-        '''每一个任务单独启动一个线程'''
-        print('msg_callback接收消息')
-        # 创建一个线程，执行start_thread方法，并把body作为参数传递进去
-        # target后面接需要执行的方法名，args代表执行方法需要接的参数，即start_thread的参数
-        # 注意body,这个逗号不能省略，必须写
-        thread=threading.Thread(target=self.start_thread,args=(body,))
-        #启动线程
-        thread.start()
-    def start_thread(self,task_body):   #task_body就是上面传过来的body
-        print('启动线程')
-        task=TaskHandle(self,task_body) #这里的self就是Needle类实例化后的实例
-        task.processing()
 
-问题注意：
-    一定要注意，再类的继承过程中，子类继承了父类，那么子类里面的方法就能够覆盖父类里面定义的方法，有时候会发现定义的方法
-    始终不生效，其实就是因为子类里面定义了相同的方法把父类里面的覆盖了。
-    比如这个项目里面，在test.yml里面定义了user和group都有require依赖，user模块里面的require能够正常生成，而group里面的require始终是None，
-    最后发下，原来是group里面多定义了一个require把基类的覆盖了
-        def require(self,*args,**kwargs):
-        pass
+
