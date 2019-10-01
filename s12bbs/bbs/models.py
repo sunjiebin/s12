@@ -57,6 +57,11 @@ class Comment(models.Model):
     #内容比较多的大文本就用TextField，用CharField就不合适了。
     comment=models.TextField('评论',blank=True,null=True)
 
+    #Meta的ordering实现倒序排列,这样最新评论就会显示在上面.但是,追加的评论就无法显示了.
+    #注释掉该行后,就能够正确显示子级评论
+    class Meta:
+        ordering=['-date']
+
     def __str__(self):
         '''
         这里的返回将影响django后台父级评论列的显示。
