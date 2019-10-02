@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Arya.apps.AryaConfig',
+    'Sansa.apps.SansaConfig',
+    'Wolf.apps.WolfConfig',
 ]
 
 MIDDLEWARE = [
@@ -131,3 +133,5 @@ MQ_CONN={
     'pass':'sunjiebin',
     'vhost':'stark'
 }
+
+AUTH_USER_MODEL = 'Wolf.UserProfile'

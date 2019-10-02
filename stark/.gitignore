@@ -8,6 +8,6 @@
 out
 gen
 migrations
-__init__.py
 .gitignore
 __pycache__/
+
