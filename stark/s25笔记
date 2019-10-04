@@ -119,6 +119,8 @@ django相关知识
                 blank=True,null=True,unique=True
             on_delete=models.SET_NULL时,null=True必需有
                 idc = models.ForeignKey('IDC', on_delete=models.SET_NULL, verbose_name='IDC机房', blank=True,null=True)
+        对于外键如果允许为空,就必需添加nulll=True,否则报错NOT NULL constraint failed: Sansa_bussinessunit.parent_unit_id
+            parent_unit = models.ForeignKey('self', on_delete=models.CASCADE, related_name='parent_level', blank=True,null=True)
 
     models中表关联关系解析
         OneToOneField,ForeignKey都需要定义on_delete参数
@@ -150,6 +152,7 @@ django相关知识
         django.db.migrations.exceptions.InconsistentMigrationHistory: Migration admin.0001_initial is applied before its dependency Wolf.0001_initial on database 'default'.
         注释掉AUTH_USER_MODEL = 'Wolf.UserProfile'后,再执行migrate就通过了.
         网上查了下报这个错是因为我们数据库里面已经有了一些表了,所以冲突了.解决办法是将原来库里面建的表都删掉,再执行就好了.
+
         提示下面的错误是因为我们的Sansa的models.py里里面用外键引用UserProfile的时候,用了'UserProfile'的方式,去掉''就好
         错误的:creater = models.ForeignKey('UserProfile', on_delete=models.SET_NULL, null=True)
         正确的:creater = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
@@ -157,6 +160,7 @@ django相关知识
         Sansa.Asset.admin: (fields.E300) Field defines a relation with model 'UserProfile', which is either not installed, or is abstract.
         Sansa.Asset.admin: (fields.E307) The field Sansa.Asset.admin was declared with a lazy reference to 'Sansa.userprofile', but app 'Sansa' doesn't provide model 'userprofile'.
         Sansa.Tag.creater: (fields.E307) The field Sansa.Tag.creater was declared with a lazy reference to 'Sansa.userprofile', but app 'Sansa' doesn't provide model 'userprofile'.
+
         on_delete里面的models.SET_NULL必需配合null=True一起用,否则报错
         idc = models.ForeignKey('IDC', on_delete=models.SET_NULL, verbose_name='IDC机房', blank=True)
         Sansa.Asset.idc: (fields.E320) Field specifies on_delete=SET_NULL, but cannot be null.
@@ -184,5 +188,106 @@ django相关知识
         再到Wolf里面把admin.py用官方代码写上,再进行修改.
         这之后就可以用自定义的后台创建修改用户了.
 
+    在admin后台将表注册进来,这样在admin后台就能够管理这些表了
+    1. 在Sansa目录下编辑admin.py文件
+        导入两个模块
+        from django.contrib import admin
+        from Sansa import models
+        注册models中定义的Idc类
+        admin.site.register(models.Idc)
+        注册后,在django后台页面就可以看到这个表,可以新增修改表数据.
+        注意:注册进来后,如果我们新增了数据,进入表之后我们看到的数据结果是定义的Models类return返回的结果.
+        也就是说models类里面return返回什么,我们看到的就是什么.
+        如果要正确的显示每一个自定义的字段,那么应该增加ModelAdmin功能
+    2. 让插入的表数据显示在admin后台
+        list_display代表指定需要显示的列.
+    admin.py
+        class NicAdmin(admin.ModelAdmin):
+            list_display = ('name','macaddress','ipaddress',)
+            search_fields = ['ipaddress']
+         admin.site.register(models.Nic,NicAdmin)
+        这样就能够正确的在admin后台显示我们想要的数据了.
+    3. 在A表编辑B表的字段
+        我们想在资产总表里面能够同时编辑cpu/内存等表的数据,因为它们之间都存在关联
+        ServerInline中的设置只会对下面的AssetAdmin生效,在django的管理后台直接编辑该表是不受这个配置影响的.
+        class ServerInline(admin.TabularInline):
+            model = models.Server
+            #定义被别的表引用编辑时,排除编辑的字段,这些字段不会出现在关联编辑中
+            exclude = ('memo','hosted_on','os_distribution')
+            #定义不可编辑字段
+            readonly_fields = ['create_date','created_by']
+        class CpuInline(admin.TabularInline):
+            model = models.Cpu
+            exclude = ('memo',)
 
+        class AssetAdmin(admin.ModelAdmin):
+            list_display = ('id','asset_type','sn','name','manufactory','management_ip','idc','bussiness_unit')
+            inlines = [ServerInline,CpuInline,RamInline,NicInline]  #添加关联表的数据到asset的管理后台来
+            search_fields = ['sn',]
+            list_filter = ['idc','name','manufactory','asset_type']
 
+写法:
+        'os_distribution': distributor[1].strip() if len(distributor) > 1 else None,
+
+windows处理模块(需要扩展学习)
+    pypiwin32，在import win32com是需要安装这个模块。这个模块可以处理excel。具体详情未了解
+    wmi 也是windows相关的处理模块,用于摘取硬件信息
+    wmi微软官方说明:https://docs.microsoft.com/zh-cn/windows/win32/cimwin32prov/win32-diskdrive#examples
+
+    import win32com,wmi
+    wmi_obj=wmi.WMI()
+    wmi_service_obj = win32com.client.Dispatch('WbemScripting.SWbemLocator')
+    wmi_service_connector =wmi_service_obj.ConnectServer(".","root\cimv2")
+    cpu_list=wmi_obj.Win32_Processor()
+    cpu_list得到下面的列表
+    [<_wmi_object: b'\\\\DESKTOP-NJDDDRC\\root\\cimv2:Win32_Processor.DeviceID="CPU0"'>]
+    cpu_list[0] 取到列表里面的对象
+    <_wmi_object: b'\\\\DESKTOP-NJDDDRC\\root\\cimv2:Win32_Processor.DeviceID="CPU0"'>
+    cpu=cpu_list[0]
+    dir(cpu)    查看对象里面有哪些方法
+    注意:有些动态生成的方法或者从其它类里面调用的方法没法出现在dir里面,所以dir里面拿到的方法是不全的
+    比如cpu.NumberOfcores,cpu.Name这些方法是有的,但是dir里面是没有的
+
+    报错:
+    import wmi  导入时报错    ModuleNotFoundError: No module named 'win32api'
+    二、在使用import win32api时，报错:No module named win32api
+
+     网上查到有下面解决办法：
+    方法1：pip3 install pypiwin32 或 python -m pip install pypiwin32,
+    我在我两台机器中的一台，用上面方法安装成功，解决了问题，但另一台机器未能解决。
+    方法2：下载pywin32-221.win-amd64-py3.7.exe文件
+    下载后，双击pywin32-221.win-amd64-py3.7.exe，会识别Python的安装路径，一路Next安装即可
+     下载网址：https://sourceforge.net/projects/pywin32/files/pywin32/
+     点击Build 221,下载和本机Python对应版本的pyWin32的版本
+      import win32api,如下图，则表明正常了
+
+转全栈开发day89
+客户端开发
+    1. 汇报新资产
+        SN 是 唯一标识(不考虑虚拟机)  |  资产ID 资产的自增ID,让客户端通过自增ID来确认是谁
+        if sn 不存在:
+            放入待审批区
+        else:
+            判断是否信息有更新(我觉得可以将生成的数据md5,如果md5值不一样证明有数据变化,有变化则更新)
+            取出旧数据,跟客户端数据进行对比
+
+urllib3
+    可以get,也可以post
+    get
+        req=urllib3.Request(url_with_args)
+        req_data=urllib3.urlopen(req,timeout=settings.Params['request_timeout'])
+        callback=req_data.read()
+        print('server response-->',callback)
+        return json.loads(callback)
+    post
+        post比get就多了以下两步,注意urlencode是用的urllib,不是urllib3
+        先encode编码一下,然后传入data
+        data_encode=urllib.urlencode(data)
+        req=urllib3.Request(url=url,data=data_encode)
+
+        下面的用法和get一样了
+        res_data=urllib3.urlopen(req,timeout=settings.Params['request_timeout'])
+        callback=res_data.read()
+        callback=json.loads(callback)
+        print("\033[31;1m[%s]:[%s]\033[0m response:\n%s" %(method,url,callback))
+        return callback

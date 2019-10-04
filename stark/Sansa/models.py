@@ -71,7 +71,7 @@ class Server(CommonInfo):
     created_by = models.CharField('创建方式', choices=created_by_choice, max_length=32)
     # hosted_on主要用于虚拟机资产,虚拟机是建立在一台宿主机上的,所以它应该是自关联到该字段的宿主机的.
     # 这里定义了CASCADE,即当宿主机删除的时候,这个虚拟机的字段也对应着删除了.
-    hosted_on = models.ForeignKey('self', on_delete=models.CASCADE, verbose_name='宿主机', related_name='vm')
+    hosted_on = models.ForeignKey('self', on_delete=models.CASCADE, verbose_name='宿主机', related_name='vm',blank=True,null=True)
     model = models.CharField('型号', max_length=128, null=True, blank=True)
     raid_type = models.CharField('raid类型', max_length=32, blank=True)
     os_type = models.CharField('操作系统类型', max_length=32)
@@ -84,7 +84,7 @@ class Server(CommonInfo):
 
     def __str__(self):
         '''返回外键关联的服务器名称以及sn号'''
-        return self.asset.sn, self.asset.name
+        return f'{self.asset.sn},{self.asset.name}'
 
 
 class Cpu(CommonInfo):
@@ -193,6 +193,7 @@ class NetworkDevice(CommonInfo):
 
     class Meta:
         verbose_name = '网络设备'
+        verbose_name_plural = '网络设备'
 
 
 class Software(CommonInfo):
@@ -215,6 +216,7 @@ class Software(CommonInfo):
 
     class Meta:
         verbose_name = '软件及系统'
+        verbose_name_plural = '软件及系统'
 
     def __str__(self):
         return self.version
@@ -235,7 +237,7 @@ class Manufactory(models.Model):
 
 class BussinessUnit(models.Model):
     # 由于业务可能会有分层,大的业务线下面会有细分的业务线,所以会有一个层级的关联关系,所以这里外键关联了自己
-    parent_unit = models.ForeignKey('self', on_delete=models.CASCADE, related_name='parent_level', blank=True)
+    parent_unit = models.ForeignKey('self', on_delete=models.CASCADE, related_name='parent_level', blank=True,null=True)
     name = models.CharField('业务线', max_length=64, unique=True)
     memo = models.CharField('备注', max_length=128, blank=True)
 
@@ -330,6 +332,9 @@ class EventLog(models.Model):
 
 
 class NewAssetApprovalZone(models.Model):
+    '''新资产暂存表,
+    管理员可在通过这个表看到新资产的一些信息,主要数据是存在在data列里面.
+    '''
     asset_type_choice = (
         ('server', u'服务器'),
         ('switch', '交换机'),

@@ -15,9 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
-
+from Sansa import views
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('salt/',include('Arya.urls')),
-    path('asset/',include('Sansa.urls')),
+    path('report/', views.asset_report),
+    path('report/asset_with_no_asset_id/',views.asset_with_no_asset_id),
 ]

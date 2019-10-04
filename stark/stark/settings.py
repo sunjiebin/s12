@@ -134,4 +134,8 @@ MQ_CONN={
     'vhost':'stark'
 }
 
+Params={
+    'log_file':'',
+}
+
 AUTH_USER_MODEL = 'Wolf.UserProfile'

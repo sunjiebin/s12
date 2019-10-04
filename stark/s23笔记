@@ -317,6 +317,27 @@ windows和Linux系统用法区别
             >>> subprocess.call('ls aab',shell=True)
             ls: cannot access aab: No such file or directory
             2
+      subprocess.getoutput()
+            接受字符串形式的命令，返回执行结果,这个返回要比run的返回要好,因为它是返回的字符串,而不是字节,所以不用转码直接用就好.
+            >>> a=subprocess.getoutput('sdf')
+            >>> a
+            '/bin/sh: sdf: command not found'
+            >>> a=subprocess.getoutput('pwd')
+            >>> a
+            '/root'
+      subprocess.getstatusoutput
+            接收字符串命令,以元组的形式返回状态码和执行结果
+            >>> a=subprocess.getstatusoutput('pwd')
+            >>> a
+            (0, '/root')
+            >>> a=subprocess.getstatusoutput('pwds')
+            >>> a
+            (127, '/bin/sh: pwds: command not found')
+
+
+
+
+
 
     创建和启动线程
         def msg_callback(self,ch,method,properties,body):
