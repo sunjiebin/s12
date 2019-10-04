@@ -291,3 +291,34 @@ urllib3
         callback=json.loads(callback)
         print("\033[31;1m[%s]:[%s]\033[0m response:\n%s" %(method,url,callback))
         return callback
+
+hasaatr不仅可以判断对象是否有某方法,还可以判断是否有某属性.
+    比如下面我们定义了  self.waiting_approval 这个属性,那就是给self添加了waiting_approval的属性
+    self.waiting_approval = True    #如果在数据库里面查不到该数据,证明这是一台新机器,于是将等待批准状态设置为True
+    然后就可以用hasattr来判断self是否有这个属性了.
+    if hasattr(self,'waiting_approval'):
+
+models里面可以支持get_or_create方法,查找or创建
+        #get_or_create代表查找或者创建,也就是说当数据库里面存在这条数据时,我就只是查找数据而不插入,如果不存在则插入数据.
+        #这样做避免了数据被重复创建
+        asset_already_in_approval_zone=models.NewAssetApprovalZone.objects.get_or_create(sn=asset_sn,
+    注意在定义models的时候,return返回的必需是字符串,否则会报如下错误
+    TypeError at /admin/Sansa/newassetapprovalzone/1/change/
+    __str__ returned non-string (type tuple)
+
+
+
+判断字典是否存在key
+        self.response={
+            'error':[],
+            'info':[],
+            'warning':[],
+        }
+        if msg_type in self.response:
+            print('存在key')
+
+将post的数据里面加上一条数据{asset_data:obj.data}
+    request.POST['asset_data'] = obj.data
+
+进入django的shell
+    python manage.py shell

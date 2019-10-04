@@ -53,11 +53,13 @@ class Win32Info(object):
         :return:
         '''
         data=[]
+        total_ram_size=0
         ram_collections=self.wmi_service_connector.ExecQuery("Select * from Win32_PhysicalMemory")
         #print('ram_collections',ram_collections)
         for item in ram_collections:
-            mb=int(1024*1024)
-            ram_size=int(item.Capacity)/mb
+            gb=int(1024*1024*1024)
+            ram_size=int(item.Capacity)//gb
+            total_ram_size+=ram_size
             item_data={
                 'slot':item.DeviceLocator.strip(),
                 'capacity':ram_size,
@@ -66,7 +68,8 @@ class Win32Info(object):
                 'sn':item.SerialNumber,
             }
             data.append(item_data)
-        return {'ram':data}     #由于我们前面要update字典,所以传过去的必需是字典形式
+
+        return {'ram':data,'ram_size':total_ram_size}     #由于我们前面要update字典,所以传过去的必需是字典形式
     def get_server_info(self):
         computer_info = self.wmi_obj.Win32_ComputerSystem()[0]
         system_info = self.wmi_obj.Win32_OperatingSystem()[0]

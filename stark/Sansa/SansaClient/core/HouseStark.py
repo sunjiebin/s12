@@ -92,7 +92,7 @@ class ArgvHandler(object):
         data={'asset_data':json.dumps(asset_data)}
         # 将数据以post的方法提交到submit_data函数,该函数会请求指定的url,将客户端的数据提交上去,并获取返回的结果
         response=self.__submit_data(post_url,data,method='post')
-
+        print('response:',response)
         if 'asset_id' in response:
             self.__update_asset_id(response['asset_id'])
         self.log_record(response)
@@ -110,10 +110,10 @@ class ArgvHandler(object):
         print(settings.Params['urls'])
         if url_name in settings.Params['urls']:
             if type(settings.Params['port']) is int:
-                print(settings.Params['server'],settings.Params['port'],settings.Params['urls'][url_name])
-                url='http://%s:%s%s'%(settings.Params['server'],settings.Params['port'],settings.Params['urls'][url_name])
+                #print(settings.Params['server'],settings.Params['port'],settings.Params['urls'][url_name])
+                url='http://%s:%s%s/'%(settings.Params['server'],settings.Params['port'],settings.Params['urls'][url_name])
             else:
-                url='http://%s%s'%(settings.Params['server'],settings.Params[url_name])
+                url='http://%s%s/'%(settings.Params['server'],settings.Params[url_name])
             #url=self.__attach_token(url)    #api认证
             print('连接%s'%url)
             if method == 'get':
@@ -147,7 +147,8 @@ class ArgvHandler(object):
                     r = http.request('post', url, fields=data)
                     print(r.status)
                     callback=r.data.decode()
-                    print(method, url, callback)
+                    callback=json.loads(callback)
+                    #print(method, url, callback)
                     # print(callback)
                     # data_encode=urllib.parse.urlencode(data)
                     # req=urllib3.Request(url=url,data=data_encode)
@@ -155,7 +156,7 @@ class ArgvHandler(object):
                     # callback=res_data.read()
                     #callback=json.loads(callback)
                     #print("\033[31;1m[%s]:[%s]\033[0m response:\n%s" %(method, url, callback))
-
+                    print('callback:',type(callback),callback)
                     return callback
                 except Exception as e:
                     sys.exit("\033[31;1m%s\033[0m"%e)
@@ -164,21 +165,21 @@ class ArgvHandler(object):
             raise KeyError
 
     def log_record(self,log,action_type=None):
-        f=open(settings.Params['log_file'],'ab')
+        f=open(settings.Params['log_file'],'a+')
         if log is str:
             pass
         if type(log)  is dict:
             if 'info' in log:
                 for msg in log['info']:
-                    log_format='%s\tINFO\t%s\n'%((datetime.datetime.now().strftime("%Y-%m-%d")),log)
+                    log_format='%s\tINFO\t%s\n'%((datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),msg)
                     f.write(log_format)
             if 'error' in log:
                 for msg in log['error']:
-                    log_format='%s\tINFO\t%s\n'%((datetime.datetime.now().strftime("%Y-%m-%d")),log)
+                    log_format='%s\tINFO\t%s\n'%((datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),msg)
                     f.write(log_format)
             if 'warning' in log:
                 for msg in log['warning']:
-                    log_format='%s\tINFO\t%s\n'%((datetime.datetime.now().strftime("%Y-%m-%d")),log)
+                    log_format='%s\tINFO\t%s\n'%((datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),msg)
                     f.write(log_format)
         f.close()
 

@@ -43,14 +43,19 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect
 
 class NewAssetApprovalZoneAdmin(admin.ModelAdmin):
-    list_display = ('sn','asset_type')
+    list_display = ('sn','asset_type','manufactory','model','cpu_model','cpu_count','cpu_core_count','ram_size','os_distribution','os_release','date','approved','approved_by','approved_date')
     actions = ['approve_selected_objects']
-    def approve_selected_objects(modeladmin,request,queryset):
-        selected=request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        ct=ContentType.objects.get_for_model(queryset.model)
-        return HttpResponseRedirect('/asset/new_asset/approval/')
-    approve_selected_objects.short_description = '批准入库'
 
+    def approve_selected_objects(modeladmin, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME) #得到后台选中标签的id,比如选中后台admin第一条资产,那id就是1
+        print("query set model ",selected)
+        ct = ContentType.objects.get_for_model(queryset.model)
+        '''ct.pk实际上是django_content_type表里面对应newassetapprovalzone数据的id.
+        django_content_typ表存放了app名到表名的映射关系,通过这个映射关系找到对应的app下的表'''
+        print("ct ", ct,ct.pk, type(ct))
+        '''下面的join是将上面选择的selected拼接起来,比如我们在admin后台同时选中了两个资产批准入库,生成的链接就是?ct=18&ids=2,1'''
+        return HttpResponseRedirect("/asset/new_assets/approval/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
+    approve_selected_objects.short_description = "批准入库"
 
 admin.site.register(models.Server)
 admin.site.register(models.Asset,AssetAdmin)

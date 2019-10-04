@@ -19,4 +19,5 @@ from Sansa import views
 urlpatterns = [
     path('report/', views.asset_report),
     path('report/asset_with_no_asset_id/',views.asset_with_no_asset_id),
+    path('new_assets/approval/',views.new_assets_approval, name="new_assets_approval"),
 ]

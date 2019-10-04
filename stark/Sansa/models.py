@@ -345,23 +345,28 @@ class NewAssetApprovalZone(models.Model):
         ('softwar', '软件资产'),
         ('other', '其它'),
     )
+    model = models.CharField(max_length=128, blank=True, null=True)
     asset_type = models.CharField(verbose_name='资产类型', choices=asset_type_choice, max_length=64)
     name = models.CharField('资产名称', max_length=64, unique=True)
     sn = models.CharField('资产SN号', max_length=128, unique=True)
-    manufactory = models.ForeignKey('Manufactory', on_delete=models.SET_NULL, verbose_name='生产商',
-                                    null=True)  # 外键删除时,该字段置空
-    idc = models.ForeignKey('IDC', on_delete=models.SET_NULL, verbose_name='IDC机房', blank=True,null=True)
+    manufactory = models.CharField('生产商',max_length=64,null=True)
+    idc = models.CharField('IDC机房',max_length=64, blank=True,null=True)
     ram_size = models.IntegerField(blank=True)
     cpu_model = models.CharField(max_length=128, blank=True)
     cpu_count = models.IntegerField(blank=True)
-    os_type = models.CharField(max_length=64, blank=True)
+    cpu_core_count = models.IntegerField(blank=True,null=True)
     data = models.TextField('资产数据')
     date = models.DateTimeField('汇报时间', auto_now_add=True)
     approved = models.BooleanField('已批准', default=False)
+    approved_by = models.CharField('审批人',max_length=16,blank=True)
+    approved_date=models.DateTimeField('审批时间',auto_now_add=True)
+    os_type = models.CharField(max_length=64, blank=True)
+    os_release = models.CharField(max_length=64, blank=True, null=True)
+    os_distribution = models.CharField(max_length=64, blank=True, null=True)
 
     class Meta:
-        verbose_name = '新上线资产'
-        verbose_name_plural = '新上线资产'
+        verbose_name = '待审批资产'
+        verbose_name_plural = '待审批资产'
 
     def __str__(self):
-        return self.sn, self.name
+        return f'{self.sn}, {self.name}'
