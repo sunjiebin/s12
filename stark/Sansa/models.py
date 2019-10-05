@@ -9,9 +9,9 @@ class CommonInfo(models.Model):
     复造轮子,精简了代码
     对于某些容易被各个表共用的字段适合使用该方法
     '''
-    create_date = models.DateTimeField('创建时间', blank=True, auto_now_add=True)
-    update_date = models.DateTimeField('更新时间', blank=True, auto_now=True)
-    memo = models.CharField('备注',max_length=128, blank=True)
+    create_date = models.DateTimeField('创建时间', blank=True,null=True, auto_now_add=True)
+    update_date = models.DateTimeField('更新时间', blank=True,null=True, auto_now=True)
+    memo = models.CharField('备注',max_length=128, blank=True,null=True)
 
     class Meta:
         # abstract=True代表这是一个可以继承的基类,而不是一个普通的表.
@@ -43,7 +43,7 @@ class Asset(CommonInfo):
     price = models.FloatField('价格', null=True, blank=True)
     bussiness_unit = models.ForeignKey('BussinessUnit', on_delete=models.SET_NULL, verbose_name='所属业务', null=True,
                                        blank=True)
-    tags = models.ManyToManyField('Tag', verbose_name='标签', blank=True)
+    tags = models.ManyToManyField('Tag', verbose_name='标签', blank=True,null=True)
     admin = models.ForeignKey(UserProfile, on_delete=models.SET_DEFAULT, verbose_name='资产管理员',
                               default=1)  # 外键删除时,该字段变默认值1
     idc = models.ForeignKey('IDC', on_delete=models.SET_NULL, verbose_name='IDC机房', blank=True,null=True)
@@ -73,10 +73,10 @@ class Server(CommonInfo):
     # 这里定义了CASCADE,即当宿主机删除的时候,这个虚拟机的字段也对应着删除了.
     hosted_on = models.ForeignKey('self', on_delete=models.CASCADE, verbose_name='宿主机', related_name='vm',blank=True,null=True)
     model = models.CharField('型号', max_length=128, null=True, blank=True)
-    raid_type = models.CharField('raid类型', max_length=32, blank=True)
+    raid_type = models.CharField('raid类型', max_length=32, blank=True,null=True)
     os_type = models.CharField('操作系统类型', max_length=32)
-    os_distribution = models.CharField('发行版本', max_length=64, blank=True)
-    os_release = models.CharField('操作系统版本', max_length=64, blank=True)
+    os_distribution = models.CharField('发行版本', max_length=64, blank=True,null=True)
+    os_release = models.CharField('操作系统版本', max_length=64, blank=True,null=True)
 
     class Meta:
         verbose_name = '服务器'
@@ -84,15 +84,16 @@ class Server(CommonInfo):
 
     def __str__(self):
         '''返回外键关联的服务器名称以及sn号'''
-        return f'{self.asset.sn},{self.asset.name}'
+        #return f'{self.asset.sn},{self.asset.name}'
+        return self.os_type
 
 
 class Cpu(CommonInfo):
     asset = models.OneToOneField('Asset', on_delete=models.CASCADE)
-    cpu_model = models.CharField('cpu型号', max_length=64, blank=True)
+    cpu_model = models.CharField('cpu型号', max_length=64, blank=True,null=True)
     cpu_count = models.SmallIntegerField('物理cpu个数')
     cpu_core_count = models.SmallIntegerField('cpu核数')
-    memo = models.CharField('备注', max_length=128,blank=True)
+    memo = models.CharField('备注', max_length=128,blank=True,null=True)
 
     class Meta:
         verbose_name_plural = 'CPU'
@@ -103,10 +104,10 @@ class Cpu(CommonInfo):
 
 
 class Disk(CommonInfo):
-    asset = models.ForeignKey('Asset', on_delete=None)
-    sn = models.CharField('SN号', max_length=128, blank=True)
+    asset = models.ForeignKey('Asset', on_delete=models.CASCADE)
+    sn = models.CharField('SN号', max_length=128, blank=True,null=True)
     slot = models.CharField('插槽', max_length=64)
-    model = models.CharField('型号', max_length=64, blank=True)
+    model = models.CharField('型号', max_length=64, blank=True,null=True)
     manufactory = models.ForeignKey('Manufactory', on_delete=models.SET_NULL, verbose_name='生产商', blank=True,null=True)
     capacity = models.FloatField('磁盘容量GB')
     disk_iface_type = (
@@ -130,9 +131,9 @@ class Disk(CommonInfo):
 
 class Ram(CommonInfo):
     asset = models.ForeignKey('Asset', on_delete=models.CASCADE)
-    sn = models.CharField('SN号', max_length=128, blank=True)
+    sn = models.CharField('SN号', max_length=128, blank=True,null=True)
     slot = models.CharField('插槽', max_length=64)
-    model = models.CharField('型号', max_length=64, blank=True)
+    model = models.CharField('型号', max_length=64, blank=True,null=True)
     manufactory = models.ForeignKey('Manufactory', on_delete=models.SET_NULL, verbose_name='生产商', blank=True,null=True)
     capacity = models.FloatField('内存大小GB')
     auto_create_field = ['sn', 'slot', 'manufactory', 'capacity', 'capacity']
@@ -148,13 +149,13 @@ class Ram(CommonInfo):
 
 class Nic(CommonInfo):
     asset = models.ForeignKey('Asset', on_delete=models.CASCADE)
-    name = models.CharField('网卡名', max_length=64, blank=True)
-    sn = models.CharField('SN号', max_length=128, blank=True)
-    model = models.CharField('网卡型号', max_length=64, blank=True)
+    name = models.CharField('网卡名', max_length=64, blank=True,null=True)
+    sn = models.CharField('SN号', max_length=128, blank=True,null=True)
+    model = models.CharField('网卡型号', max_length=64, blank=True,null=True)
     macaddress = models.CharField('MAC地址', max_length=64, unique=True)
     ipaddress = models.GenericIPAddressField('IP地址', blank=True, unique=True, null=True)
-    netmask = models.CharField('子网掩码', max_length=64, blank=True)
-    bonding = models.CharField(max_length=64, blank=True)
+    netmask = models.CharField('子网掩码', max_length=64, blank=True,null=True)
+    bonding = models.CharField(max_length=64, blank=True,null=True)
 
     class Meta:
         # unique_together=('asset','slot')
@@ -162,15 +163,15 @@ class Nic(CommonInfo):
         verbose_name = '网卡'
 
     def __str__(self):
-        return f'{self.asset_id}:{self.macaddress}'
+        return f'{self.asset_id}:{self.macaddress}:{self.asset_id}'
 
 
 class RaidAdaptor(CommonInfo):
-    name = models.CharField('网卡名', max_length=64, blank=True)
+    name = models.CharField('网卡名', max_length=64, blank=True,null=True)
     asset = models.ForeignKey('Asset', on_delete=models.CASCADE)
-    sn = models.CharField('SN号', max_length=128, blank=True)
+    sn = models.CharField('SN号', max_length=128, blank=True,null=True)
     slot = models.CharField('插槽', max_length=64)
-    model = models.CharField('RAID型号', max_length=64, blank=True)
+    model = models.CharField('RAID型号', max_length=64, blank=True,null=True)
 
     class Meta:
         unique_together = ('asset', 'slot')
@@ -185,11 +186,11 @@ class NetworkDevice(CommonInfo):
     asset = models.ForeignKey('Asset', on_delete=models.CASCADE)
     vlan_ip = models.GenericIPAddressField('VlanIP', blank=True,null=True)
     intranet_ip = models.GenericIPAddressField('内网IP', blank=True,null=True,unique=True)
-    sn = models.CharField('SN号', max_length=128, blank=True)
-    model = models.CharField('型号', max_length=64, blank=True)
+    sn = models.CharField('SN号', max_length=128, blank=True,null=True)
+    model = models.CharField('型号', max_length=64, blank=True,null=True)
     fireware = models.ForeignKey('Software', on_delete=models.SET_NULL, null=True, blank=True)  # 固件型号,操作系统版本
-    port_num = models.SmallIntegerField('端口个数', blank=True)
-    device_detail = models.TextField('设置详细配置', blank=True)
+    port_num = models.SmallIntegerField('端口个数', blank=True,null=True)
+    device_detail = models.TextField('设置详细配置', blank=True,null=True)
 
     class Meta:
         verbose_name = '网络设备'
@@ -210,7 +211,7 @@ class Software(CommonInfo):
     )
     type = models.CharField('系统类型',max_length=32, choices=os_type_choice)
     distribution = models.CharField('发行版本', max_length=64,choices=os_distribution_choices)
-    version = models.CharField('软件及系统版本', max_length=64, blank=True)
+    version = models.CharField('软件及系统版本', max_length=64, blank=True,null=True)
     language_choices = (('cn', '中文'), ('en', '英语'),)
     language = models.CharField('系统语言', max_length=32, choices=language_choices)
 
@@ -224,8 +225,8 @@ class Software(CommonInfo):
 
 class Manufactory(models.Model):
     manufactory = models.CharField('厂商名称', max_length=128, unique=True)
-    support_num = models.CharField('支持电话', max_length=16, blank=True)
-    memo = models.CharField('备注', max_length=128, blank=True)
+    support_num = models.CharField('支持电话', max_length=16, blank=True,null=True)
+    memo = models.CharField('备注', max_length=128, blank=True,null=True)
 
     def __str__(self):
         return self.manufactory
@@ -239,7 +240,7 @@ class BussinessUnit(models.Model):
     # 由于业务可能会有分层,大的业务线下面会有细分的业务线,所以会有一个层级的关联关系,所以这里外键关联了自己
     parent_unit = models.ForeignKey('self', on_delete=models.CASCADE, related_name='parent_level', blank=True,null=True)
     name = models.CharField('业务线', max_length=64, unique=True)
-    memo = models.CharField('备注', max_length=128, blank=True)
+    memo = models.CharField('备注', max_length=128, blank=True,null=True)
 
     def __str__(self):
         return self.name
@@ -253,10 +254,10 @@ class Contract(CommonInfo):
     sn = models.CharField('合同号', max_length=128, unique=True)
     name = models.CharField('合同名称', max_length=64)
     price = models.IntegerField('合同金额')
-    detail = models.TextField('合同详情', blank=True)
-    start_date = models.DateField(blank=True)
-    end_date = models.DateField(blank=True)
-    license_num = models.IntegerField('license数量', blank=True)
+    detail = models.TextField('合同详情', blank=True,null=True)
+    start_date = models.DateField(blank=True,null=True)
+    end_date = models.DateField(blank=True,null=True)
+    license_num = models.IntegerField('license数量', blank=True,null=True)
 
     class Meta:
         verbose_name_plural = '合同'
@@ -268,7 +269,7 @@ class Contract(CommonInfo):
 
 class Idc(models.Model):
     name = models.CharField('机房名称', max_length=64, unique=True)
-    memo = models.CharField('备注', max_length=128, blank=True)
+    memo = models.CharField('备注', max_length=128, blank=True,null=True)
 
     def __str__(self):
         return self.name
@@ -306,11 +307,11 @@ class EventLog(models.Model):
     )
     event_type = models.SmallIntegerField('事件类型', choices=event_type_choice)
     asset = models.ForeignKey('Asset',on_delete=models.DO_NOTHING)
-    componet = models.CharField('事件子项', max_length=255, blank=True)
+    componet = models.CharField('事件子项', max_length=255, blank=True,null=True)
     detail = models.TextField('事件详情')
     date = models.DateTimeField('事件时间', auto_now_add=True)
     user = models.ForeignKey(UserProfile,on_delete=models.DO_NOTHING,verbose_name='事件处理人')
-    memo = models.TextField('备注', blank=True)
+    memo = models.TextField('备注', blank=True,null=True)
 
     def __str__(self):
         return self.name
@@ -351,16 +352,16 @@ class NewAssetApprovalZone(models.Model):
     sn = models.CharField('资产SN号', max_length=128, unique=True)
     manufactory = models.CharField('生产商',max_length=64,null=True)
     idc = models.CharField('IDC机房',max_length=64, blank=True,null=True)
-    ram_size = models.IntegerField(blank=True)
-    cpu_model = models.CharField(max_length=128, blank=True)
-    cpu_count = models.IntegerField(blank=True)
+    ram_size = models.IntegerField(blank=True,null=True)
+    cpu_model = models.CharField(max_length=128, blank=True,null=True)
+    cpu_count = models.IntegerField(blank=True,default=1)
     cpu_core_count = models.IntegerField(blank=True,null=True)
     data = models.TextField('资产数据')
     date = models.DateTimeField('汇报时间', auto_now_add=True)
     approved = models.BooleanField('已批准', default=False)
-    approved_by = models.CharField('审批人',max_length=16,blank=True)
+    approved_by = models.CharField('审批人',max_length=16,blank=True,null=True)
     approved_date=models.DateTimeField('审批时间',auto_now_add=True)
-    os_type = models.CharField(max_length=64, blank=True)
+    os_type = models.CharField(max_length=64, blank=True,null=True)
     os_release = models.CharField(max_length=64, blank=True, null=True)
     os_distribution = models.CharField(max_length=64, blank=True, null=True)
 

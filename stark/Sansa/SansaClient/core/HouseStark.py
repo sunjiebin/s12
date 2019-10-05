@@ -51,10 +51,11 @@ class ArgvHandler(object):
         has_asset_id=False
         if os.path.isfile(asset_id_file):
             asset_id=open(asset_id_file).read().strip()
-            if asset_id.isdigit():
+            try:
+                id=int(asset_id)
                 return asset_id
-            else:
-                print('id必需是数字')
+            except Exception as e:
+                print('id必需是数字',e)
                 has_asset_id=False
         else:
             has_asset_id = False
@@ -64,7 +65,7 @@ class ArgvHandler(object):
         先到setttings里面取出id对应的文件路径,然后将传过来的资产id写入到该文件
         '''
         asset_id_file=settings.Params['asset_id']
-        with open(asset_id_file,'wb') as f:
+        with open(asset_id_file,'w') as f:
             f.write(str(new_asset_id))
             f.close()
     def report_asset(self):

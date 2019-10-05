@@ -24,6 +24,7 @@ def collect():
     data.update(win32obj.get_server_info())
     data.update(win32obj.get_disk_info())
     data.update(win32obj.get_nic_info())
+    data.update(win32obj.get_hostname())
 
     return data
 
@@ -118,6 +119,10 @@ class Win32Info(object):
                 # print item_data
                 data.append(item_data)
         return {'nic': data}
+    def get_hostname(self):
+        import socket
+        hostName = socket.gethostname()
+        return {'name':hostName}
 
 if __name__ == '__main__':
     collect()

@@ -93,6 +93,7 @@ django相关知识
         DO_NOTHING：字面的意思，啥也不干，你删除你的干我毛线关系
 
     models中null=True和blank=True的区别
+        建议: blank=True,null=True同时写,以免后面不通过django后台添加数据时又不能为空报错!
         参考:https://docs.djangoproject.com/en/dev/ref/models/fields/#django.db.models.Field.blank
         之前也提起过,这里再次加深下理解
         null=True是数据库校验时用到的,代表允许值为Null.
@@ -121,6 +122,25 @@ django相关知识
                 idc = models.ForeignKey('IDC', on_delete=models.SET_NULL, verbose_name='IDC机房', blank=True,null=True)
         对于外键如果允许为空,就必需添加nulll=True,否则报错NOT NULL constraint failed: Sansa_bussinessunit.parent_unit_id
             parent_unit = models.ForeignKey('self', on_delete=models.CASCADE, related_name='parent_level', blank=True,null=True)
+
+    有个坑请注意
+        django官方说设置null=True是多余的,但是呢我建议还是把null=True写上比较好.
+        当我们想允许字段为空时,设置blank=True,那么通过django插入数据时,就会插入一个'',其实不是null.这是不违反数据库约束的,
+        所以当我们通过django的后台添加数据时,不填也不会报错.
+        但是,如果我们不是通过django后台添加的数据,比如我们通过models插入数据时,这时候问题就来了...
+        就比如下面的网卡表,我们设置的sn为blank=True,通过models插入数据时,这个sn字段我们没有提供,于是便报错了!
+        NOT NULL constraint failed! 这个报错应该是来自于数据库的.该字段不允许为空!因为我们没有设置null=True,且没有通过后台添加,
+        自然就没有插入''空字符串了.于是就出错了...
+        所以,建议如果允许字段为空,将两个都写上!
+        class Nic(CommonInfo):
+            sn = models.CharField('SN号', max_length=128, blank=True)
+        {'ObjectCreationException': 'Object [nic] NOT NULL constraint failed: Sansa_nic.sn'}
+        当我们把这个null=True加上,再插入就不会报错了.
+        class Nic(CommonInfo):
+            sn = models.CharField('SN号', max_length=128, blank=True,null=True)
+        python manage.py makemigrations
+        python manage.py migrate
+
 
     models中表关联关系解析
         OneToOneField,ForeignKey都需要定义on_delete参数
@@ -301,12 +321,92 @@ hasaatr不仅可以判断对象是否有某方法,还可以判断是否有某属
 models里面可以支持get_or_create方法,查找or创建
         #get_or_create代表查找或者创建,也就是说当数据库里面存在这条数据时,我就只是查找数据而不插入,如果不存在则插入数据.
         #这样做避免了数据被重复创建
-        asset_already_in_approval_zone=models.NewAssetApprovalZone.objects.get_or_create(sn=asset_sn,
-    注意在定义models的时候,return返回的必需是字符串,否则会报如下错误
-    TypeError at /admin/Sansa/newassetapprovalzone/1/change/
-    __str__ returned non-string (type tuple)
+        asset_already_in_approval_zone=models.NewAssetApprovalZone.objects.get_or_create(sn=asset_sn,xxxx)
+    models.py
 
+    查询asset表里面有没有name='ecs'的数据,如果没有则创建一条name=ecs的数据
+        >>> aa=models.Asset.objects.get_or_create(name='ecs')
+    get_oor_create返回了一个元组.aa[0]为查询出来的Asset类的对象,这里显示Asset: id:3,name:ecs是因为我在Asset这个类里面定义了
+    str函数,返回了这两个值. False代表这个是查询出来的值,也就是说数据库里面有该对象.如果是True则代表这是新建的值,即数据库原来
+    没有这个对象,新插入了该对象.
+    <Asset: id:3,name:ecs>  这个看起来似乎是字符串,实际上这是一个Sansa.models.Asset对象,也就是查询出来的数据库对象,我们可以
+    aa[0].asset_type来查询到该对象asset_type列的值.
+        >>> aa
+        (<Asset: id:3,name:ecs>, False)
+        >>> aa[0]
+        <Asset: id:3,name:ecs>
+        type(aa[0])
+        <class 'Sansa.models.Asset'>
+        >>> aa[0].asset_type
+        'server'
+        >>> aa[0].memo
+        'dell服务器'
+    sn='dslkjdfsdfsffdfsfzzz',name='gaga'  这个值在asset表里面并不存在,我们执行一下,返回了True,证明创建了该对象.
+        >>> aa=models.Asset.objects.get_or_create(sn='dslkjdfsdfsffdfsfzzz',name='gaga')
+        >>> aa
+        (<Asset: id:5,name:gaga>, True)
+        注意在执行时,插入的数据要符合表的约束条件,比如asset表里面的name字段做了uniq=True唯一性约束并且不允许为空,
+        那么我们在插入时,name字段就必需指定,否则就报错了.
+        比如下面我们只指定一个不存在的sn,结果在插入时就报错了.因为name字段没有,违反了唯一性约束
+        >>> aa=models.Asset.objects.get_or_create(sn='dslkjdfsdfsffdfsfzzz')
+        django.db.utils.IntegrityError: UNIQUE constraint failed: Sansa_asset.name
+        还可以给这个数据库对象增加一个属性dd
+        >>> aa[0].dd='123'
+        >>> aa[0].dd
+        '123'
 
+实现关联外键表插入,同时插入主表以及对应的外键关联数据
+        manufactory = self.clean_data.get('manufactory')
+    if not len(self.response['error']) or ignore_errs == True: #no processing when there's no error happend
+        obj_exist = models.Manufactory.objects.filter(manufactory=manufactory)  #在表里面查询传过来的厂商信息
+        if obj_exist:   #如果查询到有数据,证明厂商已经在表里面有了
+            obj = obj_exist[0]  #获取到厂商信息,由于厂商表做了uniq唯一约束,所以数据只会出现一条,取[0]即可
+        else:   #如果没有
+            obj = models.Manufactory(manufactory=manufactory)   #创建一个厂商,存入厂商表里面
+            obj.save()      #保存厂商表
+        self.asset_obj.manufactory = obj    #将资产表的manufactory字段存入Manufactory表的对象,即实现外键关联
+        self.asset_obj.save()   #保存资产表
+
+    下面代码通过查询该对象是否有对外的外键关联数据来判断是否为新资产
+        if not hasattr(self.asset_obj, self.clean_data['asset_type']):#new asset
+            return True
+        else:
+            return False
+        如果这是一个新资产,那么这条数据在其它的外键表里面是没有数据的,那么通过外键关联查询就
+        查不到数据的.
+        如果是一个已有的资产,那么就可以外键关联查询到数据.
+        所以,通过hasattr来判断是否有外键关联查询来判断是否为新资产
+        self.clean_data['asset_type'] 得到的是server,switch等
+        self.asset_obj 得到的是Asset表里面的对象,通过这个对象可以反查关联表里面的数据.
+        比如通过这个对象查server表里面的信息,可以这样写:
+        self.asset_obj.server.os_type 就能够查到关联server表里面的os_type字段.
+        如果server表里面没有这个数据,则会报错,if条件就不存在了.
+        Sansa.models.Asset.server.RelatedObjectDoesNotExist: Asset has no server.
+        可以如下验证(下面的a[0]就是self.asset_obj):
+         from Sansa import models
+         a=models.Asset.objects.all()
+         a[0].server
+         如果关联表没有数据(新资产),则报错Sansa.models.Asset.server.RelatedObjectDoesNotExist: Asset has no server.
+         那么hasattr(self.asset_obj, self.clean_data['asset_type'])返回False.
+         if not False则成立,return True
+         如果有数据,则不会报错 if not True不成立,进入到else条件,所以return False
+         综上所述: 如果是新资产,则返回True,如果是旧资产则返回False
+
+注意在定义models的时候,return返回的必需是字符串,否则会报如下错误
+
+    正确写法
+     class NewAssetApprovalZone(models.Model):
+        xxxx
+        def __str__(self):
+            return f'{self.sn}, {self.name}'
+     错误写法
+     class NewAssetApprovalZone(models.Model):
+        xxxx
+        def __str__(self):
+            return self.sn,self.name
+     错误的写法会报如下错:
+        TypeError at /admin/Sansa/newassetapprovalzone/1/change/
+        __str__ returned non-string (type tuple)
 
 判断字典是否存在key
         self.response={
@@ -322,3 +422,17 @@ models里面可以支持get_or_create方法,查找or创建
 
 进入django的shell
     python manage.py shell
+
+django时区更改
+    默认使用的utc时间,这个和我们东八区的时间不一致,会导致通过django后台插入的数据时间不对.就比如我们将生成的资产表插入到数据库中,
+    结果显示的时间会早8小时.
+    USE_TZ = True   当该值为True时,django会使用默认值,此时设置下面的TIME_ZONE是不生效的.所以要改时区,就得先把这个设置为FALSE
+    TIME_ZONE = 'UTC'   当USE_TZ=False时,这个参数才有效. TIME_ZONE = 'Asia/Shanghai'表示使用上海时区
+    验证时区:
+    from django.utils import timezone
+    timezone.now()
+    datetime.datetime(2019, 10, 5, 3, 22, 36, 930721, tzinfo=<UTC>)
+    修改完上面的配置后,重新导入模块,然后再执行时间就对了
+    from django.utils import timezone
+    timezone.now()
+    datetime.datetime(2019, 10, 5, 11, 32, 9, 867485)

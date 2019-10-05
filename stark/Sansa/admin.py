@@ -28,9 +28,15 @@ class AssetAdmin(admin.ModelAdmin):
     #list_display定义在admin后台里面显示该表的哪些列
     list_display = ('id','asset_type','sn','name','manufactory','management_ip','idc','bussiness_unit')
     # inlines表示允许在修改asset表时,同时可以修改以下表的列
+    # 注意被Inline的表都要和该表有外键关联才能inline,如果没有是不能写inlines的
     inlines = [ServerInline,CpuInline,RamInline,NicInline]
     search_fields = ['sn',]
     list_filter = ['idc','name','manufactory','asset_type']
+class ServerAdmin(admin.ModelAdmin):
+    #list_display定义在admin后台里面显示该表的哪些列
+    list_display = ('id','created_by','hosted_on','model','raid_type','os_type')
+    #search_fields = ['sn',]
+    #list_filter = ['idc','name','manufactory','asset_type']
 class NicAdmin(admin.ModelAdmin):
     list_display = ('name','macaddress','ipaddress',)
     search_fields = ['ipaddress']

@@ -35,13 +35,14 @@ def asset_with_no_asset_id(request):
 def new_assets_approval(request):
     if request.method == 'POST':
         request.POST = request.POST.copy()
+        print('request.POST:',request.POST)
         approved_asset_list = request.POST.getlist('approved_asset_list')
         approved_asset_list = models.NewAssetApprovalZone.objects.filter(id__in=approved_asset_list)
 
         response_dic = {}
         for obj in approved_asset_list:
-            request.POST['asset_data'] = obj.data
-            ass_handler = core.Asset(request)
+            request.POST['asset_data'] = obj.data   #设置一个键值,后面会用到
+            ass_handler = core.Asset(request)   #所有跟资产相关的都会调用这个类,创建/更新/删除资产都在这里面
             if ass_handler.data_is_valid_without_id():
                 ass_handler.data_inject()
                 obj.approved = True
