@@ -647,6 +647,11 @@ class Asset(object):
                 '''
                 for field in model_class.auto_create_fields:
                     data_set[field] = component.get(field)  #生成一个字典,Key就是列名,value就是从客户端数据(component)里面取到的对应列名的数据
+
+                if 'manufactory' in data_set:
+                    manufactory_obj=models.Manufactory.objects.get_or_create(manufactory=component.get('manufactory'))
+                    if manufactory_obj[0]:
+                        data_set['manufactory']=manufactory_obj[0]
                 data_set['asset_id'] = self.asset_obj.id    #每个关联表里面都会有一个外键列asset_id,要给这个列加入对应的id,这样才能实现和asset表的外键关联
                 obj= model_class(**data_set)    #将字典数据传入到这个model类里面,即将数据插入到表里面
                 obj.save()
