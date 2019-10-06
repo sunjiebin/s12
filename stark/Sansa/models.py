@@ -117,7 +117,7 @@ class Disk(CommonInfo):
         ('SSD', 'SSD'),
     )
     iface_type = models.CharField('磁盘类型', choices=disk_iface_type, max_length=32, default='SAS')
-    auto_create_field = ['sn', 'slot', 'manufactory', 'model', 'capacity', 'iface_type']
+    auto_create_fields = ['sn','slot','manufactory','model','capacity','iface_type']
 
     class Meta:
         # 一台机器上的硬盘插槽是不可能重的,所以可以利用机器和插槽设置联合唯一
@@ -153,9 +153,11 @@ class Nic(CommonInfo):
     sn = models.CharField('SN号', max_length=128, blank=True,null=True)
     model = models.CharField('网卡型号', max_length=64, blank=True,null=True)
     macaddress = models.CharField('MAC地址', max_length=64, unique=True)
-    ipaddress = models.GenericIPAddressField('IP地址', blank=True, unique=True, null=True)
+    ipaddress = models.GenericIPAddressField('IP地址', blank=True, null=True)
     netmask = models.CharField('子网掩码', max_length=64, blank=True,null=True)
     bonding = models.CharField(max_length=64, blank=True,null=True)
+
+    auto_create_fields = ['name', 'sn', 'model', 'macaddress', 'ipaddress', 'netmask', 'bonding']
 
     class Meta:
         # unique_together=('asset','slot')
@@ -307,7 +309,7 @@ class EventLog(models.Model):
     )
     event_type = models.SmallIntegerField('事件类型', choices=event_type_choice)
     asset = models.ForeignKey('Asset',on_delete=models.DO_NOTHING)
-    componet = models.CharField('事件子项', max_length=255, blank=True,null=True)
+    component = models.CharField('事件子项', max_length=255, blank=True,null=True)
     detail = models.TextField('事件详情')
     date = models.DateTimeField('事件时间', auto_now_add=True)
     user = models.ForeignKey(UserProfile,on_delete=models.DO_NOTHING,verbose_name='事件处理人')

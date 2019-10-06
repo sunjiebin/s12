@@ -16,7 +16,7 @@ def asset_report(request):
             print('=====asset data valid')
             ass_handler.data_inject()   #如果数据合法就插入进去
         return HttpResponse(json.dumps(ass_handler.response))
-    return HttpResponse('----test-----')
+    return HttpResponse('----asset_report-----')
 
 
 #注意对于下面的Post请求我们需要关闭csrf校验,因为我们是直接发送请求到url上面去,所以是没有办法先获取到
@@ -36,12 +36,12 @@ def new_assets_approval(request):
     if request.method == 'POST':
         request.POST = request.POST.copy()
         print('request.POST:',request.POST)
-        approved_asset_list = request.POST.getlist('approved_asset_list')
-        approved_asset_list = models.NewAssetApprovalZone.objects.filter(id__in=approved_asset_list)
+        approved_asset_list = request.POST.getlist('approved_asset_list')   #来源于html里面的select隐藏标签
+        approved_asset_list = models.NewAssetApprovalZone.objects.filter(id__in=approved_asset_list)    #拿到数据库里面待批准的数据
 
         response_dic = {}
         for obj in approved_asset_list:
-            request.POST['asset_data'] = obj.data   #设置一个键值,后面会用到
+            request.POST['asset_data'] = obj.data   #设置一个键值,后面的data_is_valid_without_id会用到.
             ass_handler = core.Asset(request)   #所有跟资产相关的都会调用这个类,创建/更新/删除资产都在这里面
             if ass_handler.data_is_valid_without_id():
                 ass_handler.data_inject()

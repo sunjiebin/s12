@@ -103,9 +103,9 @@ class ArgvHandler(object):
         根据请求的名称,去settings里面找到对应的请求地址,并生成完整的请求地址.
         如果是get,则拼接成get请求的完整URL,如果是POST,则生成对就的POST地址,并将data数据传递过去
         然后取返回值,将url返回的数据return
-        :param url_name:
-        :param data:
-        :param method:
+        :param url_name:    提交的url
+        :param data:    提交的数据
+        :param method:  提交方法
         :return:
         '''
         print(settings.Params['urls'])

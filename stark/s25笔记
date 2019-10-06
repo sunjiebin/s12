@@ -436,3 +436,73 @@ django时区更改
     from django.utils import timezone
     timezone.now()
     datetime.datetime(2019, 10, 5, 11, 32, 9, 867485)
+
+model复习
+    通过外键反向查找
+    >>> ass=models.Asset.objects.get(id=16)
+    >>> ass
+    <Asset: id:16,name:>
+    >>> ass.nic_set
+    <django.db.models.fields.related_descriptors.create_reverse_many_to_one_manager.<locals>.RelatedManager object at 0x05867BD0>
+    >>> ass.nic_set.select_related()
+    <QuerySet [<Nic: 16:D4:3B:04:58:7A:5F>, <Nic: 16:D4:3B:04:58:7A:60>, <Nic: 16:D6:3B:04:58:7A:5F>, <Nic: 16:D4:3B:04:58:7A:63>, <Nic: 16:22:FE:20:52:41:53>, <Nic: 16:28:0C:20:52:41:53>, <Nic: 16:28:A7:20:52:41:53>, <Nic: 16:00:FF:8C:1B:B7:86>]>
+    >>> ass.nic_set.select_related()[0]
+    <Nic: 16:D4:3B:04:58:7A:5F>
+    >>> ass.nic_set.select_related()[0].name
+    '1'
+    >>> ass.nic_set.select_related()[0].model
+    '[00000001] Intel(R) Wireless-AC 9560 160MHz'
+    >>> ass._meta.object_name
+    'Asset'
+    如果get的值不存在的话,就会报下面的错
+    >>> obj=models.Asset.objects.get('id=1')
+    ValueError: too many values to unpack (expected 2)
+
+_meta的用法,可以查询到Model表的一些属性,以及列的属性.可以获取到对应列的实例,然后对该列进行操作.
+比如查询列的字段类型,长度,是否为空等,相当于查询models.py里面类的一些字段的属性
+    还可以对这个表的指定列进行更新数据.如下:
+    代表查询到field列的对象,赋值给db_field, 然后将这个对象调用save_from_data方法来更新该列数据.
+    mod_obj代表这个列的表名,var_from_data_source代表要更新的数据
+    core.py
+        db_field = model_obj._meta.get_field(field)
+        db_field.save_form_data(model_obj, val_from_data_source)
+
+    获取查找到的对应数据库对象所在的表名,类名,别名.
+        >>> obj=models.Asset.objects.get(id=16)
+        >>> obj._meta.model_name
+        'asset'
+        >>> obj._meta.object_name
+        'Asset'
+        >>> obj._meta.verbose_name
+        '资产总表'
+    获取列price的verbose_name
+        >>> obj._meta.get_field('price').verbose_name
+        '价格'
+    获取到sn列
+        >>> obj._meta.get_field('sn')
+        <django.db.models.fields.CharField: sn>
+    获取sn列的字段长度
+        >>> obj._meta.get_field('sn').max_length
+        128
+    查询sn列是否允许为空
+        >>> obj._meta.get_field('sn').null
+        False
+    获取到关联表的对象名称
+         >>> obj.nic_set.model._meta.object_name
+        'Nic'
+    修改asset表里面id=2的sn列数据为testsn
+        >>> obj2=models.Asset.objects.get(id=2)
+        >>> sn=obj2._meta.get_field('sn')
+        >>> sn
+        <django.db.models.fields.CharField: sn>
+        >>> sn.save_form_data(obj2,'testsn')
+        >>> obj2.save()
+        >>> obj2.sn
+        'testsn'
+        >>> models.Asset.objects.filter(id=2).values('sn')
+        <QuerySet [{'sn': 'testsn'}]>
+
+
+for循环用法:
+
+    data_identify_val_from_db = set([getattr(obj,identify_field) for obj in data_from_db])

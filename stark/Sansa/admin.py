@@ -14,7 +14,7 @@ class CpuInline(admin.TabularInline):
    # readonly_fields = ['create_date']
 class NicInline(admin.TabularInline):
     model = models.Nic
-    exclude = ('memo',)
+    exclude = ('memo','bonding','sn','netmask')
     readonly_fields = ['create_date']
 class RamInline(admin.TabularInline):
     model = models.Ram
