@@ -26,7 +26,7 @@ class DiskInline(admin.TabularInline):
     readonly_fields = ['create_date']
 class AssetAdmin(admin.ModelAdmin):
     #list_display定义在admin后台里面显示该表的哪些列
-    list_display = ('id','asset_type','sn','name','manufactory','management_ip','idc','bussiness_unit')
+    list_display = ('id','name','sn','manufactory','management_ip','idc','bussiness_unit')
     # inlines表示允许在修改asset表时,同时可以修改以下表的列
     # 注意被Inline的表都要和该表有外键关联才能inline,如果没有是不能写inlines的
     inlines = [ServerInline,CpuInline,RamInline,NicInline]
@@ -41,7 +41,7 @@ class NicAdmin(admin.ModelAdmin):
     list_display = ('name','macaddress','ipaddress',)
     search_fields = ['ipaddress']
 class EventLogAdmin(admin.ModelAdmin):
-    list_display = ('name','event_type','asset')
+    list_display = ('name','event_type','asset','component','detail')
     search_fields = ['asset']
     list_filter = ('name','event_type','date','user')
 

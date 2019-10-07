@@ -145,6 +145,7 @@ class Asset(object):
         asset_already_in_approval_zone = models.NewAssetApprovalZone.objects.get_or_create(sn=asset_sn,
                                                                                            data=json.dumps(
                                                                                                self.clean_data),
+                                                                                           name=self.clean_data.get('name'),
                                                                                            manufactory=self.clean_data.get(
                                                                                                'manufactory'),
                                                                                            model=self.clean_data.get(
@@ -181,7 +182,7 @@ class Asset(object):
                 print('data:',data)
                 #asset_obj = models.Asset.objects.get_or_create(sn=data.get('sn'),name=data.get('sn')) #push asset id into reporting data before doing the mandatory check
                 # 待验证,这里应该要有两个值才对,因为name设置了不允许为空,所以如果是新建数据,没有指明name实际上插入会报错.
-                asset_obj = models.Asset.objects.get_or_create(sn=data.get('sn')) #push asset id into reporting data before doing the mandatory check
+                asset_obj = models.Asset.objects.get_or_create(sn=data.get('sn'),name=data.get('name')) #push asset id into reporting data before doing the mandatory check
                 print(asset_obj)
                 data['asset_id'] = asset_obj[0].id      #把asset_id赋值是因为下面要进入mandatory_check检测,这个检测里面会要求必需有该字段
                 self.mandatory_check(data)

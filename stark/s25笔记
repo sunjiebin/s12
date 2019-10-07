@@ -181,6 +181,12 @@ django相关知识
         Sansa.Asset.admin: (fields.E307) The field Sansa.Asset.admin was declared with a lazy reference to 'Sansa.userprofile', but app 'Sansa' doesn't provide model 'userprofile'.
         Sansa.Tag.creater: (fields.E307) The field Sansa.Tag.creater was declared with a lazy reference to 'Sansa.userprofile', but app 'Sansa' doesn't provide model 'userprofile'.
 
+        在linux上执行migrate报错
+        File "/usr/local/python/lib/python3.6/site-packages/django/db/models/fields/related.py", line 604, in resolve_related_fields
+        raise ValueError('Related model %r cannot be resolved' % self.remote_field.model)
+        ValueError: Related model 'Wolf.UserProfile' cannot be resolved
+        后面直接把这个库里面的表全删了,然后重新执行migrate就不报错了.
+
         on_delete里面的models.SET_NULL必需配合null=True一起用,否则报错
         idc = models.ForeignKey('IDC', on_delete=models.SET_NULL, verbose_name='IDC机房', blank=True)
         Sansa.Asset.idc: (fields.E320) Field specifies on_delete=SET_NULL, but cannot be null.

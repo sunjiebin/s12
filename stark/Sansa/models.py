@@ -43,7 +43,7 @@ class Asset(CommonInfo):
     price = models.FloatField('价格', null=True, blank=True)
     bussiness_unit = models.ForeignKey('BussinessUnit', on_delete=models.SET_NULL, verbose_name='所属业务', null=True,
                                        blank=True)
-    tags = models.ManyToManyField('Tag', verbose_name='标签', blank=True,null=True)
+    tags = models.ManyToManyField('Tag', verbose_name='标签',blank=True)
     admin = models.ForeignKey(UserProfile, on_delete=models.SET_DEFAULT, verbose_name='资产管理员',
                               default=1)  # 外键删除时,该字段变默认值1
     idc = models.ForeignKey('IDC', on_delete=models.SET_NULL, verbose_name='IDC机房', blank=True,null=True)
@@ -136,7 +136,7 @@ class Ram(CommonInfo):
     model = models.CharField('型号', max_length=64, blank=True,null=True)
     manufactory = models.ForeignKey('Manufactory', on_delete=models.SET_NULL, verbose_name='生产商', blank=True,null=True)
     capacity = models.FloatField('内存大小GB')
-    auto_create_field = ['sn', 'slot', 'manufactory', 'capacity', 'capacity']
+    auto_create_fields = ['sn', 'slot', 'manufactory', 'capacity', 'capacity']
 
     class Meta:
         unique_together = ('asset', 'slot')
@@ -320,18 +320,18 @@ class EventLog(models.Model):
 
     class Meta:
         verbose_name = '事件纪录'
+        verbose_name_plural='事件纪录'
 
     def colored_event_type(self):
         if self.event_type == 1:
-            cell_html = '<span style="background:orange;">'
-        elif self.event_type == 2:
-            cell_html = '<span style="background:yellowgreen;">'
+            cell_html = '<span style="background: orange;">%s</span>'
+        elif self.event_type == 2 :
+            cell_html = '<span style="background: yellowgreen;">%s</span>'
         else:
-            cell_html = '<span>%s</span>'
+            cell_html = '<span >%s</span>'
         return cell_html % self.get_event_type_display()
-
     colored_event_type.allow_tags = True
-    colored_event_type.short_description = '事件类型'
+    colored_event_type.short_description = u'事件类型'
 
 
 class NewAssetApprovalZone(models.Model):

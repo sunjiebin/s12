@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Auther: sunjb
-import subprocess, os, re
+import subprocess, os, re, netifaces
 
 
 def collect():
@@ -8,11 +8,12 @@ def collect():
     调用操作系统的dmidecode命令,获取到系统信息,并根据提供的filter_keys里面的字段,进行grep过滤
     出需要的数据,将生成的数据添加到raw_data字典里面
     '''
-    filter_keys = ['Manufactuer', 'Serial Number', 'Product Name', 'UUID', 'Wake-up Type']
+    filter_keys = ['Manufacturer', 'Serial Number', 'Product Name', 'UUID', 'Wake-up Type']
     raw_data = {}
     for key in filter_keys:
         try:
-            cmd_res = subprocess.run('dmidecode -t system|grep %s' % (key), shell=True, stdout=subprocess.PIPE,
+            #print("dmidecode -t system|grep %s" % (key))
+            cmd_res = subprocess.run("dmidecode -t system|grep '%s'" % (key), shell=True, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
             cmd_res = cmd_res.stdout.decode().strip()
 
@@ -26,7 +27,7 @@ def collect():
             raw_data[key] = -2
     # 这个写死用于区分这是什么数据,这里是服务器的数据,所以写的server,如果是网络设备,就写其它的值
     data = {'asset_type': 'server'}
-    data['manufactory'] = raw_data['Manufactuer']
+    data['manufactory'] = raw_data['Manufacturer']
     data['sn'] = raw_data['Serial Number']
     data['model'] = raw_data['Product Name']
     data['uuid'] = raw_data['UUID']
@@ -36,15 +37,47 @@ def collect():
     data.update(osinfo())
     data.update(raminfo())
     data.update(nicinfo())
+    data.update(diskinfo())
+    data.update(get_hostname())
     return data
 
 
 def diskinfo():
     obj = DiskPlugin()
-    return obj.liunx()
+    return obj.linux()
 
 
 def nicinfo():
+    Gateway = netifaces.gateways()['default'][netifaces.AF_INET][0]
+    NicName = netifaces.gateways()['default'][netifaces.AF_INET][1]
+    nic_dic = {}
+    for interface in netifaces.interfaces():  # ['{8C1BB786-AE76-4E14-9D8A-6137C15A03D8}', '{50956C8B-6688-4844-84A7-652552D3EB75}', '{A834248E-DCCB-4016-AB3C-51BE015642FD}']
+        # 下面的if打开则只获取默认网关绑定的网卡,如果注释掉if,则获取所有网卡的信息,包括虚拟网卡,如docker虚拟出来的网卡
+        if interface == NicName:
+            # print netifaces.ifaddresses(interface)
+            NicMacAddr = netifaces.ifaddresses(interface)[netifaces.AF_LINK][0]['addr']  # 获取mac地址
+            try:
+                IPAddr = netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['addr']  # 获取Ip地址
+                # TODO(Guodong Ding) Note: On Windows, netmask maybe give a wrong result in 'netifaces' module.
+                IPNetmask = netifaces.ifaddresses(interface)[netifaces.AF_INET][0]['netmask']  # 获取子网掩码
+            except KeyError:
+                pass
+            #print(IPAddr,NicMacAddr)
+
+            nic_dic[NicMacAddr] = {'name': interface,
+                                 'macaddress': NicMacAddr,
+                                 'netmask': IPNetmask,
+                                 'network': Gateway,
+                                 'bounding': 0,
+                                 'model': 'unknown',
+                                 'ipaddress': IPAddr,}
+
+    nic_list = []
+    for k, v in nic_dic.items():
+        nic_list.append(v)
+    return {'nic': nic_list}
+
+'''
     raw_data = subprocess.getoutput('ifconfig -a')  # 得到返回结果,以\n将结果进行分隔
     raw_data = raw_data.split('\n')  # 得到列表形式的命令结果
     nic_dic = {}
@@ -94,6 +127,7 @@ def nicinfo():
     for k, v in nic_dic.items():
         nic_list.append(v)
     return {'nic': nic_list}
+'''
 
 
 def raminfo():
@@ -144,11 +178,13 @@ def raminfo():
 
 
 def osinfo():
-    distributor = subprocess.getoutput('lsb_release -a|grep Distributor')
-    release = subprocess.getoutput('lsb_release -a|grep Description')
+    import platform
+    distributor = platform.dist()[0]
+    release = platform.dist()[1]
+
     data_dic = {
-        'os_distribution': distributor[1].strip() if len(distributor) > 1 else None,
-        'os_release': release[1].strip() if len(release) > 1 else None,
+        'os_distribution':distributor,
+        'os_release': release,
         'os_type': 'linux',
     }
     return data_dic
@@ -178,6 +214,9 @@ def cpuinfo():
         data['cpu_model'] = -1
     return data
 
+def get_hostname():
+    hostName = subprocess.getoutput('hostname')
+    return {'name':hostName}
 
 class DiskPlugin(object):
     def linux(self):
@@ -187,8 +226,10 @@ class DiskPlugin(object):
             shell_command = f'{script_path}/MegaCli -PDList -aALL'
             output = subprocess.getstatusoutput(shell_command)
             result['physical_disk_driver'] = self.parse(output[1])
+            print(result)
         except Exception as e:
             print(e)
+        return result
 
     def parse(self, content):
         '''
@@ -228,4 +269,5 @@ class DiskPlugin(object):
         grep_patten = {'Slot': 'slot', 'Raw Size': 'capacity', 'Inquire': 'inquire'}
         for key, value in grep_patten.items():
             if needle.startswith(key):
-                pass
+                return value
+            return False
