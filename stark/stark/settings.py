@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'Arya.apps.AryaConfig',
     'Sansa.apps.SansaConfig',
     'Wolf.apps.WolfConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -138,6 +139,15 @@ MQ_CONN={
 
 Params={
     'log_file':'',
+    'timeout':100,
 }
 
 AUTH_USER_MODEL = 'Wolf.UserProfile'
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}

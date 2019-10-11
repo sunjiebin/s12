@@ -15,9 +15,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from rest_framework import routers
+from stark.rest_views import AssetViewSet
+from stark.rest_views import ManufactoryViewSet
+
+
+# Routers provide an easy way of automatically determining the URL conf.
+router = routers.DefaultRouter()
+router.register('asset', AssetViewSet)  #这里的asset和url里面写的api/相结合,组成api/asset
+router.register('Manufactory', ManufactoryViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('salt/',include('Arya.urls')),
     path('asset/',include('Sansa.urls')),
+    path('api-auth/', include('rest_framework.urls',namespace='rest_framework')),   #api认证
+    path('api/', include(router.urls)),  #只要是api开头的,都映射到这里面,当访问api/asset时,就会跳到AssetViewSet
 ]
+
+

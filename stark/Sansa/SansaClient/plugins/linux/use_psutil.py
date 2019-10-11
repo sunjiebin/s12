@@ -13,6 +13,4 @@ except ImportError:
         exit('install error:',e)
     import psutil
 
-    par
-
 

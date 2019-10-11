@@ -49,11 +49,14 @@ class UserProfile(AbstractBaseUser):
     name = models.CharField(max_length=32)   #这里被修改成了自定义的name
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
-
+    token = models.CharField(max_length=16,default='abc')
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'    #校验时验证的字段,这里的email就是登录用户名
     REQUIRED_FIELDS = ['name']  #必填字段,这里修改成了name,我们定义为用户名称
+
+    def has_perms(self, perm_list, obj=None):
+        return all(self.has_perm(perm, obj) for perm in perm_list)
 
     def __str__(self):
         return self.email

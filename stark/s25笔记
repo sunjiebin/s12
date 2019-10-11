@@ -512,3 +512,190 @@ _meta的用法,可以查询到Model表的一些属性,以及列的属性.可以�
 for循环用法:
 
     data_identify_val_from_db = set([getattr(obj,identify_field) for obj in data_from_db])
+
+restful规范
+    误区:
+        不要将动词写在URI里面.因为URI是一个资源,代表的是一个实体,所以应该是名词.,动词应该放在http协议之中.
+        如: /posts/show/1 其中show就是动词,应该改为/posts/1,然后用get的方法来代替show
+        另一个误区就是在URI中加入版本号.如 /app/1.0/foo 正确的做法应该是将版本号放在http的请求头中.
+
+    一.协议
+        建议都用https协议
+    二. 域名
+        尽量将api部署在专用域名下. 如api.github.com
+        如果网站很简单,可以写在域名下 如 https://example.com/api
+    三. 版本
+        应该将api的版本放在url里面,github就是这么做的. 如 https://api.example.com/v1/
+        另一种写法是将版本号放在请求头里面.
+    四. 路径
+        在restful架构中,每个网址代表一种资源,所以网址中不应该有动词.一般都是名词,而名词一般与数据库的表名对应.数据库表记录的都是某种
+        记录的集合,所以一般是复数形式.
+        https://api.example.com/v1/zoos
+        https://api.example.com/v1/animals
+    五. http动词
+        get/post/put/delete/head/options等
+        get /zoos
+    六. 过滤信息
+        ?limit=10 指定记录返回条数
+        ?offset=10  记录开始的位置
+        ?page=2&per_page=100 指定第几页,以及每页记录数
+    七. 状态信息
+        201状态码，表示生成了新的资源
+        400 Bad Request：服务器不理解客户端的请求，未做任何处理。
+        401 Unauthorized：用户未提供身份验证凭据，或者没有通过身份验证。
+        403 Forbidden：用户通过了身份验证，但是不具有访问资源所需的权限。
+        404 Not Found：所请求的资源不存在，或不可用。
+        405 Method Not Allowed：用户已经通过身份验证，但是所用的 HTTP 方法不在他的权限之内。
+        500 服务器错误
+    八. 错误处理
+        如果状态码为4xx,就应该向客户端返回出错信息,一般出错信息以error为key.如
+        {'error':'Invalid key'}
+    九. 返回结果
+        get /collection  获取多个信息,一般返回资源对象的列表
+        get /collection/resource 返回单个对象,一般为字典形式
+        post /collection  应该把提交后更新的数据返回给客户端
+    十. Hypermedia API
+        提供的api最好符合Hypermedia规范,即返回的列表中包含链接,链向其它的方法,这样用户不用查文档也知道下一步要做什么
+        比如git的api, 直接访问就返回一个方法的字典,看名字就知道意思了.
+
+django-rest-framework
+    djangorestframework是一个标准的restful规范的api接口程序,利用这个程序可以快速的创建一个标准的api接口,将需要提供给外部
+    用的数据从数据库取出来,以json的格式返回给客户.
+    还可以通过该接口修改发布出来的数据.修改数据需要在登录状态才能修改。
+
+    具体配置可参考官方链接:https://www.django-rest-framework.org/
+    用-i指定安装软件的源,指定国内源这样速度会更快
+    pip3 install  -i https://pypi.tuna.tsinghua.edu.cn/simple djangorestframework
+    注意,使用这个模块时,如果采用了自定义的用户认证,那么认证表里面需要有has_perms的方法,如果没有,访问接口链接就会报下面的错.
+    AttributeError at /api/Manufactory/
+    'UserProfile' object has no attribute 'has_perms'
+    我们自定义了UserProfile用户认证,需要有下面的has_perms方法
+    class UserProfile(AbstractBaseUser):
+        def has_perms(self, perm, obj=None):     #自定义权限系统
+            return True
+    另外,如果你在序列化的函数里面,定义的表引用了外键的字段,那么该外键关联的表你也需要写到url里面去,要能够通过url访问,不然就会报错了
+    ImproperlyConfigured at /api/asset/
+    Could not resolve URL for hyperlinked relationship using view name "manufactory-detail". You may have failed to include the related model in your API, or incorrectly configured the `lookup_field` attribute on this field.
+
+    配置步骤:
+    1. 安装包
+        pip3 install  -i https://pypi.tuna.tsinghua.edu.cn/simple djangorestframework
+
+    2.在settings.py里面配置下面选项
+        INSTALLED_APPS = [
+            ...
+            'rest_framework',
+        ]
+        REST_FRAMEWORK = {
+            # Use Django's standard `django.contrib.auth` permissions,
+            # or allow read-only access for unauthenticated users.
+            'DEFAULT_PERMISSION_CLASSES': [
+                'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+            ]
+        }
+
+    3. 写一个序列化数据的类
+       这个类用于定义从数据库中读取哪些表表的指定列的数据,并生成json格式.
+        from rest_framework import serializers
+        from Sansa import models
+        # Serializers define the API representation.
+        class AssetSerializer(serializers.HyperlinkedModelSerializer):
+            class Meta:
+                model = models.Asset    #要暴露出去的表
+                fields = ['sn', 'name','manufactory', 'id', 'asset_type']   #要提供哪些字段出去
+
+        class ManufactorySerializer(serializers.HyperlinkedModelSerializer):
+            class Meta:
+                model = models.Manufactory    #要暴露出去的表
+                fields = ['manufactory', 'support_num', 'id', ]   #要提供哪些字段出去
+
+    4.写一个视图
+        这个视图函数用于读取指定表的指定数据,并将读取出来的数据交给上面的序列化类去生成Json数据
+        from rest_framework import viewsets
+        from Sansa import models
+        from stark.rest_serialize import AssetSerializer
+        from stark.rest_serialize import ManufactorySerializer
+        # ViewSets define the view behavior.
+        class AssetViewSet(viewsets.ModelViewSet):
+            queryset = models.Asset.objects.all()   #先把表里面的数据全读取出来
+            serializer_class = AssetSerializer  #交给AssetSerializer去对数据序列化
+
+        class ManufactoryViewSet(viewsets.ModelViewSet):
+            queryset = models.Manufactory.objects.all()
+            serializer_class = ManufactorySerializer
+
+
+    3. 在urls.py里面配置
+        生成url,并指定url访问我们前面定义的类
+        from rest_framework import routers
+        from stark.rest_views import AssetViewSet
+        from stark.rest_views import ManufactoryViewSet
+
+        # Routers provide an easy way of automatically determining the URL conf.
+        router = routers.DefaultRouter()
+        router.register('asset', AssetViewSet)  #这里的asset和url里面写的api/相结合,组成api/asset
+        router.register('Manufactory', ManufactoryViewSet)
+        urlpatterns = [
+            ...
+            path('api-auth/', include('rest_framework.urls',namespace='rest_framework')),   #api认证
+            path('api/', include(router.urls)),  #只要是api开头的,都映射到这里面,当访问api/asset时,就会跳到AssetViewSet
+        ]
+
+    调用:
+        返回json格式: http://127.0.0.1:8000/api/?format=json
+        浏览器访问: http://127.0.0.1:8000/api/
+        访问具体的某张表: http://127.0.0.1:8000/api/asset/
+        访问某条具体的数据(后面的2就是数据的ID): http://127.0.0.1:8000/api/asset/2/
+
+    如果有外键关联,会返回外键的链接
+    使用HyperlinkedModelSerializer会返回外键的链接
+    class AssetSerializer(serializers.HyperlinkedModelSerializer)
+        xxx
+
+        {
+            "sn": "testsn",
+            "name": "cisco2650",
+            "manufactory": "http://127.0.0.1:8000/api/Manufactory/2/",
+            "id": 2,
+            "asset_type": "switch"
+        }
+    使用ModelSerializer将返回外键id
+    class AssetSerializer(serializers.ModelSerializer):
+        xxx
+        {
+        "sn": "testsn",
+        "name": "cisco2650",
+        "manufactory": 2,
+        "id": 2,
+        "asset_type": "switch"
+    }
+    使用ModelSerializer和depth=2，可以把外键的数据全部显示出来
+    class AssetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Asset    #要暴露出去的表
+        depth = 2
+
+        {
+        "sn": "00342-35425-14132-AAOEM",
+        "name": "huawei",
+        "manufactory": {
+            "id": 11,
+            "manufactory": "HUAWEI",
+            "support_num": null,
+            "memo": null
+        },
+        "id": 16,
+        "asset_type": "server"
+    }
+
+    一般调用网站都是通过api去调用,而不是用爬虫去爬数据. 通过api调用返回的直接是json数据,直接处理就行了.
+    比如github就有提供api: https://developer.github.com/v4/
+    通过调用github的api, 可以实现当有人提交代码时,就自动触发部署应用.还可以查询登录用户,查看有没有人提交等各种功能.
+
+表格制作
+    hcharts 和 echarts
+    echarts是apache的一个开源项目,可以提供各种图表的生成.
+    hcharts可以提供地图功能/股票图/甘特图/饼图/仪表盘/监控图等  静态图动态图都有
+
+OAuth2.0登录认证
+    我们平时见到的第三方网站通过qq登录/微信登录这种就是使用了oauth. 可以申请开通qq/微信授权认证

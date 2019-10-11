@@ -5,9 +5,11 @@ from django.core.exceptions import ObjectDoesNotExist
 #from django.http.response import HttpResponse
 from Sansa import core,models
 import json
+from Sansa import utils
 # Create your views here.
 
 @csrf_exempt    #csrf免除,因为我们这个post请求没有页面,也就没法传csrf token过去,这里就直接跳过验证
+@utils.token_required
 def asset_report(request):
     print(request.GET)
     if request.method == 'POST':

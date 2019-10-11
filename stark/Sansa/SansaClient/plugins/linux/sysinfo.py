@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Auther: sunjb
-import subprocess, os, re, netifaces
+import subprocess, os, re, sys, netifaces
 
 
 def collect():
