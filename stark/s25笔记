@@ -699,3 +699,168 @@ django-rest-framework
 
 OAuth2.0登录认证
     我们平时见到的第三方网站通过qq登录/微信登录这种就是使用了oauth. 可以申请开通qq/微信授权认证
+
+
+生成环境部署django项目  全栈开发92-01
+    uWSGI+nginx+django
+    uWSGI主要特点：
+        1.超快性能 远高于fastcgi
+        2. 低内存暂用
+        3. 多app管理
+        4. 详尽的日志功能
+        5. 高度可定制
+
+    安装
+        pip3 install uwsgi
+    测试代码
+        # cat uwsgi.py
+        #! /usr/bin/env python3
+        def application(env,start_response):
+          start_response('200 ok',[('Content-Type','text/html')])
+          return [b'hello word']
+    启动
+        uwsgi --http :9000 --wsgi-file uwsgi.py
+
+django+uwsgi+nginx
+    先将整个项目放在web站点目录下,我这里放在了/var/www/html下.
+
+    确保在app的目录下有wsgi.py文件(这个文件在创建django app时会自动生成)
+    stark/wsgi.py
+        import os
+        from django.core.wsgi import get_wsgi_application
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'stark.settings')
+        application = get_wsgi_application()
+
+    创建uwsgi.ini配置文件/etc/uwsgi/uwsgi.ini
+    mkdir /etc/uwsgi/
+    /etc/uwsgi/uwsgi.ini
+        [uwsgi]
+        #http访问的端口号,如果交给nginx处理这个就可以关闭
+        #http = :9000
+        #和nginx通信的socket地址
+        socket = 127.0.0.1:8001
+        #django项目根目录
+        chdir = /var/www/html/stark
+        # Django's wsgi 文件路径,这个路径是相对于chdir的
+        wsgi-file = stark/wsgi.py
+        #启动进程数
+        processes = 4
+        #每个进程启动的线程数
+        threads = 2
+        #开启线程
+        enable-threads = true
+        #wsgi监控地址,用于查看wsgi运行状态,可不开启
+        stats = 127.0.0.1:9191
+        #当服务停止时自动移除socket和pid文件
+        vacuum = true
+        #定义运行的用户
+        uid = www
+        pid = www
+        #启动主进程
+        master = true
+        #PID文件
+        pidfile = /run/uwsgi/uwsgi.pid
+        # logger日志,注意如果交给systemd去管理,那么这个选项不要打开,否则systemd启动及检测会有问题
+        #daemonize = /var/log/uwsgi.log
+        #socket可以ip:port,也可以是socket文件的形式,在nginx配置中要与这里对应
+        #socket = /www/wwwroot/web/script/uwsgi.sock
+        #socket权限设置
+        #chmod-socket = 644
+
+    编写uwsgi.service服务,让进程用systemd来启动
+    /lib/systemd/system/uwsgi.service
+        [Unit]
+        Description=uwsgi
+        Documentation=uwsgi
+        After=syslog.target
+
+        [Service]
+        #ExecStart=/usr/local/python/bin/uwsgi  --ini /etc/uwsgi/uwsgi.ini --master --enable-threads --uid www --gid www  --plugins=/usr/local/python/bin/python3 --pidfile /run/uwsgi/uwsgi.pid
+        ExecStart=/usr/local/python/bin/uwsgi  --ini /etc/uwsgi/uwsgi.ini
+        ExecReload=/bin/kill -HUP $MAINPID
+        KillSignal=SIGINT
+        Restart=always
+        Type=notify
+        StandardError=syslog
+        NotifyAccess=all
+
+        [Install]
+        WantedBy=multi-user.target
+
+    启动uwsgi
+        mkdir /run/uwsgi
+        systemctl daemon-reload
+        systemctl start uwsgi
+
+    修改django配置,添加静态根目录,并且关闭debug模式.生产上不应该debug,会带来安全风险
+    注意:当DEBUG关闭后,访问默认首页是不会出现url列表的,会直接无法访问了,需要自己手动输入url路径.如/admin.
+    settings.py
+        STATIC_ROOT = os.path.join(BASE_DIR, "static_all")
+        #DEBUG = True
+
+    生成静态文件目录,会将所有app的静态文件拷贝到同一个目录
+        python3 manage.py collectstatic
+
+    编辑nginx配置文件
+    stark.conf
+        # configuration of the server
+        server {
+            # the port your site will be served on
+            listen      80;
+            # the domain name it will serve for
+            server_name cmdb.myproject.net; # substitute your machine's IP address or FQDN
+            charset     utf-8;
+
+            # max upload size
+            client_max_body_size 75M;   # adjust to taste
+
+            # Django media
+            location /media  {
+                alias /path/to/your/mysite/media;  # your Django project's media files - amend as required
+            }
+
+            #这里的url和目录要与django里面定义的一致
+            location /static {
+                alias /var/www/html/static_all; # your Django project's static files - amend as required
+            }
+
+            #下面的include名称要与nginx/conf下面的uwsgi_params文件名称一致
+            #uwsgi_pass后面的django是下面定义的upstream的名称
+            #Finally, send all non-media requests to the Django server.
+            location / {
+                include uwsgi_params;
+                uwsgi_pass  django;
+            }
+        }
+
+        # the upstream component nginx needs to connect to
+        # 这里的server Ip和端口要与uwsgi配置里面定义的一致
+        upstream django {
+            # server unix:///path/to/your/mysite/mysite.sock; # for a file socket
+            server 127.0.0.1:8001; # for a web port socket (we'll use this first)
+        }
+
+    确保nginx的conf目录下有uwsgi_params文件(这个文件默认安装nginx就有)
+    uwsgi_params
+        uwsgi_param  QUERY_STRING       $query_string;
+        uwsgi_param  REQUEST_METHOD     $request_method;
+        uwsgi_param  CONTENT_TYPE       $content_type;
+        uwsgi_param  CONTENT_LENGTH     $content_length;
+
+        uwsgi_param  REQUEST_URI        $request_uri;
+        uwsgi_param  PATH_INFO          $document_uri;
+        uwsgi_param  DOCUMENT_ROOT      $document_root;
+        uwsgi_param  SERVER_PROTOCOL    $server_protocol;
+        uwsgi_param  HTTPS              $https if_not_empty;
+
+        uwsgi_param  REMOTE_ADDR        $remote_addr;
+        uwsgi_param  REMOTE_PORT        $remote_port;
+        uwsgi_param  SERVER_PORT        $server_port;
+        uwsgi_param  SERVER_NAME        $server_name;
+
+    以上全部配置完毕后,确保uwsgi正确启动,且访问正常.
+    启动nginx,就可以通过nginx来访问django项目了.并且支持大并发.
+        /etc/init.d/nginx start
+
+
+
