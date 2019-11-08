@@ -7,26 +7,19 @@ import xlwt, xlrd
 from xlutils import copy
 import os, time
 import key
-
+'''
+本脚本用于读取表格图片的内容，并生成数据输入到对应的excel
+'''
 client = AipOcr(key.APP_ID, key.API_KEY, key.SECRET_KEY)
-
-
 
 class img_to_str(object):
     '''
     通过调用百度ocr api，将图片中的文字转化为文字
     '''
     def __init__(self, image_path):
-        """ 如果有可选参数 """
-
-        options = {}
-        options["language_type"] = "CHN_ENG"
-        options["detect_direction"] = "true"
-        options["detect_language"] = "true"
-        options["probability"] = "true"
         self.image = self.get_file_content(image_path)
 
-    def get_file_content(filePath):
+    def get_file_content(self,filePath):
         """ 读取图片 """
         with open(filePath, 'rb') as fp:
             return fp.read()
@@ -35,15 +28,14 @@ class img_to_str(object):
         # 高精度识别
         result = client.basicAccurate(self.image)
         print(result)
-
         if 'words_result' in result:
             data = []
             for w in result['words_result']:
                 data.append(w['words'])
-            row = data[0]
-            col = data[1:]
-            # print(row,col)
-            return row, col
+            row_content = data[0]
+            col_content = data[1:]
+            # print(row_content,col_content)
+            return row_content, col_content
         return '识别错误'
 
     def accurate(self):
@@ -60,14 +52,16 @@ class img_to_str(object):
     def basicGeneral(self):
         # 基础识别
         result = client.basicGeneral(self.image)
+        print(result)
 
+'''
     def tableRecognitionAsync(self):
-        # 表格识别
+        # 表格识别,注意表格识别是异步的，需要把request_id传递给get_result方法再次生成excel
         result = client.tableRecognitionAsync(self.image)
         print(result)
-        rst = result['result'][0]['request_id']
-        print(rst)
-        return rst
+        request_id = result['result'][0]['request_id']
+        print(request_id)
+        return request_id
 
     def get_result(request_id):
         requestId = request_id
@@ -81,15 +75,16 @@ class img_to_str(object):
         #
         # """ 带参数调用表格识别结果 """
         # client.getTableRecognitionResult(requestId, options)
-
+'''
 
 class cut_img(object):
-    '''用于裁剪图片,需要裁剪的像素点可以用画图软件打开图片,然后鼠标悬念的位置就会显示图片位置信息'''
-
-    def __init__(self, points, save_path, img_dir):
+    '''用于裁剪图片,需要裁剪的像素点可以用画图软件打开图片,然后鼠标悬念的位置就会显示图片位置信息
+    批量处理相同的表格时，要保证表格的位置都一致，这样才能基于像素截取到指定的单元格内容'''
+    def __init__(self, points, img_dir,excel_name='自动生成.xls'):
         self.points = points
-        self.save_path = save_path
+        self.cut_img_name = 'tmp.jpg'
         self.img_dir = img_dir
+        self.excel_name=excel_name
 
     def cut(self, point):
         '''
@@ -99,7 +94,7 @@ class cut_img(object):
         '''
         img = Image.open(self.img_path)
         region = img.crop(point)
-        region.save(self.save_path)
+        region.save(self.cut_img_name)
         #img_size = img.size
         # print("图片宽度和高度分别是{}".format(img_size))
         # 截取图片中一块宽和高都是250的
@@ -109,42 +104,46 @@ class cut_img(object):
         # h = 225
         # region = img.crop((x, y, w, h))
 
-
+class handler(cut_img):
     def pre_cut(self):
+        '''根据point来将图片截取为多张图片，并识别生成excel'''
         ins_col = 0
         for point in self.points:
             time.sleep(2)
             ins_col = ins_col + 1
+            #裁剪图片
             self.cut(point)
-            trans_img = img_to_str(self.save_path)
-            row, col = trans_img.basicAccurate()
-            excel_obj = excel_class(row, col, ins_col, self.start_row)
-            # if ins_col == 1:
-            #     excel_obj.write_excel()
-            # else:
+            #将裁剪的图片识别成文字
+            trans_img = img_to_str(self.cut_img_name)
+            row_content, col_content = trans_img.basicAccurate()
+            #将识别的文字写入excel
+            excel_obj = excel_class(row_content, col_content, ins_col, self.start_row,excel_name=self.excel_name)
             excel_obj.change_excel()
 
-    def read_img(self):
+    def handler_img(self):
+        '''读取文件夹里面的图片，并交给pre_cut()处理'''
         images = os.listdir(self.img_dir)
-        # num=0
+        #首先创建excel
+        excel_class.create_excel(self.excel_name)
         for image in images:
-            # num=num+1
             self.img_path = os.path.join(self.img_dir, image)
-            excel_obj = excel_class()
-            row, col = excel_obj.read_excel()
+            #读取excel里面的内容，获取到已有的文本行数，作为下次追加内容的起点
+            row, col = excel_class(excel_name=self.excel_name).read_excel()
             self.start_row = row
+            #print(self.start_row)
             self.pre_cut()
-
+        os.remove(self.cut_img_name)    #删除临时生成的图片文件
 
 class excel_class(object):
     '''用于读取/新建/修改excel表格'''
-    def __init__(self, row=None, col=None, ins_col=None, start_row=0, start_col=0):
-        self.row = row
-        self.col = col
+    def __init__(self, row_content=None, col_content=None, ins_col=None, start_row=0, start_col=0,excel_name='test.xls'):
+        self.row_content = row_content
+        self.col_content = col_content
         self.ins_col = ins_col
-        self.start_row = start_row  #起始行
-        self.start_col = start_col
-        # print(self.row,self.col)
+        self.start_row_num = start_row  #起始行
+        self.start_col_num = start_col
+        self.excel_name = excel_name
+        # print(self.start_row_num,self.start_col_num)
 
     # 设置表格样式
     def set_style(self, name, height, bold=False):
@@ -159,9 +158,10 @@ class excel_class(object):
 
     # 读Excel
     def read_excel(self):
-        book = xlrd.open_workbook('test.xls')
+        book = xlrd.open_workbook(self.excel_name)
         #读取表格里面第一个sheet标签的内容
         sheet = book.sheet_by_index(0)  # 根据sheet编号来
+        # print(sheet.nrows, sheet.ncols)
         #返回表格里面的行数和列数
         return sheet.nrows, sheet.ncols
 
@@ -175,13 +175,20 @@ class excel_class(object):
         # for i in range(sheet.nrows):  # 循环获取每行的内容
         #     print(sheet.row_values(i))
 
+    #创建Excel
+    @staticmethod
+    def create_excel(excel_name):
+        f = xlwt.Workbook()
+        sheet1 = f.add_sheet('测试',cell_overwrite_ok=True)
+        f.save(excel_name)
+
     # 写Excel
     def write_excel(self):
         f = xlwt.Workbook()
         #写入excel，标签名称为"测试"
         sheet1 = f.add_sheet('测试', cell_overwrite_ok=True)
-        row0 = [self.row]
-        colum0 = self.col
+        row0 = [self.row_content]
+        colum0 = self.col_content
 
         # 在第一行里面写入多列数据
         for i in range(0, len(row0)):
@@ -190,7 +197,7 @@ class excel_class(object):
         # 在i+1行的self.ins_col列写入数据
         for i in range(0, len(colum0)):
             sheet1.write(i + 1, self.ins_col, colum0[i], self.set_style('Times New Roman', 220, True))
-        f.save('test.xls')
+        f.save(self.excel_name)
 
         # sheet1.write(1,3,'2006/12/12')
         # sheet1.write_merge(6,6,1,3,'未知')#合并行单元格
@@ -200,53 +207,25 @@ class excel_class(object):
 
     # 修改excel
     def change_excel(self):
-        f = xlrd.open_workbook('test.xls')
+        f = xlrd.open_workbook(self.excel_name)
         new_book = copy.copy(f)
         sheet1 = new_book.get_sheet(0)
-        row0 = [self.row]
-        colum0 = self.col
-        if self.start_row == 0:
+        row_list = [self.row_content]
+        col_list = self.col_content
+        if self.start_row_num == 0: #如果第一次循环，则添加表头
+            print('start_row_num为0')
             # 写第一行
-            for i in range(0, len(row0)):
-                sheet1.write(0, self.ins_col, row0[i], self.set_style('Times New Roman', 220, True))
-        # 写列
-        for i in range(0, len(colum0)):
-            sheet1.write(self.start_row + i + 1, self.ins_col, colum0[i], self.set_style('Times New Roman', 220, True))
-        new_book.save('test.xls')
+            for i in range(0, len(row_list)):
+                sheet1.write(0, self.ins_col, row_list[i], self.set_style('Times New Roman', 220, True))
+            for i in range(0, len(col_list)):
+                sheet1.write(i + 1, self.ins_col, col_list[i], self.set_style('Times New Roman', 220, True))
+        else:   #如果不是第一次循环，则不添加表头，只追加内容
+            # 写列
+            for i in range(0, len(col_list)):
+                sheet1.write(self.start_row_num + i, self.ins_col, col_list[i], self.set_style('Times New Roman', 220, True))
+        new_book.save(self.excel_name)
 
 
 points = [(99, 492, 336, 868), (343, 490, 457, 870), (883, 490, 1006, 870)]
-# cut_obj=cut_img(points,img_path='img/3.jpg',save_path='./test5.jpg')
-cut_obj = cut_img(points, img_dir='img', save_path='./test5.jpg')
-cut_obj.read_img()
-
-# trans_img=img_to_str('test5.jpg')
-# trans_img.basicAccurate()
-
-# img_str=img_to_str('test4.jpg')
-# get_result('17721178_1211621')
-
-# """ 如果有可选参数 """
-# options = {}
-# options["language_type"] = "CHN_ENG"
-# options["detect_direction"] = "true"
-# options["detect_language"] = "true"
-# options["probability"] = "true"
-#
-# """ 带参数调用通用文字识别, 图片参数为本地图片 """
-# client.basicGeneral(image, options)
-#
-# url = "https//www.x.com/sample.jpg"
-#
-# """ 调用通用文字识别, 图片参数为远程url图片 """
-# client.basicGeneralUrl(url);
-#
-# """ 如果有可选参数 """
-# options = {}
-# options["language_type"] = "CHN_ENG"
-# options["detect_direction"] = "true"
-# options["detect_language"] = "true"
-# options["probability"] = "true"
-#
-# """ 带参数调用通用文字识别, 图片参数为远程url图片 """
-# client.basicGeneralUrl(url, options)
+handler_obj=handler(points,'img')
+handler_obj.handler_img()
